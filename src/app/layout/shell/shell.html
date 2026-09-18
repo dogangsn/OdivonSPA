@@ -1,0 +1,109 @@
+<div class="flex h-screen bg-slate-50 dark:bg-[#0b1120] overflow-hidden">
+  <!-- Mobile backdrop -->
+  @if (sidebarOpen()) {
+    <div class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden" (click)="closeSidebar()"></div>
+  }
+
+  <!-- Sidebar -->
+  <aside
+    class="fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 flex flex-col transition-transform duration-200 -translate-x-full lg:translate-x-0"
+    [class.translate-x-0]="sidebarOpen()"
+  >
+    <div class="h-16 flex items-center gap-2.5 px-6 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
+      <app-logo [size]="36" class="rounded-xl shadow-md shadow-indigo-500/20 shrink-0"></app-logo>
+      <span class="text-lg font-black text-slate-900 dark:text-white tracking-tight">OdivonSPA</span>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto custom-scroll py-4 px-3 space-y-5">
+      @for (group of visibleGroups(); track group.title) {
+        <div>
+          <div class="px-3 mb-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            {{ group.title }}
+          </div>
+          <div class="space-y-0.5">
+            @for (item of group.items; track item.route) {
+              <a
+                [routerLink]="item.route"
+                routerLinkActive="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400"
+                #rla="routerLinkActive"
+                (click)="closeSidebar()"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <mat-icon
+                  class="icon-size-5"
+                  [class.text-indigo-600]="rla.isActive"
+                  [class.dark:text-indigo-400]="rla.isActive"
+                  [svgIcon]="item.icon"
+                ></mat-icon>
+                <span>{{ item.label }}</span>
+              </a>
+            }
+          </div>
+        </div>
+      }
+    </nav>
+  </aside>
+
+  <!-- Main column -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- Topbar -->
+    <header
+      class="h-16 shrink-0 flex items-center gap-3 px-4 sm:px-6 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900"
+    >
+      <button
+        type="button"
+        (click)="toggleSidebar()"
+        class="lg:hidden w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center cursor-pointer"
+      >
+        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:bars-3'"></mat-icon>
+      </button>
+
+      <div class="relative flex-1 max-w-md">
+        <mat-icon
+          class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 icon-size-4.5"
+          [svgIcon]="'heroicons_solid:magnifying-glass'"
+        ></mat-icon>
+        <input
+          type="text"
+          placeholder="Müşteri, randevu, telefon ara..."
+          class="w-full pl-10 pr-4 py-2.5 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all"
+        />
+      </div>
+
+      <div class="flex-1"></div>
+
+      <button
+        type="button"
+        class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 flex items-center justify-center cursor-pointer relative"
+      >
+        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:bell'"></mat-icon>
+      </button>
+
+      <div class="flex items-center gap-2.5 pl-2 border-l border-slate-200 dark:border-slate-800">
+        <div
+          class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-xs font-bold flex items-center justify-center shrink-0"
+        >
+          {{ userInitials() }}
+        </div>
+        <div class="hidden sm:block leading-tight">
+          <div class="text-xs font-bold text-slate-900 dark:text-white truncate max-w-32">{{ userEmail() }}</div>
+          <div class="text-[11px] text-slate-400">{{ userRoleLabel() }}</div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        (click)="logout()"
+        class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+      >
+        <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:arrow-right-start-on-rectangle'"></mat-icon>
+        <span class="hidden sm:inline">Çıkış</span>
+      </button>
+    </header>
+
+    <!-- Page content -->
+    <main class="flex-1 overflow-y-auto custom-scroll p-4 sm:p-6">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,97 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Ödemeler</h1>
+      <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Seans dışı ödeme kayıtları ve iadeler.</p>
+    </div>
+    <button type="button" (click)="openCreateDrawer()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+      <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+      <span>+ Yeni Ödeme</span>
+    </button>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto custom-scroll">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th class="py-3.5 px-6">Müşteri</th>
+            <th class="py-3.5 px-6">Yöntem</th>
+            <th class="py-3.5 px-6">Tutar</th>
+            <th class="py-3.5 px-6">Not</th>
+            <th class="py-3.5 px-6">Tarih</th>
+            <th class="py-3.5 px-6 text-right">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
+          @for (p of payments(); track p.id) {
+            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+              <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">{{ p.customerId ? customerNameById().get(p.customerId) || '—' : '—' }}</td>
+              <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ paymentMethodLabels[p.method] }}</td>
+              <td class="py-4 px-6">
+                <span [class]="p.amount < 0 ? 'font-bold text-rose-600 dark:text-rose-400' : 'font-semibold text-slate-900 dark:text-white'">
+                  ₺{{ p.amount | number: '1.2-2' }}
+                </span>
+                @if (p.isRefund) {
+                  <app-status-badge label="İade" variant="rose" class="ml-2"></app-status-badge>
+                }
+              </td>
+              <td class="py-4 px-6 text-slate-500 dark:text-slate-400">{{ p.note || '—' }}</td>
+              <td class="py-4 px-6 text-slate-500 dark:text-slate-400">{{ p.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}</td>
+              <td class="py-4 px-6 text-right">
+                @if (!p.isRefund && p.amount > 0) {
+                  <button type="button" (click)="refund(p.id)" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 cursor-pointer">
+                    İade Et
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <app-empty-state icon="heroicons_outline:credit-card" title="Henüz Ödeme Yok" description="Yeni bir ödeme kaydederek hemen başlayabilirsiniz.">
+                  <button type="button" (click)="openCreateDrawer()" class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer">
+                    + İlk Ödemeyi Ekle
+                  </button>
+                </app-empty-state>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-slide-over-drawer [open]="drawerOpen()" title="Yeni Ödeme" widthClass="max-w-md" (closed)="closeDrawer()">
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Müşteri</label>
+    <select [(ngModel)]="form.customerId" name="customerId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+      <option value="">Bağımsız (müşterisiz)</option>
+      @for (c of customers(); track c.id) { <option [value]="c.id">{{ c.ad }}</option> }
+    </select>
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Yöntem</label>
+      <select [(ngModel)]="form.method" name="method" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+        @for (m of paymentMethods; track m) { <option [value]="m">{{ paymentMethodLabels[m] }}</option> }
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Tutar (₺)</label>
+      <input type="number" min="0" step="0.01" [(ngModel)]="form.amount" name="amount" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+    </div>
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Not</label>
+    <input type="text" [(ngModel)]="form.note" name="note" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+
+  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
+    <button type="button" (click)="closeDrawer()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer">Vazgeç</button>
+    <button type="button" (click)="save()" [disabled]="saving()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    </button>
+  </div>
+</app-slide-over-drawer>

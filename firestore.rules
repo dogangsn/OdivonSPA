@@ -1,0 +1,159 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function claimTenantId() {
+      return request.auth.token.tenantId;
+    }
+
+    function claimRole() {
+      return request.auth.token.role;
+    }
+
+    function isTenantMember(tenantId) {
+      return isSignedIn() && claimTenantId() == tenantId;
+    }
+
+    function hasRole(tenantId, roles) {
+      return isTenantMember(tenantId) && claimRole() in roles;
+    }
+
+    function isAdmin(tenantId) {
+      return hasRole(tenantId, ['admin']);
+    }
+
+    function isAdminOrReception(tenantId) {
+      return hasRole(tenantId, ['admin', 'reception']);
+    }
+
+    match /tenants/{tenantId} {
+      allow get: if isTenantMember(tenantId);
+      allow update: if isAdmin(tenantId);
+      // create/delete happen only via the createTenant Cloud Function (Admin SDK).
+      allow create, delete: if false;
+
+      match /staff/{staffId} {
+        allow read: if isTenantMember(tenantId);
+        allow create, update: if isAdmin(tenantId);
+        allow delete: if false; // deactivate via `active: false`, never delete.
+      }
+
+      match /customers/{customerId} {
+        allow read: if isTenantMember(tenantId);
+        allow create, update: if isAdminOrReception(tenantId);
+        allow delete: if false; // soft delete only (`active: false`).
+      }
+
+      match /rooms/{roomId} {
+        allow read: if isTenantMember(tenantId);
+        allow write: if isAdmin(tenantId);
+      }
+
+      match /services/{serviceId} {
+        allow read: if isTenantMember(tenantId);
+        allow write: if isAdmin(tenantId);
+      }
+
+      match /products/{productId} {
+        allow read: if isTenantMember(tenantId);
+        // mevcutStok is also updated here as part of the client-side stock movement transaction.
+        allow update: if isAdminOrReception(tenantId);
+        allow create, delete: if isAdmin(tenantId);
+      }
+
+      match /stockMovements/{movementId} {
+        allow read: if isTenantMember(tenantId);
+        allow create: if isAdminOrReception(tenantId);
+        allow update, delete: if false; // immutable movement log.
+      }
+
+      match /packagePlans/{planId} {
+        allow read: if isTenantMember(tenantId);
+        allow write: if isAdmin(tenantId);
+      }
+
+      match /customerPackages/{packageId} {
+        allow read: if isTenantMember(tenantId);
+        allow create, update: if isAdminOrReception(tenantId);
+        allow delete: if false;
+      }
+
+      match /appointments/{appointmentId} {
+        allow read: if isTenantMember(tenantId);
+        allow create, update: if isAdminOrReception(tenantId);
+        allow delete: if false; // cancel via status: 'İptal'.
+      }
+
+      // Sessions (POS) are written exclusively by the checkoutSession callable (Admin SDK bypasses rules).
+      match /sessions/{sessionId} {
+        allow read: if isTenantMember(tenantId);
+        allow write: if false;
+      }
+
+      match /payments/{paymentId} {
+        allow read: if isTenantMember(tenantId);
+        // Plain (non-refund) manual payments may be entered directly; refunds require the callable.
+        allow create: if isAdminOrReception(tenantId) && request.resource.data.isRefund == false;
+        allow update, delete: if false;
+      }
+
+      match /commissionRules/{ruleId} {
+        allow read: if isAdmin(tenantId);
+        allow write: if isAdmin(tenantId);
+      }
+
+      // Accruals are written by checkoutSession/payoutCommissions callables only.
+      match /commissionAccruals/{accrualId} {
+        allow read: if isAdmin(tenantId) || (isTenantMember(tenantId) && resource.data.staffId == request.auth.uid);
+        allow write: if false;
+      }
+
+      match /commissionPayouts/{payoutId} {
+        allow read: if isAdmin(tenantId);
+        allow write: if false;
+      }
+
+      match /expenses/{expenseId} {
+        allow read: if isAdmin(tenantId);
+        allow write: if isAdmin(tenantId);
+      }
+
+      // Cash register days are only ever written by closeCashRegisterDay/reopenCashRegisterDay.
+      match /cashRegisterDays/{dateId} {
+        allow read: if isTenantMember(tenantId);
+        allow write: if false;
+      }
+
+      match /staffLeaves/{leaveId} {
+        allow read: if isTenantMember(tenantId);
+        allow create: if isAdminOrReception(tenantId) ||
+          (isTenantMember(tenantId) && request.resource.data.staffId == request.auth.uid);
+        allow update, delete: if isAdmin(tenantId);
+      }
+
+      match /tasks/{taskId} {
+        allow read: if isTenantMember(tenantId);
+        allow create: if isAdminOrReception(tenantId);
+        allow update: if isAdminOrReception(tenantId) ||
+          (isTenantMember(tenantId) && resource.data.staffId == request.auth.uid);
+        allow delete: if isAdmin(tenantId);
+      }
+
+      // Audit logs and invites are written exclusively by Cloud Functions (Admin SDK).
+      match /auditLogs/{logId} {
+        allow read: if isAdmin(tenantId);
+        allow write: if false;
+      }
+
+      match /invites/{inviteId} {
+        allow read: if isAdmin(tenantId);
+        allow write: if false;
+      }
+    }
+  }
+}

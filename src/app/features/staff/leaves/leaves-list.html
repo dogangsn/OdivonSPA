@@ -1,0 +1,92 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">İzinler</h1>
+      <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Yıllık izin, rapor, ücretsiz ve diğer izin kayıtları.</p>
+    </div>
+    <button type="button" (click)="openCreateDrawer()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+      <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+      <span>+ Yeni İzin</span>
+    </button>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto custom-scroll">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th class="py-3.5 px-6">Personel</th>
+            <th class="py-3.5 px-6">Tür</th>
+            <th class="py-3.5 px-6">Başlangıç</th>
+            <th class="py-3.5 px-6">Bitiş</th>
+            <th class="py-3.5 px-6">Not</th>
+            <th class="py-3.5 px-6 text-right">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
+          @for (item of items(); track item.id) {
+            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+              <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">{{ staffNameById().get(item.staffId) || '—' }}</td>
+              <td class="py-4 px-6"><app-status-badge [label]="leaveTypeLabels[item.type]" variant="sky"></app-status-badge></td>
+              <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ item.startDate | fsDate }}</td>
+              <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ item.endDate | fsDate }}</td>
+              <td class="py-4 px-6 text-slate-500 dark:text-slate-400">{{ item.note || '—' }}</td>
+              <td class="py-4 px-6 text-right">
+                <button type="button" (click)="remove(item)" class="w-8 h-8 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/60 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer">
+                  <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <app-empty-state icon="heroicons_outline:calendar" title="Henüz İzin Kaydı Yok" description="Yeni bir izin kaydederek hemen başlayabilirsiniz.">
+                  <button type="button" (click)="openCreateDrawer()" class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer">
+                    + İlk İzni Ekle
+                  </button>
+                </app-empty-state>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-slide-over-drawer [open]="drawerOpen()" title="Yeni İzin" widthClass="max-w-md" (closed)="closeDrawer()">
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Personel</label>
+    <select [(ngModel)]="form.staffId" name="staffId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+      <option value="">Seçiniz</option>
+      @for (s of staff(); track s.id) { <option [value]="s.id">{{ s.ad }}</option> }
+    </select>
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">İzin Türü</label>
+    <select [(ngModel)]="form.type" name="type" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+      @for (t of leaveTypes; track t) { <option [value]="t">{{ leaveTypeLabels[t] }}</option> }
+    </select>
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Başlangıç</label>
+      <input type="date" [(ngModel)]="form.startDate" name="startDate" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+    </div>
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Bitiş</label>
+      <input type="date" [(ngModel)]="form.endDate" name="endDate" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+    </div>
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Not</label>
+    <input type="text" [(ngModel)]="form.note" name="note" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+
+  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
+    <button type="button" (click)="closeDrawer()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer">Vazgeç</button>
+    <button type="button" (click)="save()" [disabled]="saving()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    </button>
+  </div>
+</app-slide-over-drawer>

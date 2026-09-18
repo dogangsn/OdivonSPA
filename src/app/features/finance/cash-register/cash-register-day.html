@@ -1,0 +1,115 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Günlük Kasa</h1>
+      <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Ödeme yöntemi kırılımlı ciro, gider ve net kasa.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button type="button" (click)="prevDay()" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center cursor-pointer bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_outline:chevron-left'"></mat-icon>
+      </button>
+      <span class="text-sm font-bold text-slate-900 dark:text-white min-w-28 text-center">{{ dateStr() }}</span>
+      <button type="button" (click)="nextDay()" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center cursor-pointer bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_outline:chevron-right'"></mat-icon>
+      </button>
+      <button type="button" (click)="today()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer bg-white dark:bg-slate-900">
+        Bugün
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <!-- Summary card -->
+    <div class="lg:col-span-2 rounded-2xl p-6 bg-gradient-to-br from-rose-500 via-red-500 to-orange-500 text-white shadow-lg relative overflow-hidden">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-wider opacity-80">Gün Özeti</div>
+          <div class="text-sm font-semibold opacity-90">{{ dateStr() }}</div>
+        </div>
+        <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold" [class]="isClosed() ? 'bg-white/20' : 'bg-white/30'">
+          {{ isClosed() ? 'Kapalı' : 'Açık' }}
+        </span>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-3xl sm:text-4xl font-black tracking-tight">₺{{ displayTotals().netCash | number: '1.2-2' }}</div>
+        <div class="text-xs font-semibold opacity-80 mt-0.5">net kasa</div>
+      </div>
+
+      <div class="flex items-center gap-6 mt-4 text-sm">
+        <div><span class="opacity-70">Gelir</span> <strong class="ml-1">₺{{ displayTotals().totalIncome | number: '1.2-2' }}</strong></div>
+        <div><span class="opacity-70">Gider</span> <strong class="ml-1">₺{{ displayTotals().totalExpense | number: '1.2-2' }}</strong></div>
+      </div>
+
+      <div class="w-full h-2 rounded-full bg-white/20 mt-3 overflow-hidden">
+        <div class="h-full bg-white/80" [style.width.%]="giderOrani()"></div>
+      </div>
+      <div class="text-[11px] font-semibold opacity-80 mt-1">Gider / Gelir — %{{ giderOrani() }}</div>
+
+      <div class="flex flex-wrap gap-2 mt-5">
+        @for (method of paymentMethods; track method) {
+          @if (displayTotals().totalsByMethod[method]) {
+            <span class="px-3 py-1.5 rounded-xl bg-white/15 text-xs font-bold">
+              {{ paymentMethodLabels[method] }}: ₺{{ displayTotals().totalsByMethod[method] | number: '1.2-2' }}
+            </span>
+          }
+        }
+      </div>
+
+      <div class="mt-5">
+        @if (isClosed()) {
+          <button type="button" (click)="reopenDay()" [disabled]="closing()" class="px-4 py-2.5 rounded-xl bg-white text-rose-600 text-xs font-bold shadow-md disabled:opacity-50 cursor-pointer">
+            Kasayı Yeniden Aç
+          </button>
+        } @else {
+          <button type="button" (click)="closeDay()" [disabled]="closing()" class="px-4 py-2.5 rounded-xl bg-white text-rose-600 text-xs font-bold shadow-md disabled:opacity-50 cursor-pointer">
+            Kasa Kapat
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Net Marj -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6 flex flex-col">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Net Marj</h3>
+        @if (auth.isAdmin()) {
+          <span class="text-[11px] text-slate-400">Yönetici görünümü</span>
+        }
+      </div>
+      <app-donut-chart
+        [series]="[displayTotals().netCash, displayTotals().totalExpense]"
+        [labels]="['Net Kasa', 'Gider']"
+        [colors]="['#10b981', '#e2e8f0']"
+        [showLegend]="false"
+        [centerValue]="'%' + netMarjOrani()"
+        centerLabel="net / oran"
+        [height]="160"
+      ></app-donut-chart>
+      <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
+        <span class="text-slate-500 dark:text-slate-400">Prim (Tahakkuk)</span>
+        <span class="font-bold text-amber-600 dark:text-amber-400">₺{{ displayTotals().totalCommission | number: '1.2-2' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6">
+      <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3">Son 7 Gün — Gelir / Gider</h3>
+      <app-line-chart [series]="trendSeries()" [categories]="trendCategories()" [colors]="['#22c55e', '#f43f5e']" [height]="240"></app-line-chart>
+    </div>
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6">
+      <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3">Ödeme Yöntemi Dağılımı</h3>
+      @if (paymentMethodDonut().series.length > 0) {
+        <app-donut-chart
+          [series]="paymentMethodDonut().series"
+          [labels]="paymentMethodDonut().labels"
+          [centerValue]="'₺' + (displayTotals().totalIncome | number: '1.0-0')"
+          [height]="240"
+        ></app-donut-chart>
+      } @else {
+        <p class="text-xs text-slate-400 py-16 text-center">Bu gün için ödeme kaydı yok.</p>
+      }
+    </div>
+  </div>
+</div>

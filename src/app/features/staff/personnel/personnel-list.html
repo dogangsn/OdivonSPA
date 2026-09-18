@@ -1,0 +1,93 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Personel</h1>
+    <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Personel kartı ve aylık performans özeti.</p>
+  </div>
+
+  <div class="flex items-center gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+    <div class="relative flex-1">
+      <mat-icon class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 icon-size-4.5" [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+      <input type="text" [value]="searchQuery()" (input)="onSearchInput($event)" placeholder="Personel ara..." class="w-full pl-10 pr-4 py-2.5 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+    </div>
+    <span class="text-[11px] text-slate-400">Yeni personel eklemek için Kullanıcılar & Roller sayfasını kullanın.</span>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    @for (item of filtered(); track item.id) {
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-3">
+            <span class="w-11 h-11 rounded-full text-white text-sm font-bold flex items-center justify-center shrink-0" [style.background]="item.renk">
+              {{ item.ad.slice(0, 2).toUpperCase() }}
+            </span>
+            <div>
+              <div class="text-sm font-bold text-slate-900 dark:text-white">{{ item.ad }}</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ item.email }}</div>
+            </div>
+          </div>
+          <app-status-badge [label]="roleLabels[item.role]" [variant]="item.role === 'admin' ? 'purple' : item.role === 'therapist' ? 'sky' : 'amber'"></app-status-badge>
+        </div>
+
+        @if (item.uzmanliklar.length) {
+          <div class="flex flex-wrap gap-1 mt-3">
+            @for (tag of item.uzmanliklar; track tag) {
+              <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-semibold">{{ tag }}</span>
+            }
+          </div>
+        }
+
+        <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px]">
+          @let summary = monthlySummaryFor(item.id);
+          <div><span class="text-slate-400">Bu Ay Seans</span><div class="font-bold text-slate-900 dark:text-white">{{ summary.seansAdedi }}</div></div>
+          <div><span class="text-slate-400">Bu Ay Ciro</span><div class="font-bold text-slate-900 dark:text-white">₺{{ summary.ciro | number: '1.0-0' }}</div></div>
+          <div><span class="text-slate-400">Prim Tahakkuk</span><div class="font-bold text-amber-600 dark:text-amber-400">₺{{ summary.primTahakkuk | number: '1.0-0' }}</div></div>
+          <div><span class="text-slate-400">Prim Ödenen</span><div class="font-bold text-emerald-600 dark:text-emerald-400">₺{{ summary.primOdenen | number: '1.0-0' }}</div></div>
+        </div>
+
+        <button type="button" (click)="openEditDrawer(item)" class="w-full mt-4 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+          Profili Düzenle
+        </button>
+      </div>
+    } @empty {
+      <div class="sm:col-span-2 lg:col-span-3">
+        <app-empty-state icon="heroicons_outline:user-circle" title="Henüz Personel Yok" description="Kullanıcılar & Roller sayfasından yeni personel davet edebilirsiniz."></app-empty-state>
+      </div>
+    }
+  </div>
+</div>
+
+<app-slide-over-drawer [open]="drawerOpen()" title="Personeli Düzenle" (closed)="closeDrawer()">
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Uzmanlıklar</label>
+    <input type="text" [(ngModel)]="form.uzmanliklarText" name="uzmanliklar" placeholder="Klasik Masaj, Aromaterapi (virgülle ayırın)" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Varsayılan Prim (%)</label>
+      <input type="number" min="0" max="100" [(ngModel)]="form.primOraniVarsayilan" name="primOrani" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+    </div>
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Renk</label>
+      <input type="color" [(ngModel)]="form.renk" name="renk" class="w-full h-[42px] px-2 py-1 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700" />
+    </div>
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Telefon</label>
+    <input type="text" [(ngModel)]="form.telefon" name="telefon" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">IBAN</label>
+    <input type="text" [(ngModel)]="form.iban" name="iban" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">İşe Giriş Tarihi</label>
+    <input type="date" [(ngModel)]="form.iseGirisTarihi" name="iseGirisTarihi" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+
+  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
+    <button type="button" (click)="closeDrawer()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer">Vazgeç</button>
+    <button type="button" (click)="save()" [disabled]="saving()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    </button>
+  </div>
+</app-slide-over-drawer>

@@ -1,0 +1,147 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Primler</h1>
+      <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Prim kuralı hizmet/hizmet türü/personel bazlı — seansa bağlı otomatik çalışır.</p>
+    </div>
+    <button type="button" (click)="openPayoutDrawer()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white text-xs sm:text-sm font-bold shadow-lg shadow-rose-500/25 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+      <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:credit-card'"></mat-icon>
+      <span>Prim Öde</span>
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+      <div class="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-3">
+        <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:percent-badge'"></mat-icon>
+      </div>
+      <div class="text-2xl font-black text-slate-900 dark:text-white">₺{{ totalAccrued() | number: '1.2-2' }}</div>
+      <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-1">Toplam Tahakkuk</div>
+    </div>
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+      <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3">
+        <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:banknotes'"></mat-icon>
+      </div>
+      <div class="text-2xl font-black text-slate-900 dark:text-white">₺{{ totalPaid() | number: '1.2-2' }}</div>
+      <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-1">Ödenen</div>
+    </div>
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+      <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3">
+        <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:clock'"></mat-icon>
+      </div>
+      <div class="text-2xl font-black text-slate-900 dark:text-white">₺{{ totalPending() | number: '1.2-2' }}</div>
+      <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-1">Bekleyen</div>
+    </div>
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+      <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3">
+        <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:bolt'"></mat-icon>
+      </div>
+      <div class="text-2xl font-black text-slate-900 dark:text-white">₺{{ todayAccrued() | number: '1.2-2' }}</div>
+      <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-1">Bugünkü Prim</div>
+    </div>
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+      <div class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-3">
+        <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:calendar-days'"></mat-icon>
+      </div>
+      <div class="text-2xl font-black text-slate-900 dark:text-white">₺{{ totalAccrued() | number: '1.2-2' }}</div>
+      <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-1">Bu Ay</div>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-2.5">
+    <select [ngModel]="filterStaffId()" (ngModelChange)="filterStaffId.set($event)" class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+      <option value="">Tüm Terapistler</option>
+      @for (s of staff(); track s.id) { <option [value]="s.id">{{ s.ad }}</option> }
+    </select>
+    <select [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)" class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+      <option value="">Tüm Durumlar</option>
+      <option value="pending">Bekleyen</option>
+      <option value="paid">Ödenen</option>
+      <option value="cancelled">İptal</option>
+    </select>
+    <button type="button" (click)="resetFilters()" class="px-3 py-2 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 cursor-pointer">Sıfırla</button>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6">
+      <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-4">Terapist Bazında Prim</h3>
+      <div class="space-y-4">
+        @for (row of staffBreakdown(); track row.staffId) {
+          <div>
+            <div class="flex items-center justify-between text-xs mb-1">
+              <span class="font-bold text-slate-900 dark:text-white">{{ row.name }}</span>
+              <span class="font-semibold text-slate-600 dark:text-slate-300">₺{{ row.amount | number: '1.2-2' }}</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-600" [style.width.%]="row.pct"></div>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-xs text-slate-400 text-center py-8">Bu dönemde prim tahakkuku yok.</p>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6">
+      <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-2">Ödenen Oranı</h3>
+      <app-donut-chart
+        [series]="[totalPaid(), totalPending()]"
+        [labels]="['Ödenen', 'Bekleyen']"
+        [colors]="['#10b981', '#f59e0b']"
+        [showLegend]="false"
+        [centerValue]="'%' + paidRatio()"
+        centerLabel="Ödendi"
+        [height]="160"
+      ></app-donut-chart>
+      <dl class="space-y-2 text-xs mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <div class="flex justify-between"><dt class="text-slate-500 dark:text-slate-400">Ödenen</dt><dd class="font-bold text-emerald-600 dark:text-emerald-400">₺{{ totalPaid() | number: '1.2-2' }}</dd></div>
+        <div class="flex justify-between"><dt class="text-slate-500 dark:text-slate-400">Bekleyen</dt><dd class="font-bold text-amber-600 dark:text-amber-400">₺{{ totalPending() | number: '1.2-2' }}</dd></div>
+        <div class="flex justify-between"><dt class="text-slate-500 dark:text-slate-400">Toplam Tahakkuk</dt><dd class="font-bold text-slate-900 dark:text-white">₺{{ totalAccrued() | number: '1.2-2' }}</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6">
+    <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3">Günlük Prim Trendi (TL)</h3>
+    @if (dailyTrend().series[0].data.length > 0) {
+      <app-line-chart [series]="dailyTrend().series" [categories]="dailyTrend().categories" [colors]="['#f59e0b']" [height]="240"></app-line-chart>
+    } @else {
+      <p class="text-xs text-slate-400 py-16 text-center">Bu dönemde prim tahakkuku yok.</p>
+    }
+  </div>
+</div>
+
+<app-slide-over-drawer [open]="payoutDrawerOpen()" title="Prim Öde" subtitle="Bekleyen tahakkukları seçip toplu öde." (closed)="closePayoutDrawer()">
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Terapist</label>
+    <select [ngModel]="payoutStaffId()" (ngModelChange)="onPayoutStaffChange($event)" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+      @for (s of staff(); track s.id) { <option [value]="s.id">{{ s.ad }}</option> }
+    </select>
+  </div>
+
+  <div class="flex items-center justify-between">
+    <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Bekleyen Tahakkuklar</span>
+    <button type="button" (click)="selectAllPending()" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">Tümünü Seç</button>
+  </div>
+
+  <div class="space-y-2 max-h-64 overflow-y-auto custom-scroll">
+    @for (a of pendingForPayoutStaff(); track a.id) {
+      <label class="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 cursor-pointer">
+        <div class="flex items-center gap-2.5">
+          <input type="checkbox" [checked]="selectedAccrualIds().has(a.id)" (change)="toggleAccrualSelection(a.id)" class="w-4 h-4 rounded accent-indigo-600" />
+          <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">Seans #{{ a.sessionId.slice(0, 6) }}</span>
+        </div>
+        <span class="text-xs font-bold text-slate-900 dark:text-white">₺{{ a.amount | number: '1.2-2' }}</span>
+      </label>
+    } @empty {
+      <p class="text-xs text-slate-400 text-center py-6">Bekleyen tahakkuk yok.</p>
+    }
+  </div>
+
+  <div drawerFooter class="flex items-center justify-between w-full gap-3">
+    <span class="text-xs font-bold text-slate-900 dark:text-white">Seçili Toplam: ₺{{ payoutSelectedTotal() | number: '1.2-2' }}</span>
+    <button type="button" (click)="confirmPayout()" [disabled]="paying() || payoutSelectedTotal() === 0" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+      {{ paying() ? 'Ödeniyor...' : 'Öde' }}
+    </button>
+  </div>
+</app-slide-over-drawer>

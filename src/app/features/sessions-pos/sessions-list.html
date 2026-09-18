@@ -1,0 +1,58 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Seanslar</h1>
+      <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Tamamlanan seans satışları ve fişleri.</p>
+    </div>
+    <a
+      routerLink="/seanslar/yeni"
+      class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer w-fit"
+    >
+      <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+      <span>+ Yeni Seans</span>
+    </a>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto custom-scroll">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th class="py-3.5 px-6">Fiş No</th>
+            <th class="py-3.5 px-6">Müşteri</th>
+            <th class="py-3.5 px-6">Terapist</th>
+            <th class="py-3.5 px-6">Tutar</th>
+            <th class="py-3.5 px-6">Ödeme</th>
+            <th class="py-3.5 px-6">Tarih</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
+          @for (s of sessions(); track s.id) {
+            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+              <td class="py-4 px-6 font-mono text-[11px] font-bold text-slate-900 dark:text-white">{{ s.receiptNo }}</td>
+              <td class="py-4 px-6 text-slate-700 dark:text-slate-200">{{ customerNameById().get(s.customerId) || '—' }}</td>
+              <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ staffNameById().get(s.staffId) || '—' }}</td>
+              <td class="py-4 px-6 font-semibold text-slate-900 dark:text-white">₺{{ s.totalAmount | number: '1.2-2' }}</td>
+              <td class="py-4 px-6">
+                <div class="flex flex-wrap gap-1">
+                  @for (p of s.payments; track p.method) {
+                    <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-semibold">
+                      {{ paymentMethodLabels[p.method] }}
+                    </span>
+                  }
+                </div>
+              </td>
+              <td class="py-4 px-6 text-slate-500 dark:text-slate-400">{{ s.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <app-empty-state icon="heroicons_outline:presentation-chart-line" title="Henüz Seans Yok" description="POS ekranından yeni bir seans oluşturarak hemen başlayabilirsiniz."></app-empty-state>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

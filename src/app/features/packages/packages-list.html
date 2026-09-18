@@ -1,0 +1,204 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Paketler</h1>
+      <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Paket planı kataloğu ve satılan paketlerin kalan hak takibi.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      @if (tab() === 'plans') {
+        <button type="button" (click)="openCreatePlanDrawer()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+          <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+          <span>+ Yeni Plan</span>
+        </button>
+      } @else {
+        <button type="button" (click)="openSellDrawer()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+          <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+          <span>+ Paket Sat</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl w-fit">
+    <button
+      type="button"
+      (click)="tab.set('plans')"
+      [class]="tab() === 'plans' ? 'bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'"
+      class="px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer"
+    >
+      Paket Planları
+    </button>
+    <button
+      type="button"
+      (click)="tab.set('sold')"
+      [class]="tab() === 'sold' ? 'bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'"
+      class="px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer"
+    >
+      Satılan Paketler
+    </button>
+  </div>
+
+  @if (tab() === 'plans') {
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto custom-scroll">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <th class="py-3.5 px-6">Plan</th>
+              <th class="py-3.5 px-6">Bağlı Hizmet</th>
+              <th class="py-3.5 px-6">Seans Adedi</th>
+              <th class="py-3.5 px-6">Fiyat</th>
+              <th class="py-3.5 px-6">Geçerlilik</th>
+              <th class="py-3.5 px-6">Durum</th>
+              <th class="py-3.5 px-6 text-right">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
+            @for (plan of plans(); track plan.id) {
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">{{ plan.ad }}</td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ serviceNameById().get(plan.serviceId) || '—' }}</td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ plan.seansAdedi }} seans</td>
+                <td class="py-4 px-6 font-semibold text-slate-700 dark:text-slate-200">₺{{ plan.fiyat | number: '1.2-2' }}</td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ plan.gecerlilikGunu }} gün</td>
+                <td class="py-4 px-6">
+                  <app-status-badge [label]="plan.active ? 'Aktif' : 'Pasif'" [variant]="plan.active ? 'emerald' : 'slate'" [dot]="true"></app-status-badge>
+                </td>
+                <td class="py-4 px-6 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button type="button" (click)="openEditPlanDrawer(plan)" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-indigo-600 flex items-center justify-center transition-colors cursor-pointer">
+                      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                    </button>
+                    <button type="button" (click)="togglePlanPassive(plan)" class="w-8 h-8 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/60 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer">
+                      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:power'"></mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7">
+                  <app-empty-state icon="heroicons_outline:cube" title="Henüz Paket Planı Yok" description="Yeni bir paket planı ekleyerek hemen başlayabilirsiniz.">
+                    <button type="button" (click)="openCreatePlanDrawer()" class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer">
+                      + İlk Planı Ekle
+                    </button>
+                  </app-empty-state>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  } @else {
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto custom-scroll">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <th class="py-3.5 px-6">Müşteri</th>
+              <th class="py-3.5 px-6">Plan</th>
+              <th class="py-3.5 px-6">Kalan Hak</th>
+              <th class="py-3.5 px-6">Satış Tarihi</th>
+              <th class="py-3.5 px-6">Bitiş Tarihi</th>
+              <th class="py-3.5 px-6">Durum</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
+            @for (pkg of soldPackages(); track pkg.id) {
+              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">{{ customerNameById().get(pkg.customerId) || '—' }}</td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ planById().get(pkg.packagePlanId)?.ad || '—' }}</td>
+                <td class="py-4 px-6 font-semibold text-slate-700 dark:text-slate-200">{{ pkg.kalanSeans }} / {{ pkg.toplamSeans }}</td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ pkg.satisTarihi | fsDate }}</td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ pkg.bitisTarihi | fsDate }}</td>
+                <td class="py-4 px-6">
+                  <app-status-badge
+                    [label]="pkg.status === 'active' ? 'Aktif' : pkg.status === 'expired' ? 'Süresi Doldu' : 'Tamamlandı'"
+                    [variant]="pkg.status === 'active' ? 'emerald' : pkg.status === 'expired' ? 'rose' : 'slate'"
+                    [dot]="true"
+                  ></app-status-badge>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6">
+                  <app-empty-state icon="heroicons_outline:cube" title="Henüz Satılan Paket Yok" description="Bir müşteriye paket satarak hemen başlayabilirsiniz.">
+                    <button type="button" (click)="openSellDrawer()" class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer">
+                      + Paket Sat
+                    </button>
+                  </app-empty-state>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>
+
+<app-slide-over-drawer [open]="planDrawerOpen()" [title]="isEditingPlan() ? 'Planı Düzenle' : 'Yeni Paket Planı'" (closed)="closePlanDrawer()">
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Plan Adı <span class="text-rose-500">*</span></label>
+    <input type="text" [(ngModel)]="planForm.ad" name="planAd" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Bağlı Hizmet <span class="text-rose-500">*</span></label>
+    <select [(ngModel)]="planForm.serviceId" name="planServiceId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+      <option value="">Seçiniz</option>
+      @for (s of services(); track s.id) {
+        <option [value]="s.id">{{ s.ad }}</option>
+      }
+    </select>
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Seans Adedi</label>
+      <input type="number" min="1" [(ngModel)]="planForm.seansAdedi" name="planSeansAdedi" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+    </div>
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Fiyat (₺)</label>
+      <input type="number" min="0" step="0.01" [(ngModel)]="planForm.fiyat" name="planFiyat" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+    </div>
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Geçerlilik Süresi (gün)</label>
+    <input type="number" min="1" [(ngModel)]="planForm.gecerlilikGunu" name="planGecerlilik" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+
+  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
+    <button type="button" (click)="closePlanDrawer()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer">Vazgeç</button>
+    <button type="button" (click)="savePlan()" [disabled]="planSaving()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+      {{ planSaving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    </button>
+  </div>
+</app-slide-over-drawer>
+
+<app-slide-over-drawer [open]="sellDrawerOpen()" title="Paket Sat" widthClass="max-w-md" (closed)="closeSellDrawer()">
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Müşteri <span class="text-rose-500">*</span></label>
+    <select [ngModel]="sellCustomerId()" (ngModelChange)="sellCustomerId.set($event)" name="sellCustomerId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+      <option value="">Seçiniz</option>
+      @for (c of customers(); track c.id) {
+        <option [value]="c.id">{{ c.ad }} — {{ c.telefon }}</option>
+      }
+    </select>
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Paket Planı <span class="text-rose-500">*</span></label>
+    <select [ngModel]="sellPlanId()" (ngModelChange)="sellPlanId.set($event)" name="sellPlanId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+      <option value="">Seçiniz</option>
+      @for (p of plans(); track p.id) {
+        <option [value]="p.id">{{ p.ad }} — {{ p.seansAdedi }} seans — ₺{{ p.fiyat | number: '1.2-2' }}</option>
+      }
+    </select>
+  </div>
+
+  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
+    <button type="button" (click)="closeSellDrawer()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer">Vazgeç</button>
+    <button type="button" (click)="sellPackage()" [disabled]="sellSaving()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+      {{ sellSaving() ? 'Kaydediliyor...' : 'Paketi Sat' }}
+    </button>
+  </div>
+</app-slide-over-drawer>

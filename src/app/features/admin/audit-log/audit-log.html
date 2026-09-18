@@ -1,0 +1,84 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Denetim Kaydı</h1>
+    <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Tüm yazma işlemleri: kim, ne zaman, hangi kayıt, önceki/sonraki değer.</p>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-2.5 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+    <div class="relative flex-1 min-w-48">
+      <mat-icon class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 icon-size-4.5" [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+      <input type="text" [value]="searchQuery()" (input)="onSearchInput($event)" placeholder="Kayıt ID veya kullanıcı e-postası..." class="w-full pl-10 pr-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+    </div>
+    <select [ngModel]="filterEntity()" (ngModelChange)="filterEntity.set($event)" class="px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+      <option value="">Tüm Varlıklar</option>
+      @for (e of entities(); track e) { <option [value]="e">{{ e }}</option> }
+    </select>
+    <select [ngModel]="filterAction()" (ngModelChange)="filterAction.set($event)" class="px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+      <option value="">Tüm İşlemler</option>
+      <option value="create">Oluşturma</option>
+      <option value="update">Güncelleme</option>
+      <option value="delete">Silme</option>
+      <option value="callable">Sistem İşlemi</option>
+    </select>
+    <button type="button" (click)="resetFilters()" class="px-3 py-2 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 cursor-pointer">Sıfırla</button>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto custom-scroll">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th class="py-3.5 px-6">Tarih</th>
+            <th class="py-3.5 px-6">Kullanıcı</th>
+            <th class="py-3.5 px-6">Varlık</th>
+            <th class="py-3.5 px-6">İşlem</th>
+            <th class="py-3.5 px-6">Kayıt ID</th>
+            <th class="py-3.5 px-6 text-right">Detay</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
+          @for (item of paged(); track item.id) {
+            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+              <td class="py-3 px-6 text-slate-500 dark:text-slate-400">{{ item.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}</td>
+              <td class="py-3 px-6 font-semibold text-slate-700 dark:text-slate-200">{{ item.userEmail || item.userId }}</td>
+              <td class="py-3 px-6 text-slate-600 dark:text-slate-300">{{ item.entity }}</td>
+              <td class="py-3 px-6 text-slate-600 dark:text-slate-300">{{ actionLabels[item.action] }}</td>
+              <td class="py-3 px-6 font-mono text-[11px] text-slate-500">{{ item.entityId.slice(0, 10) }}</td>
+              <td class="py-3 px-6 text-right">
+                <button type="button" (click)="toggleExpand(item.id)" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">
+                  {{ expandedId() === item.id ? 'Gizle' : 'Göster' }}
+                </button>
+              </td>
+            </tr>
+            @if (expandedId() === item.id) {
+              <tr>
+                <td colspan="6" class="bg-slate-50/50 dark:bg-slate-800/40 px-6 py-4">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <div class="text-[11px] font-bold uppercase text-slate-400 mb-1">Önceki Değer</div>
+                      <pre class="text-[11px] bg-white dark:bg-slate-900 rounded-lg p-3 overflow-x-auto custom-scroll border border-slate-200 dark:border-slate-800">{{ item.before ? (item.before | json) : '—' }}</pre>
+                    </div>
+                    <div>
+                      <div class="text-[11px] font-bold uppercase text-slate-400 mb-1">Sonraki Değer</div>
+                      <pre class="text-[11px] bg-white dark:bg-slate-900 rounded-lg p-3 overflow-x-auto custom-scroll border border-slate-200 dark:border-slate-800">{{ item.after ? (item.after | json) : '—' }}</pre>
+                    </div>
+                  </div>
+                  @if (item.ip) {
+                    <div class="text-[11px] text-slate-400 mt-2">IP: {{ item.ip }}</div>
+                  }
+                </td>
+              </tr>
+            }
+          } @empty {
+            <tr>
+              <td colspan="6">
+                <app-empty-state icon="heroicons_outline:document-magnifying-glass" title="Kayıt Bulunamadı" description="Seçili filtrelere uyan denetim kaydı yok."></app-empty-state>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)"></app-pagination>
+  </div>
+</div>

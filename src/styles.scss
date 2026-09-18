@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design Tokens & CSS Variables (Odivon Design System) */
+:root {
+  --odivon-bg-default: #f8fafc;
+  --odivon-bg-card: #ffffff;
+  --odivon-text-default: #0f172a;
+  --odivon-text-secondary: #64748b;
+  --odivon-text-muted: #94a3b8;
+  --odivon-border: #e2e8f0;
+  --odivon-bg-hover: rgba(99, 102, 241, 0.08);
+  --odivon-primary: #6366f1;
+  --odivon-primary-hover: #4f46e5;
+  --odivon-primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+}
+
+.dark {
+  --odivon-bg-default: #0b1120;
+  --odivon-bg-card: #1e293b;
+  --odivon-text-default: #f8fafc;
+  --odivon-text-secondary: #94a3b8;
+  --odivon-text-muted: #64748b;
+  --odivon-border: #334155;
+  --odivon-bg-hover: rgba(99, 102, 241, 0.12);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--odivon-bg-default);
+  color: var(--odivon-text-default);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar for Drawers and Tables */
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.3);
+    border-radius: 9999px;
+
+    &:hover {
+      background-color: rgba(148, 163, 184, 0.5);
+    }
+  }
+}
+
+/* Glassmorphism Panel */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.82);
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+/* SaaS Card Hover Effect */
+.odivon-card {
+  background: var(--odivon-bg-card);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+  border-radius: 1rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+  }
+}
+
+.dark .odivon-card {
+  border-color: rgba(51, 65, 85, 0.6);
+  &:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* SweetAlert2 restyle to match design tokens */
+.swal2-popup.odivon-swal {
+  border-radius: 1rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}

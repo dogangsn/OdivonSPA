@@ -1,0 +1,182 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Raporlar</h1>
+      <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Tarih aralığı seçimli rapor; grafik, özet kartı ve dışa aktarım.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <input type="date" [ngModel]="rangeStart()" (ngModelChange)="rangeStart.set($event)" class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300" />
+      <span class="text-slate-400 text-xs">—</span>
+      <input type="date" [ngModel]="rangeEnd()" (ngModelChange)="rangeEnd.set($event)" class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300" />
+      <button type="button" (click)="print()" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+        Yazdır
+      </button>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl w-fit overflow-x-auto">
+    @for (t of tabs; track t) {
+      <button
+        type="button"
+        (click)="tab.set(t)"
+        [class]="tab() === t ? 'bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'"
+        class="px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer capitalize whitespace-nowrap"
+      >
+        {{ t }}
+      </button>
+    }
+  </div>
+
+  @if (tab() === 'ciro') {
+    <div class="space-y-5">
+      <div class="flex justify-end"><button type="button" (click)="exportCiro()" class="px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold cursor-pointer">CSV İndir</button></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Toplam Ciro</div>
+          <div class="text-2xl font-black text-slate-900 dark:text-white mt-1">₺{{ ciroTotal() | number: '1.2-2' }}</div>
+        </div>
+        @for (m of paymentMethods; track m) {
+          <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">{{ paymentMethodLabels[m] }}</div>
+            <div class="text-xl font-black text-slate-900 dark:text-white mt-1">₺{{ ciroByMethod()[m] ?? 0 | number: '1.2-2' }}</div>
+          </div>
+        }
+      </div>
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6">
+        <app-line-chart [series]="ciroByDay().series" [categories]="ciroByDay().categories" [colors]="['#6366f1']" [height]="280"></app-line-chart>
+      </div>
+    </div>
+  }
+
+  @if (tab() === 'seans') {
+    <div class="space-y-5">
+      <div class="flex justify-end"><button type="button" (click)="exportSeans()" class="px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold cursor-pointer">CSV İndir</button></div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Seans Adedi</div>
+          <div class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ seansCount() }}</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Hizmet Cirosu</div>
+          <div class="text-2xl font-black text-slate-900 dark:text-white mt-1">₺{{ seansServiceRevenue() | number: '1.2-2' }}</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Ek Satış (Ürün) Cirosu</div>
+          <div class="text-2xl font-black text-slate-900 dark:text-white mt-1">₺{{ seansProductRevenue() | number: '1.2-2' }}</div>
+        </div>
+      </div>
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
+              <th class="py-3 px-6">Fiş No</th><th class="py-3 px-6">Tutar</th><th class="py-3 px-6">Tarih</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+            @for (s of sessions(); track s.id) {
+              <tr><td class="py-3 px-6 font-mono">{{ s.receiptNo }}</td><td class="py-3 px-6 font-semibold">₺{{ s.totalAmount | number: '1.2-2' }}</td><td class="py-3 px-6 text-slate-500">{{ s.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (tab() === 'gider') {
+    <div class="space-y-5">
+      <div class="flex justify-end"><button type="button" (click)="exportGider()" class="px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold cursor-pointer">CSV İndir</button></div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Toplam Gider</div>
+          <div class="text-3xl font-black text-slate-900 dark:text-white mt-1 mb-4">₺{{ giderTotal() | number: '1.2-2' }}</div>
+          <div class="space-y-2 text-xs">
+            @for (c of expenseCategories; track c) {
+              <div class="flex justify-between"><span class="text-slate-500 dark:text-slate-400">{{ expenseCategoryLabels[c] }}</span><span class="font-bold text-slate-900 dark:text-white">₺{{ giderByCategory().get(c) ?? 0 | number: '1.2-2' }}</span></div>
+            }
+          </div>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-6">
+          <app-donut-chart
+            [series]="[giderByCategory().get('maas') ?? 0, giderByCategory().get('prim') ?? 0, giderByCategory().get('avans') ?? 0, giderByCategory().get('genel') ?? 0]"
+            [labels]="['Maaş', 'Prim', 'Avans', 'Genel']"
+            [height]="220"
+          ></app-donut-chart>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (tab() === 'personel') {
+    <div class="space-y-5">
+      <div class="flex justify-end"><button type="button" (click)="exportPersonel()" class="px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold cursor-pointer">CSV İndir</button></div>
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
+              <th class="py-3 px-6">Personel</th><th class="py-3 px-6">Seans Adedi</th><th class="py-3 px-6">Ciro</th><th class="py-3 px-6">Prim</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+            @for (r of personelBreakdown(); track r.staffId) {
+              <tr><td class="py-3 px-6 font-bold text-slate-900 dark:text-white">{{ r.name }}</td><td class="py-3 px-6">{{ r.seansAdedi }}</td><td class="py-3 px-6 font-semibold">₺{{ r.ciro | number: '1.2-2' }}</td><td class="py-3 px-6 font-semibold text-amber-600 dark:text-amber-400">₺{{ r.prim | number: '1.2-2' }}</td></tr>
+            } @empty {
+              <tr><td colspan="4" class="py-8 text-center text-slate-400">Bu dönemde veri yok.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (tab() === 'prim') {
+    <div class="space-y-5">
+      <div class="flex justify-end"><button type="button" (click)="exportPrim()" class="px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold cursor-pointer">CSV İndir</button></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Tahakkuk</div>
+          <div class="text-2xl font-black text-slate-900 dark:text-white mt-1">₺{{ primTahakkuk() | number: '1.2-2' }}</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Ödenen</div>
+          <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">₺{{ primOdenen() | number: '1.2-2' }}</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Bekleyen</div>
+          <div class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">₺{{ primBekleyen() | number: '1.2-2' }}</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">İptal</div>
+          <div class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">₺{{ primIptal() | number: '1.2-2' }}</div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (tab() === 'paket') {
+    <div class="space-y-5">
+      <div class="flex justify-end"><button type="button" (click)="exportPaket()" class="px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold cursor-pointer">CSV İndir</button></div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Satış Adedi</div>
+          <div class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ paketSatisAdedi() }}</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Satış Tutarı</div>
+          <div class="text-2xl font-black text-slate-900 dark:text-white mt-1">₺{{ paketSatisTutari() | number: '1.2-2' }}</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Kullanım Oranı</div>
+          <div class="text-2xl font-black text-slate-900 dark:text-white mt-1">%{{ paketKullanimOrani() }}</div>
+        </div>
+        <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Durum</div>
+          <div class="text-xs mt-1.5 space-y-0.5">
+            <div>Aktif: <strong>{{ paketDurumDagilimi().active }}</strong></div>
+            <div>Süresi Dolan: <strong>{{ paketDurumDagilimi().expired }}</strong></div>
+            <div>Tamamlanan: <strong>{{ paketDurumDagilimi().tamamlandi }}</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

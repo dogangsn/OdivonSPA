@@ -1,0 +1,90 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Görevler</h1>
+      <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Ekip içi görev takibi.</p>
+    </div>
+    <button type="button" (click)="openCreateDrawer()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+      <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+      <span>+ Yeni Görev</span>
+    </button>
+  </div>
+
+  <div class="flex items-center gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+    <div class="relative flex-1">
+      <mat-icon class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 icon-size-4.5" [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+      <input type="text" [value]="searchQuery()" (input)="onSearchInput($event)" placeholder="Görev ara..." class="w-full pl-10 pr-4 py-2.5 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+    </div>
+  </div>
+
+  <div class="space-y-3">
+    @for (item of filtered(); track item.id) {
+      <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 flex items-center gap-4 shadow-sm">
+        <select
+          [ngModel]="item.status"
+          (ngModelChange)="setStatus(item, $event)"
+          class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+        >
+          @for (s of statuses; track s) { <option [value]="s">{{ statusLabels[s] }}</option> }
+        </select>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-bold text-slate-900 dark:text-white truncate" [class.line-through]="item.status === 'tamamlandi'">{{ item.baslik }}</div>
+          @if (item.aciklama) { <div class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ item.aciklama }}</div> }
+        </div>
+        <app-status-badge [label]="priorityLabels[item.priority]" [variant]="priorityVariant[item.priority]"></app-status-badge>
+        @if (item.staffId) {
+          <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline">{{ staffNameById().get(item.staffId) }}</span>
+        }
+        @if (item.dueDate) {
+          <span class="text-[11px] text-slate-400 hidden sm:inline">{{ item.dueDate | fsDate }}</span>
+        }
+        <button type="button" (click)="remove(item)" class="w-8 h-8 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/60 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer shrink-0">
+          <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+        </button>
+      </div>
+    } @empty {
+      <app-empty-state icon="heroicons_outline:clipboard-document-list" title="Henüz Görev Yok" description="Yeni bir görev ekleyerek hemen başlayabilirsiniz.">
+        <button type="button" (click)="openCreateDrawer()" class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer">
+          + İlk Görevi Ekle
+        </button>
+      </app-empty-state>
+    }
+  </div>
+</div>
+
+<app-slide-over-drawer [open]="drawerOpen()" title="Yeni Görev" widthClass="max-w-md" (closed)="closeDrawer()">
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Başlık</label>
+    <input type="text" [(ngModel)]="form.baslik" name="baslik" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Açıklama</label>
+    <textarea [(ngModel)]="form.aciklama" name="aciklama" rows="2" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all custom-scroll"></textarea>
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Atanan</label>
+      <select [(ngModel)]="form.staffId" name="staffId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+        <option value="">—</option>
+        @for (s of staff(); track s.id) { <option [value]="s.id">{{ s.ad }}</option> }
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Öncelik</label>
+      <select [(ngModel)]="form.priority" name="priority" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+        @for (p of priorities; track p) { <option [value]="p">{{ priorityLabels[p] }}</option> }
+      </select>
+    </div>
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Son Tarih</label>
+    <input type="date" [(ngModel)]="form.dueDate" name="dueDate" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+
+  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
+    <button type="button" (click)="closeDrawer()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer">Vazgeç</button>
+    <button type="button" (click)="save()" [disabled]="saving()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    </button>
+  </div>
+</app-slide-over-drawer>

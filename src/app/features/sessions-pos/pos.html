@@ -1,0 +1,193 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Yeni Seans (POS)</h1>
+    <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Ana hizmet, ek hizmet ve ürünü tek sepette topla, tek işlemde tamamla.</p>
+  </div>
+
+  <!-- Customer / staff / room selection -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+    <div>
+      <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Müşteri</label>
+      <select [ngModel]="customerId()" (ngModelChange)="customerId.set($event)" class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+        <option value="">Seçiniz</option>
+        @for (c of customers(); track c.id) { <option [value]="c.id">{{ c.ad }} — {{ c.telefon }}</option> }
+      </select>
+    </div>
+    <div>
+      <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Terapist</label>
+      <select [ngModel]="staffId()" (ngModelChange)="staffId.set($event)" class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+        <option value="">Seçiniz</option>
+        @for (s of staff(); track s.id) { <option [value]="s.id">{{ s.ad }}</option> }
+      </select>
+    </div>
+    <div>
+      <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Oda</label>
+      <select [ngModel]="roomId()" (ngModelChange)="roomId.set($event)" class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+        <option value="">Seçiniz</option>
+        @for (r of rooms(); track r.id) { <option [value]="r.id">{{ r.ad }}</option> }
+      </select>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <!-- Catalog -->
+    <div class="lg:col-span-2 space-y-4">
+      <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl w-fit">
+        <button type="button" (click)="activeCategory.set('services')" [class]="activeCategory() === 'services' ? 'bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'" class="px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer">
+          Hizmetler
+        </button>
+        <button type="button" (click)="activeCategory.set('products')" [class]="activeCategory() === 'products' ? 'bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'" class="px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer">
+          Ürünler
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        @if (activeCategory() === 'services') {
+          @for (s of services(); track s.id) {
+            <button type="button" (click)="addService(s)" class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all text-left cursor-pointer">
+              <div class="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-2">
+                <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_outline:sparkles'"></mat-icon>
+              </div>
+              <div class="text-xs font-bold text-slate-900 dark:text-white">{{ s.ad }}</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ s.sureDk }} dk</div>
+              <div class="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-1">₺{{ s.fiyat | number: '1.2-2' }}</div>
+            </button>
+          }
+        } @else {
+          @for (p of products(); track p.id) {
+            <button type="button" (click)="addProduct(p)" [disabled]="p.mevcutStok <= 0" class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md transition-all text-left disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+              <div class="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center mb-2">
+                <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_outline:cube-transparent'"></mat-icon>
+              </div>
+              <div class="text-xs font-bold text-slate-900 dark:text-white">{{ p.ad }}</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">Stok: {{ p.mevcutStok }}</div>
+              <div class="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-1">₺{{ p.fiyat | number: '1.2-2' }}</div>
+            </button>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Cart -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm p-5 flex flex-col gap-4 h-fit sticky top-0">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Seans Sepeti</h3>
+        @if (cart().length > 0) {
+          <button type="button" (click)="clearCart()" class="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer">Temizle</button>
+        }
+      </div>
+
+      <div class="space-y-3 max-h-80 overflow-y-auto custom-scroll">
+        @for (line of cart(); track $index) {
+          <div class="border border-slate-100 dark:border-slate-800 rounded-xl p-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="text-xs font-bold text-slate-900 dark:text-white">{{ line.ad }}</div>
+              <button type="button" (click)="removeLine($index)" class="text-slate-400 hover:text-rose-600 cursor-pointer">
+                <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+              </button>
+            </div>
+            <div class="flex items-center gap-2 mt-2">
+              <button type="button" (click)="updateQty($index, line.qty - 1)" class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center cursor-pointer">-</button>
+              <span class="text-xs font-bold w-6 text-center">{{ line.qty }}</span>
+              <button type="button" (click)="updateQty($index, line.qty + 1)" class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center cursor-pointer">+</button>
+              <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 ml-auto">
+                @if (line.customerPackageId) {
+                  <span class="text-emerald-600 dark:text-emerald-400">Paketten</span>
+                } @else {
+                  ₺{{ (line.price * line.qty - line.discount) | number: '1.2-2' }}
+                }
+              </span>
+            </div>
+            @if (line.kind === 'service' && availablePackages().length > 0) {
+              <select
+                [ngModel]="line.customerPackageId ?? ''"
+                (ngModelChange)="setLinePackage($index, $event)"
+                class="w-full mt-2 px-2 py-1.5 rounded-lg text-[11px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+              >
+                <option value="">Ücretli</option>
+                @for (pkg of availablePackages(); track pkg.id) {
+                  <option [value]="pkg.id">Paketten düş ({{ pkg.kalanSeans }} hak kaldı)</option>
+                }
+              </select>
+            }
+          </div>
+        } @empty {
+          <p class="text-xs text-slate-400 text-center py-6">Sepet boş — soldan hizmet veya ürün seçin.</p>
+        }
+      </div>
+
+      <div class="border-t border-slate-100 dark:border-slate-800 pt-3 space-y-1.5 text-xs">
+        <div class="flex justify-between text-slate-500 dark:text-slate-400">
+          <span>Ara Toplam</span>
+          <span class="font-semibold text-slate-700 dark:text-slate-200">₺{{ chargeableSubtotal() | number: '1.2-2' }}</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-500 dark:text-slate-400">
+          <span>İndirim</span>
+          <input
+            type="number"
+            min="0"
+            [ngModel]="globalDiscount()"
+            (ngModelChange)="globalDiscount.set($event)"
+            class="w-24 px-2 py-1 rounded-lg text-right text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+          />
+        </div>
+        <div class="flex justify-between text-base font-black text-slate-900 dark:text-white pt-1">
+          <span>Toplam</span>
+          <span>₺{{ total() | number: '1.2-2' }}</span>
+        </div>
+        @if (selectedStaff()) {
+          <div class="flex justify-between text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg px-2 py-1.5 mt-1">
+            <span>Tahmini Prim (~%{{ selectedStaff()!.primOraniVarsayilan }})</span>
+            <span class="font-bold">₺{{ estimatedCommission() | number: '1.2-2' }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Ödeme Yöntemi</span>
+          <button type="button" (click)="addPaymentRow()" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">+ Ekle</button>
+        </div>
+        @for (row of paymentRows(); track $index) {
+          <div class="flex items-center gap-2">
+            <select
+              [ngModel]="row.method"
+              (ngModelChange)="updatePaymentMethod($index, $event)"
+              class="flex-1 px-2 py-1.5 rounded-lg text-xs bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+            >
+              @for (m of paymentMethods; track m) {
+                <option [value]="m">{{ paymentMethodLabels[m] }}</option>
+              }
+            </select>
+            <input
+              type="number"
+              min="0"
+              [ngModel]="row.amount"
+              (ngModelChange)="updatePaymentAmount($index, $event)"
+              class="w-24 px-2 py-1.5 rounded-lg text-xs text-right bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+            />
+            @if (paymentRows().length > 1) {
+              <button type="button" (click)="removePaymentRow($index)" class="text-slate-400 hover:text-rose-600 cursor-pointer">
+                <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+              </button>
+            }
+          </div>
+        }
+        @if (remaining() !== 0) {
+          <button type="button" (click)="fillRemainingIntoFirstPayment()" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">
+            Kalan ₺{{ remaining() | number: '1.2-2' }} tutarını ilk ödemeye yaz
+          </button>
+        }
+      </div>
+
+      <button
+        type="button"
+        (click)="checkout()"
+        [disabled]="!canCheckout() || submitting()"
+        class="w-full px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-sm font-bold shadow-lg shadow-indigo-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+      >
+        {{ submitting() ? 'Kaydediliyor...' : 'Ödemeyi Tamamla' }}
+      </button>
+    </div>
+  </div>
+</div>

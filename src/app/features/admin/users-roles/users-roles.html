@@ -1,0 +1,89 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Kullanıcılar & Roller</h1>
+      <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Kullanıcı açma, rol atama, parola sıfırlama, pasifleştirme.</p>
+    </div>
+    <button type="button" (click)="openInviteDrawer()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+      <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:user-plus'"></mat-icon>
+      <span>+ Kullanıcı Aç</span>
+    </button>
+  </div>
+
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto custom-scroll">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <th class="py-3.5 px-6">Ad Soyad</th>
+            <th class="py-3.5 px-6">E-posta</th>
+            <th class="py-3.5 px-6">Rol</th>
+            <th class="py-3.5 px-6">Durum</th>
+            <th class="py-3.5 px-6 text-right">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
+          @for (item of staff(); track item.id) {
+            <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+              <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">
+                {{ item.ad }}
+                @if (item.id === currentUid) { <span class="text-[10px] text-slate-400 font-semibold"> (siz)</span> }
+              </td>
+              <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ item.email }}</td>
+              <td class="py-4 px-6">
+                <select
+                  [ngModel]="item.role"
+                  (ngModelChange)="changeRole(item, $event)"
+                  [disabled]="savingRoleFor() === item.id"
+                  class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                >
+                  @for (r of roles; track r) { <option [value]="r">{{ roleLabels[r] }}</option> }
+                </select>
+              </td>
+              <td class="py-4 px-6">
+                <app-status-badge [label]="item.active ? 'Aktif' : 'Pasif'" [variant]="item.active ? 'emerald' : 'slate'" [dot]="true"></app-status-badge>
+              </td>
+              <td class="py-4 px-6 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <button type="button" (click)="resetPassword(item)" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 cursor-pointer">
+                    Şifre Sıfırla
+                  </button>
+                  @if (item.active) {
+                    <button type="button" (click)="deactivate(item)" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 cursor-pointer">
+                      Pasifleştir
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<app-slide-over-drawer [open]="inviteDrawerOpen()" title="Kullanıcı Aç" widthClass="max-w-md" (closed)="closeInviteDrawer()">
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Ad Soyad</label>
+    <input type="text" [(ngModel)]="inviteForm.ad" name="ad" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">E-posta</label>
+    <input type="email" [(ngModel)]="inviteForm.email" name="email" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Rol</label>
+    <select [(ngModel)]="inviteForm.role" name="role" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+      @for (r of roles; track r) { <option [value]="r">{{ roleLabels[r] }}</option> }
+    </select>
+  </div>
+  <p class="text-[11px] text-slate-500 dark:text-slate-400">Kaydettikten sonra size bir şifre belirleme bağlantısı gösterilecek — bunu kullanıcıyla paylaşın.</p>
+
+  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
+    <button type="button" (click)="closeInviteDrawer()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer">Vazgeç</button>
+    <button type="button" (click)="invite()" [disabled]="inviting()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+      {{ inviting() ? 'Oluşturuluyor...' : 'Kullanıcı Oluştur' }}
+    </button>
+  </div>
+</app-slide-over-drawer>

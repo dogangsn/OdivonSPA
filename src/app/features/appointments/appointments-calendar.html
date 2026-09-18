@@ -1,0 +1,211 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Randevular</h1>
+      <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Terapist ya da oda sütunlu gün takvimi.</p>
+    </div>
+    <button
+      type="button"
+      (click)="openCreateBooking()"
+      class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+    >
+      <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+      <span>+ Yeni Randevu</span>
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+    <div class="flex items-center gap-2">
+      <button type="button" (click)="prevDay()" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center cursor-pointer">
+        <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_outline:chevron-left'"></mat-icon>
+      </button>
+      <span class="text-sm font-bold text-slate-900 dark:text-white min-w-40 text-center">
+        {{ selectedDate() | date: "d MMMM yyyy, EEEE" }}
+      </span>
+      <button type="button" (click)="nextDay()" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center cursor-pointer">
+        <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_outline:chevron-right'"></mat-icon>
+      </button>
+      <button type="button" (click)="today()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+        Bugün
+      </button>
+    </div>
+
+    <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl">
+      <button type="button" (click)="viewMode.set('staff')" [class]="viewMode() === 'staff' ? 'bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer">
+        Terapist
+      </button>
+      <button type="button" (click)="viewMode.set('room')" [class]="viewMode() === 'room' ? 'bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer">
+        Oda
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="flex flex-wrap items-center gap-2.5">
+    <select [ngModel]="filterStaffId()" (ngModelChange)="filterStaffId.set($event)" class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+      <option value="">Tüm Terapistler</option>
+      @for (s of staff(); track s.id) { <option [value]="s.id">{{ s.ad }}</option> }
+    </select>
+    <select [ngModel]="filterRoomId()" (ngModelChange)="filterRoomId.set($event)" class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+      <option value="">Tüm Odalar</option>
+      @for (r of rooms(); track r.id) { <option [value]="r.id">{{ r.ad }}</option> }
+    </select>
+    <select [ngModel]="filterServiceId()" (ngModelChange)="filterServiceId.set($event)" class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+      <option value="">Tüm Hizmetler</option>
+      @for (s of services(); track s.id) { <option [value]="s.id">{{ s.ad }}</option> }
+    </select>
+    <select [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)" class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+      <option value="">Tüm Durumlar</option>
+      <option value="Bekliyor">Bekliyor</option>
+      <option value="Onaylandı">Onaylandı</option>
+      <option value="Geldi">Geldi</option>
+      <option value="Tamamlandı">Tamamlandı</option>
+      <option value="Gelmedi">Gelmedi</option>
+      <option value="İptal">İptal</option>
+    </select>
+    <button type="button" (click)="resetFilters()" class="px-3 py-2 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 cursor-pointer">
+      Sıfırla
+    </button>
+  </div>
+
+  <!-- Calendar grid -->
+  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto custom-scroll">
+      <div class="flex min-w-max">
+        <!-- Time column -->
+        <div class="w-16 shrink-0 border-r border-slate-200/80 dark:border-slate-800">
+          <div class="h-12 border-b border-slate-200/80 dark:border-slate-800"></div>
+          <div class="relative" [style.height.px]="gridHeight">
+            @for (slot of timeSlots; track slot; let i = $index) {
+              <div class="absolute left-0 right-0 text-[11px] text-slate-400 px-2 -translate-y-1/2" [style.top.px]="i * 56">{{ slot }}</div>
+            }
+          </div>
+        </div>
+
+        <!-- Columns -->
+        @for (col of columns(); track col.id) {
+          <div class="w-52 shrink-0 border-r border-slate-200/80 dark:border-slate-800 last:border-r-0">
+            <div class="h-12 flex items-center gap-2 px-3 border-b border-slate-200/80 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900">
+              <span class="w-6 h-6 rounded-full text-white text-[10px] font-bold flex items-center justify-center shrink-0" [style.background]="col.color">
+                {{ col.label.slice(0, 2).toUpperCase() }}
+              </span>
+              <span class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ col.label }}</span>
+            </div>
+            <div class="relative" [style.height.px]="gridHeight">
+              @for (slot of timeSlots; track slot; let i = $index) {
+                <div class="absolute left-0 right-0 border-t border-slate-100 dark:border-slate-800/60" [style.top.px]="i * 56"></div>
+              }
+              @for (appt of appointmentsForColumn(col.id); track appt.id) {
+                <button
+                  type="button"
+                  (click)="openDetail(appt)"
+                  class="absolute left-1 right-1 rounded-lg border-l-4 p-2 text-left overflow-hidden cursor-pointer transition-transform hover:scale-[1.02]"
+                  [class]="statusBadge[appt.status].bg + ' ' + statusBadge[appt.status].text"
+                  [style.top]="cardStyle(appt).top"
+                  [style.height]="cardStyle(appt).height"
+                  [style.borderLeftColor]="col.color"
+                >
+                  <div class="text-[11px] font-bold">{{ formatTimeRange(appt) }}</div>
+                  <div class="text-xs font-semibold truncate">{{ customerNameById().get(appt.customerId) || '—' }}</div>
+                  <div class="text-[11px] truncate opacity-80">{{ serviceById().get(appt.serviceId)?.ad || '—' }}</div>
+                </button>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="p-10 text-xs text-slate-400">Bu görünüm için henüz {{ viewMode() === 'staff' ? 'terapist' : 'oda' }} tanımlı değil.</div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Booking drawer -->
+<app-slide-over-drawer [open]="bookingDrawerOpen()" [title]="isEditingBooking() ? 'Randevuyu Düzenle' : 'Yeni Randevu'" (closed)="closeBookingDrawer()">
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Müşteri <span class="text-rose-500">*</span></label>
+    <select [(ngModel)]="bookingForm.customerId" name="customerId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+      <option value="">Seçiniz</option>
+      @for (c of customers(); track c.id) { <option [value]="c.id">{{ c.ad }} — {{ c.telefon }}</option> }
+    </select>
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Terapist <span class="text-rose-500">*</span></label>
+      <select [(ngModel)]="bookingForm.staffId" name="staffId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+        <option value="">Seçiniz</option>
+        @for (s of staff(); track s.id) { <option [value]="s.id">{{ s.ad }}</option> }
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Oda <span class="text-rose-500">*</span></label>
+      <select [(ngModel)]="bookingForm.roomId" name="roomId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+        <option value="">Seçiniz</option>
+        @for (r of rooms(); track r.id) { <option [value]="r.id">{{ r.ad }}</option> }
+      </select>
+    </div>
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Hizmet <span class="text-rose-500">*</span></label>
+    <select [(ngModel)]="bookingForm.serviceId" name="serviceId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+      <option value="">Seçiniz</option>
+      @for (s of services(); track s.id) { <option [value]="s.id">{{ s.ad }} — {{ s.sureDk }} dk</option> }
+    </select>
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Saat <span class="text-rose-500">*</span></label>
+    <input type="time" [(ngModel)]="bookingForm.time" name="time" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+  </div>
+  <div>
+    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Not</label>
+    <textarea [(ngModel)]="bookingForm.notes" name="notes" rows="2" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all custom-scroll"></textarea>
+  </div>
+
+  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
+    <button type="button" (click)="closeBookingDrawer()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer">Vazgeç</button>
+    <button type="button" (click)="saveBooking()" [disabled]="bookingSaving()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+      {{ bookingSaving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    </button>
+  </div>
+</app-slide-over-drawer>
+
+<!-- Detail drawer -->
+@if (detailAppointment(); as appt) {
+  <app-slide-over-drawer [open]="true" title="Randevu Detayı" widthClass="max-w-md" (closed)="closeDetailDrawer()">
+    <div class="flex items-center justify-between">
+      <app-status-badge [label]="appt.status" [variant]="'sky'" [dot]="true"></app-status-badge>
+      <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ formatTimeRange(appt) }}</span>
+    </div>
+    <dl class="space-y-3 text-xs mt-2">
+      <div class="flex justify-between"><dt class="text-slate-500 dark:text-slate-400">Müşteri</dt><dd class="font-bold text-slate-900 dark:text-white">{{ customerNameById().get(appt.customerId) }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500 dark:text-slate-400">Terapist</dt><dd class="font-semibold text-slate-900 dark:text-white">{{ staffNameById().get(appt.staffId) }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500 dark:text-slate-400">Oda</dt><dd class="font-semibold text-slate-900 dark:text-white">{{ roomNameById().get(appt.roomId) }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-500 dark:text-slate-400">Hizmet</dt><dd class="font-semibold text-slate-900 dark:text-white">{{ serviceById().get(appt.serviceId)?.ad }}</dd></div>
+      @if (appt.notes) {
+        <div><dt class="text-slate-500 dark:text-slate-400 mb-1">Not</dt><dd class="font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3">{{ appt.notes }}</dd></div>
+      }
+    </dl>
+
+    <div class="flex flex-col gap-2 pt-2">
+      @if (nextStatus(appt)) {
+        <button type="button" (click)="advanceStatus(appt)" class="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md cursor-pointer">
+          "{{ nextStatus(appt) }}" Olarak İşaretle
+        </button>
+      }
+      @if (appt.status === 'Onaylandı' || appt.status === 'Geldi') {
+        <button type="button" (click)="convertToSession(appt)" class="w-full px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md cursor-pointer">
+          Seansa Çevir (POS)
+        </button>
+      }
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" (click)="openEditBooking(appt)" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">Düzenle</button>
+        <button type="button" (click)="markStatus(appt, 'Gelmedi')" class="px-4 py-2.5 rounded-xl border border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-400 text-xs font-bold hover:bg-amber-50 dark:hover:bg-amber-950/60 cursor-pointer">Gelmedi</button>
+      </div>
+      <button type="button" (click)="markStatus(appt, 'İptal')" class="w-full px-4 py-2.5 rounded-xl border border-rose-200 dark:border-rose-800/40 text-rose-600 dark:text-rose-400 text-xs font-bold hover:bg-rose-50 dark:hover:bg-rose-950/60 cursor-pointer">
+        Randevuyu İptal Et
+      </button>
+    </div>
+  </app-slide-over-drawer>
+}
