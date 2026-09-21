@@ -99,3 +99,23 @@ body {
   border-radius: 1rem;
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
+
+/* Receipt printing: only `.receipt-print` is visible, on an 80mm page. */
+@media print {
+  body.print-receipt * {
+    visibility: hidden;
+  }
+  body.print-receipt .receipt-print,
+  body.print-receipt .receipt-print * {
+    visibility: visible;
+  }
+  body.print-receipt .receipt-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}

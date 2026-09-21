@@ -7,18 +7,14 @@
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-    <app-kpi-card
-      label="Toplam Müşteri"
-      [value]="customers().length"
-      icon="heroicons_solid:user-group"
-      accent="emerald"
-      subLabel="Kayıtlı Müşteri"
-    ></app-kpi-card>
+    <app-kpi-card label="Toplam Müşteri" [value]="customers().length" icon="heroicons_solid:user-group" accent="emerald" subLabel="Kayıtlı Müşteri"></app-kpi-card>
 
-    <app-kpi-card label="Bugünkü Randevu" value="0" icon="heroicons_solid:calendar-days" accent="sky" subLabel="Planlanan Randevu"></app-kpi-card>
+    <app-kpi-card label="Bugünkü Randevu" [value]="appointmentCount()" icon="heroicons_solid:calendar-days" accent="sky" subLabel="Planlanan Randevu"></app-kpi-card>
 
-    <app-kpi-card label="Bugünkü Ciro" value="₺0,00" icon="heroicons_solid:banknotes" accent="indigo" subLabel="Net Kasa"></app-kpi-card>
+    <app-kpi-card label="Bugünkü Ciro" [value]="'₺' + (revenueToday() | number: '1.2-2')" icon="heroicons_solid:banknotes" accent="indigo" subLabel="Seans + Diğer Ödemeler"></app-kpi-card>
 
-    <app-kpi-card label="Bekleyen Prim" value="₺0,00" icon="heroicons_solid:percent-badge" accent="amber" subLabel="Ödenmemiş Tahakkuk"></app-kpi-card>
+    @if (auth.isAdmin()) {
+      <app-kpi-card label="Bekleyen Prim" [value]="'₺' + (pendingCommission() | number: '1.2-2')" icon="heroicons_solid:percent-badge" accent="amber" subLabel="Ödenmemiş Tahakkuk"></app-kpi-card>
+    }
   </div>
 </div>

@@ -184,30 +184,21 @@ export class AppointmentsCalendar {
     const [hh, mm] = time.split(':').map(Number);
     const start = new Date(this.selectedDate());
     start.setHours(hh, mm, 0, 0);
-    const end = new Date(start.getTime() + service.sureDk * 60000);
-
-    if (this.appointmentService.hasOverlap(this.appointmentsOfDay(), staffId, roomId, start, end, this.editingBookingId() ?? undefined)) {
-      await this.confirmService.error('Çakışma Bulundu', 'Seçilen terapist veya oda bu saatte dolu.');
-      return;
-    }
 
     this.bookingSaving.set(true);
     try {
-      const payload = {
+      await this.appointmentService.save({
+        id: this.editingBookingId() ?? undefined,
         customerId,
         staffId,
         roomId,
         serviceId,
-        start: Timestamp.fromDate(start),
-        end: Timestamp.fromDate(end),
+        start,
         notes: this.bookingForm.notes.trim() || undefined,
-      };
-      if (this.isEditingBooking() && this.editingBookingId()) {
-        await this.appointmentService.update(this.editingBookingId()!, payload);
-      } else {
-        await this.appointmentService.create({ ...payload, status: 'Bekliyor' } as Omit<Appointment, 'id'>);
-      }
+      });
       this.closeBookingDrawer();
+    } catch (err) {
+      await this.confirmService.error('Randevu Kaydedilemedi', err instanceof Error ? err.message : undefined);
     } finally {
       this.bookingSaving.set(false);
     }

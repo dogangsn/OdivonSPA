@@ -59,17 +59,67 @@
       </div>
 
       <div class="lg:col-span-2 space-y-5">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6">
-          <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Seans Geçmişi</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Seanslar modülü bağlandığında burada listelenecek.</p>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4">
+            <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Toplam Harcama</div>
+            <div class="text-xl font-black text-slate-900 dark:text-white mt-1">₺{{ totalSpent() | number: '1.2-2' }}</div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4">
+            <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Seans</div>
+            <div class="text-xl font-black text-slate-900 dark:text-white mt-1">{{ sessions().length }}</div>
+          </div>
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4">
+            <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Aktif Paket</div>
+            <div class="text-xl font-black text-slate-900 dark:text-white mt-1">{{ activePackageCount() }}</div>
+          </div>
         </div>
+
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6">
-          <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Paketler</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Paketler modülü bağlandığında burada listelenecek.</p>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3">Seans Geçmişi</h3>
+          @for (s of sessions(); track s.id) {
+            <div class="flex items-center justify-between py-2.5 border-t border-slate-100 dark:border-slate-800 text-xs first:border-t-0">
+              <div>
+                <div class="font-mono font-bold text-slate-900 dark:text-white">{{ s.receiptNo }}</div>
+                <div class="text-slate-500 dark:text-slate-400">{{ s.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }} · {{ staffName().get(s.staffId) || '—' }}</div>
+              </div>
+              <div class="font-bold text-slate-900 dark:text-white">₺{{ s.totalAmount | number: '1.2-2' }}</div>
+            </div>
+          } @empty {
+            <p class="text-xs text-slate-400">Henüz seans yok.</p>
+          }
         </div>
+
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6">
-          <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Ödemeler & Toplam Harcama</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Ödemeler modülü bağlandığında burada listelenecek.</p>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3">Paketler</h3>
+          @for (p of packages(); track p.id) {
+            <div class="flex items-center justify-between py-2.5 border-t border-slate-100 dark:border-slate-800 text-xs first:border-t-0">
+              <div>
+                <div class="font-bold text-slate-900 dark:text-white">{{ planName().get(p.packagePlanId) || '—' }}</div>
+                <div class="text-slate-500 dark:text-slate-400">Bitiş: {{ p.bitisTarihi | fsDate }}</div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-semibold text-slate-700 dark:text-slate-200">{{ p.kalanSeans }} / {{ p.toplamSeans }} hak</span>
+                <app-status-badge [label]="p.status === 'active' ? 'Aktif' : p.status === 'expired' ? 'Süresi Doldu' : 'Tamamlandı'" [variant]="p.status === 'active' ? 'emerald' : p.status === 'expired' ? 'rose' : 'slate'"></app-status-badge>
+              </div>
+            </div>
+          } @empty {
+            <p class="text-xs text-slate-400">Paket yok.</p>
+          }
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3">Ödemeler</h3>
+          @for (p of payments(); track p.id) {
+            <div class="flex items-center justify-between py-2.5 border-t border-slate-100 dark:border-slate-800 text-xs first:border-t-0">
+              <div>
+                <div class="font-semibold text-slate-900 dark:text-white">{{ paymentMethodLabels[p.method] }}{{ p.note ? ' — ' + p.note : '' }}</div>
+                <div class="text-slate-500 dark:text-slate-400">{{ p.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}</div>
+              </div>
+              <div [class]="p.amount < 0 ? 'font-bold text-rose-600 dark:text-rose-400' : 'font-bold text-slate-900 dark:text-white'">₺{{ p.amount | number: '1.2-2' }}</div>
+            </div>
+          } @empty {
+            <p class="text-xs text-slate-400">Seans dışı ödeme yok.</p>
+          }
         </div>
       </div>
     </div>

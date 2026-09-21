@@ -24,6 +24,7 @@
             <th class="py-3.5 px-6">Tutar</th>
             <th class="py-3.5 px-6">Ödeme</th>
             <th class="py-3.5 px-6">Tarih</th>
+            <th class="py-3.5 px-6 text-right">Fiş</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
@@ -43,10 +44,13 @@
                 </div>
               </td>
               <td class="py-4 px-6 text-slate-500 dark:text-slate-400">{{ s.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}</td>
+              <td class="py-4 px-6 text-right">
+                <a [routerLink]="['/seanslar', s.id, 'fis']" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">Yazdır</a>
+              </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="6">
+              <td colspan="7">
                 <app-empty-state icon="heroicons_outline:presentation-chart-line" title="Henüz Seans Yok" description="POS ekranından yeni bir seans oluşturarak hemen başlayabilirsiniz."></app-empty-state>
               </td>
             </tr>

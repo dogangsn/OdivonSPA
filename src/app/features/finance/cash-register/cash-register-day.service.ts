@@ -1,12 +1,12 @@
 import { Injectable, inject } from '@angular/core';
-import { Functions, httpsCallable } from '@angular/fire/functions';
 import { orderBy, where } from '@angular/fire/firestore';
 import { FirestoreCrudService } from '../../../core/services/firestore-crud.service';
+import { ApiService } from '../../../core/http/api.service';
 import { CashRegisterDay } from '../../../core/models';
 
 @Injectable({ providedIn: 'root' })
 export class CashRegisterDayService extends FirestoreCrudService<CashRegisterDay> {
-  private readonly functions = inject(Functions);
+  private readonly api = inject(ApiService);
 
   constructor() {
     super('cashRegisterDays');
@@ -17,16 +17,10 @@ export class CashRegisterDayService extends FirestoreCrudService<CashRegisterDay
   }
 
   async closeDay(date: string): Promise<{ date: string; netCash: number; totalIncome: number; totalExpense: number }> {
-    const callable = httpsCallable<{ date: string }, { date: string; netCash: number; totalIncome: number; totalExpense: number }>(
-      this.functions,
-      'closeCashRegisterDay',
-    );
-    const result = await callable({ date });
-    return result.data;
+    return this.api.post(`/api/cash-register-days/${date}/close`);
   }
 
   async reopenDay(date: string, reason?: string): Promise<void> {
-    const callable = httpsCallable<{ date: string; reason?: string }, { success: boolean }>(this.functions, 'reopenCashRegisterDay');
-    await callable({ date, reason });
+    await this.api.post(`/api/cash-register-days/${date}/reopen`, { reason });
   }
 }

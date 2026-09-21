@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Functions, httpsCallable } from '@angular/fire/functions';
 import { AuthService } from '../../../core/auth/auth.service';
+import { ApiService } from '../../../core/http/api.service';
+import { ApiError } from '../../../core/http/api-error';
 import { Logo } from '../../../core/ui/logo/logo';
 
 /** Creates the Firebase Auth user, then calls the `createTenant` callable which sets up
@@ -15,7 +16,7 @@ import { Logo } from '../../../core/ui/logo/logo';
 })
 export class Onboarding {
   private readonly auth = inject(AuthService);
-  private readonly functions = inject(Functions);
+  private readonly api = inject(ApiService);
   private readonly router = inject(Router);
 
   readonly businessName = signal('');
@@ -25,25 +26,81 @@ export class Onboarding {
   readonly submitting = signal(false);
   readonly errorMessage = signal('');
 
+  /** Already signed in (e.g. with Google) but without a tenant yet — skip creating the Auth user. */
+  readonly signedInEmail = computed(() => this.auth.user()?.email ?? null);
+
+  constructor() {
+    const user = this.auth.user();
+    if (user) {
+      this.ownerName.set(user.displayName ?? '');
+      this.email.set(user.email ?? '');
+    }
+  }
+
+  async signUpWithGoogle(): Promise<void> {
+    this.errorMessage.set('');
+    try {
+      const hasTenant = await this.auth.loginWithGoogle();
+      if (hasTenant) {
+        await this.router.navigateByUrl('/panel');
+        return;
+      }
+      this.ownerName.set(this.auth.user()?.displayName ?? '');
+      this.email.set(this.auth.user()?.email ?? '');
+    } catch (err) {
+      const code = (err as { code?: string }).code;
+      if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
+        this.errorMessage.set('Google ile giriş yapılamadı. Lütfen tekrar deneyin.');
+      }
+    }
+  }
+
   async submit(): Promise<void> {
     this.errorMessage.set('');
     this.submitting.set(true);
     try {
-      await this.auth.registerAuthUser(this.email(), this.password());
+      if (!this.signedInEmail()) {
+        await this.auth.registerAuthUser(this.email(), this.password());
+      }
 
-      const createTenant = httpsCallable<{ businessName: string; ownerName: string }, { tenantId: string }>(
-        this.functions,
-        'createTenant',
-      );
-      await createTenant({ businessName: this.businessName(), ownerName: this.ownerName() });
+      await this.api.post<{ tenantId: string }>('/api/tenants', { businessName: this.businessName(), ownerName: this.ownerName() });
 
       await this.auth.forceRefreshClaims();
       await this.router.navigateByUrl('/panel');
     } catch (err) {
-      this.errorMessage.set('Kayıt oluşturulamadı. E-posta zaten kullanılıyor olabilir.');
+      this.errorMessage.set(describeError(err));
       console.error(err);
     } finally {
       this.submitting.set(false);
     }
+  }
+}
+
+function describeError(err: unknown): string {
+  if (err instanceof ApiError) {
+    switch (err.code) {
+      case 'not-found':
+      case 'internal':
+      case 'unavailable':
+        return 'Hesap oluşturuldu ancak işletme kaydı yapılamadı: sunucuya erişilemiyor. Biraz sonra tekrar deneyin.';
+      case 'failed-precondition':
+        return 'Bu kullanıcı zaten bir işletmeye bağlı. Giriş yapın.';
+      default:
+        return 'Kayıt oluşturulamadı. Lütfen tekrar deneyin.';
+    }
+  }
+
+  const code = (err as { code?: string }).code ?? '';
+  switch (code) {
+    case 'auth/email-already-in-use':
+      return 'Bu e-posta zaten kayıtlı. Giriş yapın; işletmeniz yoksa buraya yönlendirilirsiniz.';
+    case 'auth/weak-password':
+      return 'Şifre en az 6 karakter olmalı.';
+    case 'auth/invalid-email':
+      return 'Geçerli bir e-posta girin.';
+    case 'auth/network-request-failed':
+      return 'Bağlantı hatası. İnternetinizi kontrol edin.';
+    default:
+      return 'Kayıt oluşturulamadı. Lütfen tekrar deneyin.';
   }
 }

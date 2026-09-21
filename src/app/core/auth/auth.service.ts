@@ -1,12 +1,14 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import {
   Auth,
+  GoogleAuthProvider,
   User,
   authState,
   createUserWithEmailAndPassword,
   getIdTokenResult,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
 } from '@angular/fire/auth';
 import { TenantClaims } from '../models';
@@ -47,7 +49,13 @@ export class AuthService {
     this._claims.set(claims.tenantId && claims.role ? (claims as TenantClaims) : null);
   }
 
-  /** Call after any Cloud Function that mutates this user's custom claims (role change, tenant creation). */
+  /** Firebase ID token for calling our own backend (server/) — auto-refreshes near expiry. */
+  async getIdToken(): Promise<string | null> {
+    const user = this._user();
+    return user ? user.getIdToken() : null;
+  }
+
+  /** Call after any backend request that mutates this user's custom claims (role change, tenant creation). */
   async forceRefreshClaims(): Promise<void> {
     const user = this._user();
     if (!user) return;
@@ -55,8 +63,17 @@ export class AuthService {
     await this.refreshClaims(user);
   }
 
+  /** Resolves after claims are loaded, so callers can navigate without racing the auth guard. */
   async login(email: string, password: string): Promise<void> {
-    await signInWithEmailAndPassword(this.auth, email, password);
+    const credential = await signInWithEmailAndPassword(this.auth, email, password);
+    await this.refreshClaims(credential.user);
+  }
+
+  /** Returns `true` when the account already belongs to a tenant, `false` when it still needs onboarding. */
+  async loginWithGoogle(): Promise<boolean> {
+    const credential = await signInWithPopup(this.auth, new GoogleAuthProvider());
+    await this.refreshClaims(credential.user);
+    return !!this._claims();
   }
 
   /** Creates the Firebase Auth user only — tenant/claims are assigned by the `createTenant` callable. */

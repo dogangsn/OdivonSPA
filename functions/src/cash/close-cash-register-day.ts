@@ -3,6 +3,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { FieldValue, tenantCollection, tenantDoc } from '../lib/admin';
 import { requireTenantAuth } from '../lib/context';
 import { writeAuditLog } from '../lib/audit';
+import { dayBoundsInTz, getTenantTimezone } from '../lib/time';
 
 type PaymentMethod = 'nakit' | 'kart' | 'havale' | 'diger';
 
@@ -10,9 +11,8 @@ interface CloseCashRegisterDayData {
   date: string; // YYYY-MM-DD
 }
 
-function dayBounds(dateStr: string): { start: Timestamp; end: Timestamp } {
-  const start = new Date(`${dateStr}T00:00:00.000Z`);
-  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+function dayBounds(dateStr: string, timeZone: string): { start: Timestamp; end: Timestamp } {
+  const { start, end } = dayBoundsInTz(dateStr, timeZone);
   return { start: Timestamp.fromDate(start), end: Timestamp.fromDate(end) };
 }
 
@@ -30,7 +30,7 @@ export const closeCashRegisterDay = onCall<CloseCashRegisterDayData>({ region: '
     throw new HttpsError('failed-precondition', 'Bu gün zaten kapatılmış.');
   }
 
-  const { start, end } = dayBounds(date);
+  const { start, end } = dayBounds(date, await getTenantTimezone(ctx.tenantId));
 
   const [sessionsSnap, paymentsSnap, expensesSnap, accrualsSnap] = await Promise.all([
     tenantCollection(ctx.tenantId, 'sessions').where('createdAt', '>=', start).where('createdAt', '<', end).get(),

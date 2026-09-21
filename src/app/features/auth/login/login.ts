@@ -19,6 +19,22 @@ export class Login {
   readonly submitting = signal(false);
   readonly errorMessage = signal('');
 
+  async signInWithGoogle(): Promise<void> {
+    this.errorMessage.set('');
+    this.submitting.set(true);
+    try {
+      const hasTenant = await this.auth.loginWithGoogle();
+      await this.router.navigateByUrl(hasTenant ? '/panel' : '/auth/onboarding');
+    } catch (err) {
+      const code = (err as { code?: string }).code;
+      if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
+        this.errorMessage.set('Google ile giriş yapılamadı. Lütfen tekrar deneyin.');
+      }
+    } finally {
+      this.submitting.set(false);
+    }
+  }
+
   async submit(): Promise<void> {
     this.errorMessage.set('');
     this.submitting.set(true);

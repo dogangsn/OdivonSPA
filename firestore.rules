@@ -79,13 +79,19 @@ service cloud.firestore {
 
       match /customerPackages/{packageId} {
         allow read: if isTenantMember(tenantId);
-        allow create, update: if isAdminOrReception(tenantId);
+        // Sales go through the sellPackage callable so the payment is recorded atomically.
+        allow create: if false;
+        allow update: if isAdminOrReception(tenantId);
         allow delete: if false;
       }
 
       match /appointments/{appointmentId} {
         allow read: if isTenantMember(tenantId);
-        allow create, update: if isAdminOrReception(tenantId);
+        // Create/reschedule go through the saveAppointment callable (overlap + leave checks);
+        // clients may only change the status.
+        allow create: if false;
+        allow update: if isAdminOrReception(tenantId) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'updatedBy']);
         allow delete: if false; // cancel via status: 'İptal'.
       }
 

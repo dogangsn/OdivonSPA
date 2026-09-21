@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Timestamp, orderBy, where } from '@angular/fire/firestore';
 import { FirestoreCrudService } from '../../core/services/firestore-crud.service';
+import { ApiService } from '../../core/http/api.service';
 import { PaymentMethod, Session } from '../../core/models';
 
 export interface CheckoutItemInput {
@@ -31,7 +31,7 @@ export interface CheckoutSessionResult {
 /** Sessions (POS sales) are read directly from Firestore but only ever created via the `checkoutSession` callable. */
 @Injectable({ providedIn: 'root' })
 export class SessionService extends FirestoreCrudService<Session> {
-  private readonly functions = inject(Functions);
+  private readonly api = inject(ApiService);
 
   constructor() {
     super('sessions');
@@ -39,6 +39,11 @@ export class SessionService extends FirestoreCrudService<Session> {
 
   override watchAllSignal() {
     return super.watchAllSignal(orderBy('createdAt', 'desc'));
+  }
+
+  /** No orderBy on purpose: avoids a composite index; callers sort client-side. */
+  watchByCustomer(customerId: string) {
+    return this.watchAll(where('customerId', '==', customerId));
   }
 
   watchByDateRange(start: Date, end: Date) {
@@ -50,8 +55,6 @@ export class SessionService extends FirestoreCrudService<Session> {
   }
 
   async checkout(input: CheckoutSessionInput): Promise<CheckoutSessionResult> {
-    const callable = httpsCallable<CheckoutSessionInput, CheckoutSessionResult>(this.functions, 'checkoutSession');
-    const result = await callable(input);
-    return result.data;
+    return this.api.post<CheckoutSessionResult>('/api/pos/checkout-session', input);
   }
 }

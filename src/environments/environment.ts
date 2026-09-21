@@ -1,6 +1,7 @@
 export const environment = {
   production: false,
-  useEmulators: true,
+  useEmulators: false,
+  apiBaseUrl: 'http://127.0.0.1:8787',
   firebase: {
     projectId: 'odivonspa',
     appId: '1:871613231301:web:80300f44c3656deb51c0ac',

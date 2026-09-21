@@ -2,7 +2,6 @@ import { inject } from '@angular/core';
 import { provideFirebaseApp, initializeApp, FirebaseApp } from '@angular/fire/app';
 import { provideAuth, getAuth, connectAuthEmulator } from '@angular/fire/auth';
 import { provideFirestore, initializeFirestore, connectFirestoreEmulator } from '@angular/fire/firestore';
-import { provideFunctions, getFunctions, connectFunctionsEmulator } from '@angular/fire/functions';
 import { provideStorage, getStorage, connectStorageEmulator } from '@angular/fire/storage';
 import { provideAnalytics, getAnalytics, ScreenTrackingService, UserTrackingService } from '@angular/fire/analytics';
 import { environment } from '../../../environments/environment';
@@ -30,13 +29,6 @@ export const firebaseProviders = [
       connectFirestoreEmulator(firestore, '127.0.0.1', 8080);
     }
     return firestore;
-  }),
-  provideFunctions(() => {
-    const functions = getFunctions(undefined, 'europe-west1');
-    if (environment.useEmulators) {
-      connectFunctionsEmulator(functions, '127.0.0.1', 5001);
-    }
-    return functions;
   }),
   provideStorage(() => {
     const storage = getStorage();

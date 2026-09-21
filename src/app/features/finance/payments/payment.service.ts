@@ -1,12 +1,12 @@
 import { Injectable, inject } from '@angular/core';
-import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Timestamp, orderBy, where } from '@angular/fire/firestore';
 import { FirestoreCrudService } from '../../../core/services/firestore-crud.service';
+import { ApiService } from '../../../core/http/api.service';
 import { Payment } from '../../../core/models';
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService extends FirestoreCrudService<Payment> {
-  private readonly functions = inject(Functions);
+  private readonly api = inject(ApiService);
 
   constructor() {
     super('payments');
@@ -14,6 +14,10 @@ export class PaymentService extends FirestoreCrudService<Payment> {
 
   override watchAllSignal() {
     return super.watchAllSignal(orderBy('createdAt', 'desc'));
+  }
+
+  watchByCustomer(customerId: string) {
+    return this.watchAll(where('customerId', '==', customerId));
   }
 
   watchByDateRange(start: Date, end: Date) {
@@ -29,7 +33,6 @@ export class PaymentService extends FirestoreCrudService<Payment> {
   }
 
   async refund(paymentId: string, reason?: string): Promise<void> {
-    const callable = httpsCallable<{ paymentId: string; reason?: string }, { refundId: string }>(this.functions, 'refundPayment');
-    await callable({ paymentId, reason });
+    await this.api.post<{ refundId: string }>(`/api/payments/${paymentId}/refund`, { reason });
   }
 }

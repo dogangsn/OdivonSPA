@@ -36,6 +36,7 @@ export const routes: Routes = [
         children: [
           { path: '', loadComponent: () => import('./features/sessions-pos/sessions-list').then((m) => m.SessionsList) },
           { path: 'yeni', loadComponent: () => import('./features/sessions-pos/pos').then((m) => m.Pos) },
+          { path: ':id/fis', loadComponent: () => import('./features/sessions-pos/session-receipt').then((m) => m.SessionReceipt) },
         ],
       },
       {
@@ -82,6 +83,11 @@ export const routes: Routes = [
             path: 'primler',
             canActivate: [roleGuard(['admin'])],
             loadComponent: () => import('./features/finance/commissions/commissions').then((m) => m.Commissions),
+          },
+          {
+            path: 'prim-kurallari',
+            canActivate: [roleGuard(['admin'])],
+            loadComponent: () => import('./features/finance/commissions/commission-rules').then((m) => m.CommissionRules),
           },
           {
             path: 'giderler',

@@ -1,24 +1,20 @@
 import { Injectable, inject } from '@angular/core';
-import { Functions, httpsCallable } from '@angular/fire/functions';
+import { ApiService } from '../../../core/http/api.service';
 import { StaffRole } from '../../../core/models';
 
 @Injectable({ providedIn: 'root' })
 export class StaffAdminService {
-  private readonly functions = inject(Functions);
+  private readonly api = inject(ApiService);
 
   async inviteStaffUser(input: { email: string; ad: string; role: StaffRole }): Promise<{ staffId: string; resetLink: string }> {
-    const callable = httpsCallable<typeof input, { staffId: string; resetLink: string }>(this.functions, 'inviteStaffUser');
-    const result = await callable(input);
-    return result.data;
+    return this.api.post('/api/staff/invite', input);
   }
 
   async setStaffRole(staffId: string, role: StaffRole): Promise<void> {
-    const callable = httpsCallable<{ staffId: string; role: StaffRole }, { success: boolean }>(this.functions, 'setStaffRole');
-    await callable({ staffId, role });
+    await this.api.patch(`/api/staff/${staffId}/role`, { role });
   }
 
   async deactivateStaffUser(staffId: string): Promise<void> {
-    const callable = httpsCallable<{ staffId: string }, { success: boolean }>(this.functions, 'deactivateStaffUser');
-    await callable({ staffId });
+    await this.api.post(`/api/staff/${staffId}/deactivate`);
   }
 }

@@ -1,14 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Timestamp } from '@angular/fire/firestore';
 import { MatIconModule } from '@angular/material/icon';
 import { FirestoreDatePipe } from '../../core/pipes/firestore-date.pipe';
 import { EmptyState } from '../../core/ui/empty-state/empty-state';
 import { SlideOverDrawer } from '../../core/ui/slide-over-drawer/slide-over-drawer';
 import { StatusBadge } from '../../core/ui/status-badge/status-badge';
 import { ConfirmService } from '../../core/ui/confirm/confirm.service';
-import { CustomerPackage, PackagePlan, WithId } from '../../core/models';
+import { PAYMENT_METHOD_LABELS, PackagePlan, PaymentMethod, WithId } from '../../core/models';
 import { PackagePlanService } from './package-plan.service';
 import { CustomerPackageService } from './customer-package.service';
 import { CustomerService } from '../customers/customer.service';
@@ -111,6 +110,9 @@ export class PackagesList {
   readonly sellSaving = signal(false);
   readonly sellCustomerId = signal('');
   readonly sellPlanId = signal('');
+  readonly sellMethod = signal<PaymentMethod>('nakit');
+  readonly paymentMethods: PaymentMethod[] = ['nakit', 'kart', 'havale', 'diger'];
+  readonly paymentMethodLabels = PAYMENT_METHOD_LABELS;
 
   openSellDrawer(): void {
     this.sellCustomerId.set('');
@@ -127,18 +129,14 @@ export class PackagesList {
     if (!this.sellCustomerId() || !plan) return;
     this.sellSaving.set(true);
     try {
-      const now = new Date();
-      const bitis = new Date(now.getTime() + plan.gecerlilikGunu * 24 * 60 * 60 * 1000);
-      await this.customerPackageService.create({
+      await this.customerPackageService.sell({
         customerId: this.sellCustomerId(),
         packagePlanId: plan.id,
-        toplamSeans: plan.seansAdedi,
-        kalanSeans: plan.seansAdedi,
-        satisTarihi: Timestamp.fromDate(now),
-        bitisTarihi: Timestamp.fromDate(bitis),
-        status: 'active',
-      } as Omit<CustomerPackage, 'id'>);
+        payments: [{ method: this.sellMethod(), amount: plan.fiyat }],
+      });
       this.closeSellDrawer();
+    } catch (err) {
+      await this.confirmService.error('Paket Satılamadı', err instanceof Error ? err.message : undefined);
     } finally {
       this.sellSaving.set(false);
     }

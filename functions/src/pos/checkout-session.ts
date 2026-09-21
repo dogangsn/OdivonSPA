@@ -2,6 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { db, FieldValue } from '../lib/admin';
 import { requireTenantAuth } from '../lib/context';
 import { writeAuditLog } from '../lib/audit';
+import { dateStampInTz, getTenantTimezone } from '../lib/time';
 import { CommissionRuleRecord, resolveCommissionAmount } from '../commissions/commission-engine';
 
 type PaymentMethod = 'nakit' | 'kart' | 'havale' | 'diger';
@@ -36,6 +37,7 @@ export const checkoutSession = onCall<CheckoutSessionData>({ region: 'europe-wes
 
   const tenantRoot = db.collection('tenants').doc(ctx.tenantId);
   const globalDiscount = data.discountAmount ?? 0;
+  const timeZone = await getTenantTimezone(ctx.tenantId);
 
   const result = await db.runTransaction(async (tx) => {
     // ---- Reads ----
@@ -133,7 +135,7 @@ export const checkoutSession = onCall<CheckoutSessionData>({ region: 'europe-wes
     const counterRef = tenantRoot.collection('counters').doc('sessions');
     const counterSnap = await tx.get(counterRef);
     const nextSeq = ((counterSnap.data()?.['value'] as number) ?? 0) + 1;
-    const receiptNo = `S-${dateStamp()}-${String(nextSeq).padStart(4, '0')}`;
+    const receiptNo = `S-${dateStampInTz(timeZone)}-${String(nextSeq).padStart(4, '0')}`;
 
     // ---- Writes ----
     const sessionRef = tenantRoot.collection('sessions').doc();
@@ -199,7 +201,3 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-function dateStamp(): string {
-  const now = new Date();
-  return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-}

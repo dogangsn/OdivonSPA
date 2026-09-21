@@ -1,13 +1,32 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Timestamp, orderBy, where } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { FirestoreCrudService } from '../../core/services/firestore-crud.service';
+import { ApiService } from '../../core/http/api.service';
 import { Appointment, WithId } from '../../core/models';
+
+export interface SaveAppointmentInput {
+  id?: string;
+  customerId: string;
+  staffId: string;
+  roomId: string;
+  serviceId: string;
+  start: Date;
+  notes?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentService extends FirestoreCrudService<Appointment> {
+  private readonly api = inject(ApiService);
+
   constructor() {
     super('appointments');
+  }
+
+  /** Server validates staff/room overlap and staff leave; throws with a user-facing message. */
+  async save(input: SaveAppointmentInput): Promise<string> {
+    const result = await this.api.post<{ id: string }>('/api/appointments', { ...input, start: input.start.toISOString() });
+    return result.id;
   }
 
   watchByDateRange(start: Date, end: Date): Observable<WithId<Appointment>[]> {
@@ -16,18 +35,5 @@ export class AppointmentService extends FirestoreCrudService<Appointment> {
       where('start', '<', Timestamp.fromDate(end)),
       orderBy('start', 'asc'),
     );
-  }
-
-  /** Client-side overlap check for the "terapist/oda çakışma kontrolü" requirement. */
-  hasOverlap(existing: WithId<Appointment>[], staffId: string, roomId: string, start: Date, end: Date, excludingId?: string): boolean {
-    return existing.some((appt) => {
-      if (appt.id === excludingId) return false;
-      if (appt.status === 'İptal') return false;
-      if (appt.staffId !== staffId && appt.roomId !== roomId) return false;
-
-      const apptStart = appt.start instanceof Timestamp ? appt.start.toDate() : appt.start;
-      const apptEnd = appt.end instanceof Timestamp ? appt.end.toDate() : appt.end;
-      return start < apptEnd && end > apptStart;
-    });
   }
 }
