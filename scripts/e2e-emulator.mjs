@@ -9,15 +9,16 @@ import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword } from 'fi
 import { getFirestore, connectFirestoreEmulator, collection, addDoc, doc, getDoc, getDocs, Timestamp } from 'firebase/firestore';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SERVER_PORT = 8787;
+const SERVER_PORT = Number(process.env.E2E_SERVER_PORT ?? 8787);
 const SERVER_URL = `http://127.0.0.1:${SERVER_PORT}`;
 const CRON_SECRET = 'e2e-test-secret';
 
-const app = initializeApp({ projectId: 'odivonspa', apiKey: 'fake-api-key' });
+const app = initializeApp({ projectId: process.env.GCLOUD_PROJECT ?? 'odivonspa', apiKey: 'fake-api-key' });
 const auth = getAuth(app);
 const db = getFirestore(app);
-connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
-connectFirestoreEmulator(db, '127.0.0.1', 8080);
+connectAuthEmulator(auth, `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST ?? '127.0.0.1:9099'}`, { disableWarnings: true });
+const [fsHost, fsPort] = (process.env.FIRESTORE_EMULATOR_HOST ?? '127.0.0.1:8080').split(':');
+connectFirestoreEmulator(db, fsHost, Number(fsPort));
 
 /** Maps a legacy callable name + payload to the equivalent server/ route. */
 function routeFor(name, data) {
@@ -174,7 +175,8 @@ async function runChecks() {
   console.log('\nAll e2e checks passed.');
 }
 
-main().catch((err) => {
+// Explicit exit: the Firestore client keeps the event loop alive otherwise (test would hang on failure).
+main().then(() => process.exit(0), (err) => {
   console.error(err);
-  process.exitCode = 1;
+  process.exit(1);
 });

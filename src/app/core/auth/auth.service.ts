@@ -51,7 +51,9 @@ export class AuthService {
 
   /** Firebase ID token for calling our own backend (server/) — auto-refreshes near expiry. */
   async getIdToken(): Promise<string | null> {
-    const user = this._user();
+    // Auth state notifications may arrive after sign-in resolves. The onboarding
+    // request must still carry the freshly signed-in user's token.
+    const user = this.auth.currentUser;
     return user ? user.getIdToken() : null;
   }
 
@@ -66,12 +68,14 @@ export class AuthService {
   /** Resolves after claims are loaded, so callers can navigate without racing the auth guard. */
   async login(email: string, password: string): Promise<void> {
     const credential = await signInWithEmailAndPassword(this.auth, email, password);
+    this._user.set(credential.user);
     await this.refreshClaims(credential.user);
   }
 
   /** Returns `true` when the account already belongs to a tenant, `false` when it still needs onboarding. */
   async loginWithGoogle(): Promise<boolean> {
     const credential = await signInWithPopup(this.auth, new GoogleAuthProvider());
+    this._user.set(credential.user);
     await this.refreshClaims(credential.user);
     return !!this._claims();
   }
@@ -79,6 +83,7 @@ export class AuthService {
   /** Creates the Firebase Auth user only — tenant/claims are assigned by the `createTenant` callable. */
   async registerAuthUser(email: string, password: string): Promise<User> {
     const credential = await createUserWithEmailAndPassword(this.auth, email, password);
+    this._user.set(credential.user);
     return credential.user;
   }
 

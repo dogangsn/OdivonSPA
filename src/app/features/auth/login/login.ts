@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
+import { describeGoogleAuthError } from '../../../core/auth/google-auth-error';
 import { Logo } from '../../../core/ui/logo/logo';
 
 @Component({
@@ -26,10 +27,7 @@ export class Login {
       const hasTenant = await this.auth.loginWithGoogle();
       await this.router.navigateByUrl(hasTenant ? '/panel' : '/auth/onboarding');
     } catch (err) {
-      const code = (err as { code?: string }).code;
-      if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
-        this.errorMessage.set('Google ile giriş yapılamadı. Lütfen tekrar deneyin.');
-      }
+      this.errorMessage.set(describeGoogleAuthError(err));
     } finally {
       this.submitting.set(false);
     }

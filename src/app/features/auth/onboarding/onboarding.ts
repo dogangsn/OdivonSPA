@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
+import { describeGoogleAuthError } from '../../../core/auth/google-auth-error';
 import { ApiService } from '../../../core/http/api.service';
 import { ApiError } from '../../../core/http/api-error';
 import { Logo } from '../../../core/ui/logo/logo';
@@ -48,10 +49,7 @@ export class Onboarding {
       this.ownerName.set(this.auth.user()?.displayName ?? '');
       this.email.set(this.auth.user()?.email ?? '');
     } catch (err) {
-      const code = (err as { code?: string }).code;
-      if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
-        this.errorMessage.set('Google ile giriş yapılamadı. Lütfen tekrar deneyin.');
-      }
+      this.errorMessage.set(describeGoogleAuthError(err));
     }
   }
 
@@ -79,10 +77,16 @@ export class Onboarding {
 function describeError(err: unknown): string {
   if (err instanceof ApiError) {
     switch (err.code) {
-      case 'not-found':
-      case 'internal':
       case 'unavailable':
-        return 'Hesap oluşturuldu ancak işletme kaydı yapılamadı: sunucuya erişilemiyor. Biraz sonra tekrar deneyin.';
+        return 'İşletme kaydı sunucusuna ulaşılamıyor. Lütfen daha sonra tekrar deneyin.';
+      case 'not-found':
+        return 'İşletme kaydı servisi bu adreste bulunamadı. Site yöneticisiyle iletişime geçin.';
+      case 'internal':
+        return 'İşletme kaydı sunucusunda hata oluştu. Lütfen daha sonra tekrar deneyin.';
+      case 'unauthenticated':
+        return 'Oturumunuz doğrulanamadı. Yeniden giriş yapıp tekrar deneyin.';
+      case 'invalid-argument':
+        return err.message;
       case 'failed-precondition':
         return 'Bu kullanıcı zaten bir işletmeye bağlı. Giriş yapın.';
       default:

@@ -6,9 +6,10 @@ Spa / masaj işletmeleri için çok kiracılı (multi-tenant) yönetim paneli. A
 
 ```bash
 npm install                 # heroicons sprite'ı da üretir (postinstall)
-firebase emulators:start --only auth,firestore   # Java gerekir
-npm --prefix server run dev # server/.env dosyasını server/.env.example'dan oluşturun
-npx ng serve --port 4210
+Copy-Item server/.env.example server/.env  # ilk kurulumda (PowerShell)
+firebase emulators:start --only auth,firestore,storage   # Java gerekir
+npm --prefix server run dev
+npx ng serve --port 4201
 ```
 
 ## Test
