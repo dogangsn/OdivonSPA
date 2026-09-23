@@ -11,7 +11,8 @@
     "build:watch": "tsc --watch",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "lint": "eslint src --ext .ts"
+    "lint": "eslint src --ext .ts",
+    "recover:member": "node scripts/recover-member.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

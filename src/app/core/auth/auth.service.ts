@@ -12,10 +12,16 @@ import {
   signOut,
 } from '@angular/fire/auth';
 import { TenantClaims } from '../models';
+import { ApiService } from '../http/api.service';
+
+type MembershipResolution =
+  | { status: 'claimed' | 'restored'; tenantId: string; role: TenantClaims['role'] }
+  | { status: 'none' };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly auth = inject(Auth);
+  private readonly api = inject(ApiService);
 
   private readonly _user = signal<User | null | undefined>(undefined);
   private readonly _claims = signal<TenantClaims | null>(null);
@@ -35,14 +41,16 @@ export class AuthService {
 
   constructor() {
     authState(this.auth).subscribe(async (user) => {
+      // Make the freshly restored Firebase user available to the API interceptor before
+      // it asks Firebase for the ID token.
+      this._user.set(user);
       try {
-        await this.refreshClaims(user);
+        await this.ensureMembership(user);
       } catch (error) {
         this._claims.set(null);
-        console.error('Firebase yetkileri okunamadı.', error);
+        console.error('Firebase üyeliği okunamadı.', error);
       } finally {
         // Guards must wait for claims, not just the Firebase user object.
-        this._user.set(user);
         this._ready.set(true);
       }
     });
@@ -75,19 +83,34 @@ export class AuthService {
     await this.refreshClaims(user);
   }
 
+  /**
+   * Resolves a lost tenant claim from a single verified active staff membership. The server
+   * performs the lookup and rejects ambiguous e-mail matches, so the client never chooses a tenant.
+   */
+  private async ensureMembership(user: User | null): Promise<boolean> {
+    const claims = await this.refreshClaims(user);
+    if (claims) return true;
+    if (!user) return false;
+
+    const result = await this.api.post<MembershipResolution>('/api/membership/resolve');
+    if (result.status === 'restored' || result.status === 'claimed') {
+      return !!(await this.refreshClaims(user));
+    }
+    return false;
+  }
+
   /** Resolves after claims are loaded, so callers can navigate without racing the auth guard. */
-  async login(email: string, password: string): Promise<void> {
+  async login(email: string, password: string): Promise<boolean> {
     const credential = await signInWithEmailAndPassword(this.auth, email, password);
     this._user.set(credential.user);
-    await this.refreshClaims(credential.user);
+    return this.ensureMembership(credential.user);
   }
 
   /** Returns `true` when the account already belongs to a tenant, `false` when it still needs onboarding. */
   async loginWithGoogle(): Promise<boolean> {
     const credential = await signInWithPopup(this.auth, new GoogleAuthProvider());
     this._user.set(credential.user);
-    const claims = await this.refreshClaims(credential.user);
-    return !!claims;
+    return this.ensureMembership(credential.user);
   }
 
   /** Creates the Firebase Auth user only — tenant/claims are assigned by the `createTenant` callable. */

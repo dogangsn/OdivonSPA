@@ -34,6 +34,11 @@ jobs:
       - name: Build production app
         run: npm run build
 
+      - name: Build backend
+        run: |
+          npm ci --prefix server
+          npm run build --prefix server
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:

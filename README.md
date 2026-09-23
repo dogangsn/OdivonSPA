@@ -39,6 +39,12 @@ firebase deploy --only firestore,hosting
 
 `master` dalına push yapılınca GitHub Actions üretim derlemesini alıp Firebase Hosting ve Firestore kurallarını/indekslerini otomatik yayımlar. Kimlik doğrulama GitHub OIDC ile `github-firebase-deploy@odivonspa.iam.gserviceaccount.com` servis hesabı üzerinden yapılır; GitHub secret gerekmez. Firebase Storage projede henüz etkin olmadığı için otomatik deploy kapsamına dahil değildir.
 
-`server/` ayrı olarak Render'a deploy edilir (Render Web Service, Root Directory `server`, Build `npm ci && npm run build`, Start `npm run start`). Gerekli ortam değişkenleri ve adım adım kurulum için `server/.env.example`'a ve ilgili plan dosyasına bakın.
+`render.yaml`, Render Web Service yapılandırmasını sürümler: servis GitHub'daki `master` dalını izlemeli ve otomatik dağıtım açık olmalıdır. Render'da `FIREBASE_SERVICE_ACCOUNT_KEY` ve `INTERNAL_CRON_SECRET` değerlerini secret olarak; `ALLOWED_ORIGINS` değerini canlı alan adlarıyla tanımlayın. Dağıtımdan sonra `https://odivonspa-server.onrender.com/health` adresinin `{ "status": "ok" }` döndürdüğünü doğrulayın.
+
+Mevcut bir sahip hesabı tenant claim'ini kaybederse, üretim servis hesabının bulunduğu güvenilir bir ortamda aşağıdaki komutla geri bağlanabilir. Komut yalnızca verilen tenant mevcutsa çalışır, başka tenant'a bağlı kullanıcıyı değiştirmez ve tekrar çalıştırıldığında aynı sonucu üretir.
+
+```bash
+npm --prefix server run recover:member -- --email owner@example.com --tenant-id TENANT_ID --name "Sahip Adı"
+```
 
 Yol haritası: `~/.claude/plans/` altındaki plan dosyası (SaaS çekirdeği → çok şube → müşteri yüzü → TR finans).

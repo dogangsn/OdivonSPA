@@ -1,8 +1,9 @@
 import { Router } from 'express';
-import { FieldValue, auth, db } from '../lib/admin';
+import { FieldValue, db } from '../lib/admin';
 import { writeAuditLog } from '../lib/audit';
 import { getClientIp } from '../lib/context';
 import { ApiError, asyncHandler } from '../lib/errors';
+import { resolveMembership, setMembershipClaims } from '../lib/membership';
 
 export const tenantsRouter = Router();
 
@@ -10,6 +11,21 @@ interface CreateTenantBody {
   businessName?: string;
   ownerName?: string;
 }
+
+/** Restores an access claim only when the verified caller has one unambiguous active staff record. */
+tenantsRouter.post(
+  '/membership/resolve',
+  asyncHandler(async (req, res) => {
+    const callerAuth = req.auth;
+    if (!callerAuth) throw new ApiError('unauthenticated', 'Bu işlem için giriş yapmanız gerekiyor.');
+
+    const result = await resolveMembership(callerAuth.uid, callerAuth.token);
+    if (result.status === 'ambiguous') {
+      throw new ApiError('failed-precondition', 'Bu e-posta birden fazla işletmeyle eşleşiyor. Lütfen destek ekibiyle iletişime geçin.');
+    }
+    res.json(result);
+  }),
+);
 
 /** Onboarding entry point: the caller must already exist as a Firebase Auth user with no tenant claim yet. */
 tenantsRouter.post(
@@ -19,8 +35,16 @@ tenantsRouter.post(
     if (!callerAuth) {
       throw new ApiError('unauthenticated', 'Bu işlem için giriş yapmanız gerekiyor.');
     }
-    if (callerAuth.token['tenantId']) {
+    const membership = await resolveMembership(callerAuth.uid, callerAuth.token);
+    if (membership.status === 'claimed') {
       throw new ApiError('failed-precondition', 'Bu kullanıcı zaten bir işletmeye bağlı.');
+    }
+    if (membership.status === 'restored') {
+      res.json({ tenantId: membership.tenantId, restored: true });
+      return;
+    }
+    if (membership.status === 'ambiguous') {
+      throw new ApiError('failed-precondition', 'Bu e-posta birden fazla işletmeyle eşleşiyor. Yeni işletme kaydı oluşturulamadı; lütfen destek ekibiyle iletişime geçin.');
     }
 
     const body = req.body as CreateTenantBody;
@@ -42,6 +66,7 @@ tenantsRouter.post(
     await tenantRef.collection('staff').doc(callerAuth.uid).set({
       ad: ownerName,
       email: callerAuth.token['email'] ?? '',
+      emailNormalized: typeof callerAuth.token['email'] === 'string' ? callerAuth.token['email'].trim().toLowerCase() : '',
       role: 'admin',
       uzmanliklar: [],
       primOraniVarsayilan: 0,
@@ -49,7 +74,7 @@ tenantsRouter.post(
       active: true,
     });
 
-    await auth.setCustomUserClaims(callerAuth.uid, { tenantId: tenantRef.id, role: 'admin' });
+    await setMembershipClaims(callerAuth.uid, { tenantId: tenantRef.id, role: 'admin' });
 
     await writeAuditLog({
       tenantId: tenantRef.id,

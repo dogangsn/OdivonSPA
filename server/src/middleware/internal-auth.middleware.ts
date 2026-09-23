@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 
 /** Guards /internal/* routes (system jobs with no Firebase caller) with a shared secret header. */
 export function internalAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
-  const expected = process.env.CRON_SECRET;
+  const expected = process.env.INTERNAL_CRON_SECRET ?? process.env.CRON_SECRET;
   const provided = req.header('X-Cron-Secret');
 
   if (!expected || !provided || !timingSafeEqualStrings(provided, expected)) {

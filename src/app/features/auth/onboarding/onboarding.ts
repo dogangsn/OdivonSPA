@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { describeGoogleAuthError } from '../../../core/auth/google-auth-error';
+import { describeMembershipError } from '../../../core/auth/membership-error';
 import { ApiService } from '../../../core/http/api.service';
 import { ApiError } from '../../../core/http/api-error';
 import { Logo } from '../../../core/ui/logo/logo';
@@ -49,7 +50,7 @@ export class Onboarding {
       this.ownerName.set(this.auth.user()?.displayName ?? '');
       this.email.set(this.auth.user()?.email ?? '');
     } catch (err) {
-      this.errorMessage.set(describeGoogleAuthError(err));
+      this.errorMessage.set(describeMembershipError(err, describeGoogleAuthError));
     }
   }
 
@@ -93,7 +94,7 @@ function describeError(err: unknown): string {
       case 'invalid-argument':
         return err.message;
       case 'failed-precondition':
-        return 'Bu kullanıcı zaten bir işletmeye bağlı. Giriş yapın.';
+        return err.message || 'Bu kullanıcı zaten bir işletmeye bağlı. Giriş yapın.';
       default:
         return 'Kayıt oluşturulamadı. Lütfen tekrar deneyin.';
     }

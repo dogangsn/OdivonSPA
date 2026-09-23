@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { describeGoogleAuthError } from '../../../core/auth/google-auth-error';
+import { describeMembershipError } from '../../../core/auth/membership-error';
 import { Logo } from '../../../core/ui/logo/logo';
 
 @Component({
@@ -27,7 +28,7 @@ export class Login {
       const hasTenant = await this.auth.loginWithGoogle();
       await this.router.navigateByUrl(hasTenant ? '/panel' : '/auth/onboarding');
     } catch (err) {
-      this.errorMessage.set(describeGoogleAuthError(err));
+      this.errorMessage.set(describeMembershipError(err, describeGoogleAuthError));
     } finally {
       this.submitting.set(false);
     }
@@ -37,10 +38,10 @@ export class Login {
     this.errorMessage.set('');
     this.submitting.set(true);
     try {
-      await this.auth.login(this.email(), this.password());
-      await this.router.navigateByUrl('/panel');
-    } catch {
-      this.errorMessage.set('E-posta veya şifre hatalı. Lütfen tekrar deneyin.');
+      const hasTenant = await this.auth.login(this.email(), this.password());
+      await this.router.navigateByUrl(hasTenant ? '/panel' : '/auth/onboarding');
+    } catch (err) {
+      this.errorMessage.set(describeMembershipError(err, () => 'E-posta veya şifre hatalı. Lütfen tekrar deneyin.'));
     } finally {
       this.submitting.set(false);
     }

@@ -13,6 +13,6 @@ jobs:
       - name: Call /internal/mark-expired-packages
         run: |
           curl -sf -X POST \
-            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
+            -H "X-Cron-Secret: ${{ secrets.INTERNAL_CRON_SECRET }}" \
             --max-time 90 \
             "${{ secrets.SERVER_BASE_URL }}/internal/mark-expired-packages"
