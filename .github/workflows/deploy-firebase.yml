@@ -27,7 +27,9 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm install --global npm@11.16.0
+          npm ci
 
       - name: Build production app
         run: npm run build
