@@ -15,6 +15,7 @@ import { Logo } from '../../../core/ui/logo/logo';
   standalone: true,
   imports: [FormsModule, RouterLink, Logo],
   templateUrl: './onboarding.html',
+  styleUrl: './onboarding.scss',
 })
 export class Onboarding {
   private readonly auth = inject(AuthService);
@@ -26,6 +27,8 @@ export class Onboarding {
   readonly email = signal('');
   readonly password = signal('');
   readonly submitting = signal(false);
+  readonly submitMethod = signal<'google' | 'form' | null>(null);
+  readonly showPassword = signal(false);
   readonly errorMessage = signal('');
 
   /** Already signed in (e.g. with Google) but without a tenant yet — skip creating the Auth user. */
@@ -40,7 +43,11 @@ export class Onboarding {
   }
 
   async signUpWithGoogle(): Promise<void> {
+    if (this.submitting()) return;
+
     this.errorMessage.set('');
+    this.submitting.set(true);
+    this.submitMethod.set('google');
     try {
       const hasTenant = await this.auth.loginWithGoogle();
       if (hasTenant) {
@@ -51,6 +58,9 @@ export class Onboarding {
       this.email.set(this.auth.user()?.email ?? '');
     } catch (err) {
       this.errorMessage.set(describeMembershipError(err, describeGoogleAuthError));
+    } finally {
+      this.submitting.set(false);
+      this.submitMethod.set(null);
     }
   }
 
@@ -60,8 +70,11 @@ export class Onboarding {
   }
 
   async submit(): Promise<void> {
+    if (this.submitting()) return;
+
     this.errorMessage.set('');
     this.submitting.set(true);
+    this.submitMethod.set('form');
     try {
       if (!this.signedInEmail()) {
         await this.auth.registerAuthUser(this.email(), this.password());
@@ -76,6 +89,7 @@ export class Onboarding {
       console.error(err);
     } finally {
       this.submitting.set(false);
+      this.submitMethod.set(null);
     }
   }
 }
