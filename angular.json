@@ -59,6 +59,17 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "emulator": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.emulator.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -71,6 +82,9 @@
             },
             "development": {
               "buildTarget": "odivon-spa:build:development"
+            },
+            "emulator": {
+              "buildTarget": "odivon-spa:build:emulator"
             }
           },
           "defaultConfiguration": "development"

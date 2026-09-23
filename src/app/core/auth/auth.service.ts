@@ -19,12 +19,13 @@ export class AuthService {
 
   private readonly _user = signal<User | null | undefined>(undefined);
   private readonly _claims = signal<TenantClaims | null>(null);
+  private readonly _ready = signal(false);
 
   /** `undefined` = auth state not yet resolved, `null` = signed out. */
   readonly user = this._user.asReadonly();
   readonly claims = this._claims.asReadonly();
 
-  readonly isReady = computed(() => this._user() !== undefined);
+  readonly isReady = this._ready.asReadonly();
   readonly isAuthenticated = computed(() => !!this._user());
   readonly tenantId = computed(() => this._claims()?.tenantId ?? null);
   readonly role = computed(() => this._claims()?.role ?? null);
@@ -34,19 +35,29 @@ export class AuthService {
 
   constructor() {
     authState(this.auth).subscribe(async (user) => {
-      this._user.set(user);
-      await this.refreshClaims(user);
+      try {
+        await this.refreshClaims(user);
+      } catch (error) {
+        this._claims.set(null);
+        console.error('Firebase yetkileri okunamadı.', error);
+      } finally {
+        // Guards must wait for claims, not just the Firebase user object.
+        this._user.set(user);
+        this._ready.set(true);
+      }
     });
   }
 
-  private async refreshClaims(user: User | null): Promise<void> {
+  private async refreshClaims(user: User | null): Promise<TenantClaims | null> {
     if (!user) {
       this._claims.set(null);
-      return;
+      return null;
     }
-    const tokenResult = await getIdTokenResult(user);
+    const tokenResult = await getIdTokenResult(user, true);
     const claims = tokenResult.claims as Partial<TenantClaims>;
-    this._claims.set(claims.tenantId && claims.role ? (claims as TenantClaims) : null);
+    const tenantClaims = claims.tenantId && claims.role ? (claims as TenantClaims) : null;
+    this._claims.set(tenantClaims);
+    return tenantClaims;
   }
 
   /** Firebase ID token for calling our own backend (server/) — auto-refreshes near expiry. */
@@ -61,7 +72,6 @@ export class AuthService {
   async forceRefreshClaims(): Promise<void> {
     const user = this._user();
     if (!user) return;
-    await user.getIdToken(true);
     await this.refreshClaims(user);
   }
 
@@ -76,8 +86,8 @@ export class AuthService {
   async loginWithGoogle(): Promise<boolean> {
     const credential = await signInWithPopup(this.auth, new GoogleAuthProvider());
     this._user.set(credential.user);
-    await this.refreshClaims(credential.user);
-    return !!this._claims();
+    const claims = await this.refreshClaims(credential.user);
+    return !!claims;
   }
 
   /** Creates the Firebase Auth user only — tenant/claims are assigned by the `createTenant` callable. */

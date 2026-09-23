@@ -53,6 +53,11 @@ export class Onboarding {
     }
   }
 
+  async switchAccount(): Promise<void> {
+    await this.auth.logout();
+    await this.router.navigateByUrl('/auth/login');
+  }
+
   async submit(): Promise<void> {
     this.errorMessage.set('');
     this.submitting.set(true);

@@ -42,9 +42,13 @@
           />
         </div>
         @if (signedInEmail(); as googleEmail) {
-          <p class="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-2.5">
-            <strong class="text-slate-700 dark:text-slate-200">{{ googleEmail }}</strong> hesabıyla giriş yapıldı — işletme bilgilerini tamamlayın.
-          </p>
+          <div class="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-3 space-y-2">
+            <p><strong class="text-slate-700 dark:text-slate-200">{{ googleEmail }}</strong> hesabıyla giriş yapıldı.</p>
+            <p>Bu hesap için işletme üyeliği bulunamadı. Başka bir hesapla kayıtlıysanız o hesapla giriş yapın.</p>
+            <button type="button" (click)="switchAccount()" class="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">
+              Farklı hesapla giriş yap
+            </button>
+          </div>
         } @else {
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">

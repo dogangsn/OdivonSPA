@@ -9,8 +9,10 @@ npm install                 # heroicons sprite'ı da üretir (postinstall)
 Copy-Item server/.env.example server/.env  # ilk kurulumda (PowerShell)
 firebase emulators:start --only auth,firestore,storage   # Java gerekir
 npm --prefix server run dev
-npx ng serve --port 4201
+npx ng serve --configuration emulator --port 4201
 ```
+
+Gerçek Firebase projesindeki hesaplarla giriş yapmak için `npx ng serve --port 4201` kullanın. `emulator` yapılandırmasındaki hesaplar ve işletmeler yereldir; gerçek projedeki veriler burada görünmez.
 
 ## Test
 
