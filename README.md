@@ -35,6 +35,8 @@ npx ng build --configuration production
 firebase deploy --only firestore,hosting
 ```
 
+`master` dalına push yapılınca GitHub Actions üretim derlemesini alıp Firebase Hosting ve Firestore kurallarını/indekslerini otomatik yayımlar. Kimlik doğrulama GitHub OIDC ile `github-firebase-deploy@odivonspa.iam.gserviceaccount.com` servis hesabı üzerinden yapılır; GitHub secret gerekmez. Firebase Storage projede henüz etkin olmadığı için otomatik deploy kapsamına dahil değildir.
+
 `server/` ayrı olarak Render'a deploy edilir (Render Web Service, Root Directory `server`, Build `npm ci && npm run build`, Start `npm run start`). Gerekli ortam değişkenleri ve adım adım kurulum için `server/.env.example`'a ve ilgili plan dosyasına bakın.
 
 Yol haritası: `~/.claude/plans/` altındaki plan dosyası (SaaS çekirdeği → çok şube → müşteri yüzü → TR finans).

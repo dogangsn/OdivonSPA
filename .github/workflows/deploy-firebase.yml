@@ -1,0 +1,44 @@
+name: Deploy Firebase
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: firebase-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production app
+        run: npm run build
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/871613231301/locations/global/workloadIdentityPools/github-actions/providers/odivonspa-repo
+          service_account: github-firebase-deploy@odivonspa.iam.gserviceaccount.com
+
+      - name: Deploy Hosting and Firestore
+        run: |
+          npm install --global firebase-tools@15.30.2
+          firebase deploy --project odivonspa --only hosting,firestore --non-interactive
