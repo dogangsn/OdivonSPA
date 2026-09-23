@@ -6,9 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
   standalone: true,
   imports: [MatIconModule],
   template: `
-    <div class="max-w-sm mx-auto flex flex-col items-center py-16 text-center">
+    <div class="max-w-sm mx-auto flex flex-col items-center px-6 py-16 text-center">
       <div
-        class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mb-4"
+        class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 flex items-center justify-center mb-4 shadow-sm"
       >
         <mat-icon class="icon-size-8" [svgIcon]="icon()"></mat-icon>
       </div>

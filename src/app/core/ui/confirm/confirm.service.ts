@@ -4,6 +4,15 @@ import Swal from 'sweetalert2';
 /** Odivon-styled SweetAlert2 confirmations for destructive/irreversible actions. */
 @Injectable({ providedIn: 'root' })
 export class ConfirmService {
+  private readonly toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2200,
+    timerProgressBar: true,
+    customClass: { popup: 'odivon-toast' },
+  });
+
   async confirm(options: { title: string; text?: string; confirmText?: string; danger?: boolean }): Promise<boolean> {
     const result = await Swal.fire({
       title: options.title,
@@ -49,5 +58,13 @@ export class ConfirmService {
       confirmButtonColor: '#4f46e5',
       customClass: { popup: 'odivon-swal' },
     });
+  }
+
+  async toastSuccess(title: string): Promise<void> {
+    await this.toast.fire({ icon: 'success', title });
+  }
+
+  async toastError(title: string): Promise<void> {
+    await this.toast.fire({ icon: 'error', title });
   }
 }

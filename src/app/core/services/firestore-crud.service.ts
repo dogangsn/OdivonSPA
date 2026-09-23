@@ -19,6 +19,7 @@ import {
 import { Observable, of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { WithId } from '../models';
+import { ConfirmService } from '../ui/confirm/confirm.service';
 
 /**
  * Base class for tenant-scoped Firestore collections (`tenants/{tenantId}/{collectionName}`).
@@ -29,6 +30,7 @@ import { WithId } from '../models';
 export abstract class FirestoreCrudService<T extends DocumentData> {
   protected readonly firestore = inject(Firestore);
   protected readonly auth = inject(AuthService);
+  private readonly feedback = inject(ConfirmService);
 
   protected constructor(private readonly collectionName: string) {}
 
@@ -68,6 +70,7 @@ export abstract class FirestoreCrudService<T extends DocumentData> {
     const uid = this.auth.user()?.uid ?? 'unknown';
     const payload = { ...data, createdAt: serverTimestamp(), createdBy: uid };
     const created = await addDoc(ref, payload as unknown as T);
+    await this.feedback.toastSuccess('Kayıt başarıyla oluşturuldu');
     return created.id;
   }
 
@@ -76,6 +79,7 @@ export abstract class FirestoreCrudService<T extends DocumentData> {
     if (!ref) throw new Error('Tenant context missing — cannot update document.');
     const uid = this.auth.user()?.uid ?? 'unknown';
     await updateDoc(ref, { ...patch, updatedAt: serverTimestamp(), updatedBy: uid } as DocumentData);
+    await this.feedback.toastSuccess('Değişiklikler kaydedildi');
   }
 
   /** Soft delete for collections that carry an `active` flag instead of being hard-deleted. */
@@ -88,5 +92,6 @@ export abstract class FirestoreCrudService<T extends DocumentData> {
     const ref = this.docRef(id);
     if (!ref) throw new Error('Tenant context missing — cannot delete document.');
     await deleteDoc(ref);
+    await this.feedback.toastSuccess('Kayıt silindi');
   }
 }

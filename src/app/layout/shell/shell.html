@@ -6,7 +6,7 @@
 
   <!-- Sidebar -->
   <aside
-    class="fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 flex flex-col transition-transform duration-200 -translate-x-full lg:translate-x-0"
+    class="shell-sidebar fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 flex flex-col transition-transform duration-200 -translate-x-full lg:translate-x-0"
     [class.translate-x-0]="sidebarOpen()"
   >
     <div class="h-16 flex items-center gap-2.5 px-6 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
@@ -48,11 +48,12 @@
   <div class="flex-1 flex flex-col min-w-0">
     <!-- Topbar -->
     <header
-      class="h-16 shrink-0 flex items-center gap-3 px-4 sm:px-6 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900"
+      class="shell-topbar h-16 shrink-0 flex items-center gap-3 px-4 sm:px-6 border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90"
     >
       <button
         type="button"
         (click)="toggleSidebar()"
+        aria-label="Menüyü aç"
         class="lg:hidden w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center cursor-pointer"
       >
         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:bars-3'"></mat-icon>
@@ -74,6 +75,7 @@
 
       <button
         type="button"
+        aria-label="Bildirimler"
         class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 flex items-center justify-center cursor-pointer relative"
       >
         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:bell'"></mat-icon>
@@ -93,8 +95,11 @@
 
       <button
         type="button"
-        (click)="logout()"
-        class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+        (click)="$event.stopPropagation(); logout()"
+        aria-label="Oturumu kapat"
+        [disabled]="loggingOut()"
+        [attr.aria-busy]="loggingOut()"
+        class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:cursor-wait disabled:opacity-60"
       >
         <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:arrow-right-start-on-rectangle'"></mat-icon>
         <span class="hidden sm:inline">Çıkış</span>
@@ -102,7 +107,7 @@
     </header>
 
     <!-- Page content -->
-    <main class="flex-1 overflow-y-auto custom-scroll p-4 sm:p-6">
+    <main class="shell-content flex-1 overflow-y-auto custom-scroll p-4 sm:p-6 lg:p-8">
       <router-outlet></router-outlet>
     </main>
   </div>

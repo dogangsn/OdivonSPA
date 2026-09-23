@@ -1,0 +1,25 @@
+:host {
+  display: block;
+  height: 100vh;
+}
+
+.shell-sidebar {
+  box-shadow: 12px 0 32px -28px rgba(15, 23, 42, 0.5);
+}
+
+.shell-topbar {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.shell-content {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(129, 140, 248, 0.08), transparent 30rem),
+    var(--odivon-bg-default);
+}
+
+:host-context(.dark) .shell-content {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.1), transparent 30rem),
+    var(--odivon-bg-default);
+}

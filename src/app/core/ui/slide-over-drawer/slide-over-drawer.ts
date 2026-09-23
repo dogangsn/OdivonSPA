@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
   standalone: true,
   imports: [MatIconModule],
   templateUrl: './slide-over-drawer.html',
+  styleUrl: './slide-over-drawer.scss',
 })
 export class SlideOverDrawer {
   readonly open = input.required<boolean>();
