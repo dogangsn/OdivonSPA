@@ -14,6 +14,8 @@ npx ng serve --configuration emulator --port 4201
 
 Gerçek Firebase projesindeki hesaplarla giriş yapmak için `npx ng serve --port 4201` kullanın. `emulator` yapılandırmasındaki hesaplar ve işletmeler yereldir; gerçek projedeki veriler burada görünmez.
 
+Gerçek Firebase projesine bağlı yerel Express API için bir kez `gcloud auth application-default login` çalıştırın; ardından `server/.env` içindeki `FIREBASE_AUTH_EMULATOR_HOST` ve `FIRESTORE_EMULATOR_HOST` satırlarını kaldırın veya yorum satırı yapın. Emulator çalıştırırken bu değişkenler `firebase emulators:exec` tarafından otomatik sağlanır.
+
 ## Test
 
 ```bash

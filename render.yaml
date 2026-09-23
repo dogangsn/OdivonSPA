@@ -8,6 +8,8 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: NODE_VERSION
         value: "22"
       - key: FIREBASE_SERVICE_ACCOUNT_KEY

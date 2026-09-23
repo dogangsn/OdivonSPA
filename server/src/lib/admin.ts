@@ -1,4 +1,4 @@
-import { cert, initializeApp } from 'firebase-admin/app';
+import { applicationDefault, cert, initializeApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 
@@ -14,19 +14,28 @@ function buildApp() {
   }
 
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  if (!raw) {
+  if (raw) {
+    let serviceAccount: object;
+    try {
+      serviceAccount = JSON.parse(raw);
+    } catch {
+      throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not valid JSON.');
+    }
+    return initializeApp({ credential: cert(serviceAccount as never) });
+  }
+
+  if (process.env.NODE_ENV === 'production') {
     throw new Error(
-      'FIREBASE_SERVICE_ACCOUNT_KEY is not set. Provide the Firebase service-account JSON key, ' +
-        'or run against the emulator suite (FIRESTORE_EMULATOR_HOST/FIREBASE_AUTH_EMULATOR_HOST).',
+      'FIREBASE_SERVICE_ACCOUNT_KEY is not set. Production needs a Firebase service-account JSON key.',
     );
   }
-  let serviceAccount: object;
-  try {
-    serviceAccount = JSON.parse(raw);
-  } catch {
-    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not valid JSON.');
-  }
-  return initializeApp({ credential: cert(serviceAccount as never) });
+
+  // Local development can use `gcloud auth application-default login` without copying a
+  // service-account key into .env. Render remains protected by the production check above.
+  return initializeApp({
+    credential: applicationDefault(),
+    projectId: process.env.GCLOUD_PROJECT ?? 'odivonspa',
+  });
 }
 
 buildApp();
