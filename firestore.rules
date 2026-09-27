@@ -179,10 +179,17 @@ service cloud.firestore {
 
       match /staffLeaves/{leaveId} {
         allow read: if isTenantMember(tenantId);
-        allow create: if (isAdminOrReception(tenantId) ||
-          (isTenantMember(tenantId) && request.resource.data.staffId == request.auth.uid)) &&
+        // Admin/reception record approved leave for anyone; other staff may only request their own
+        // (status 'beklemede') and an admin approves or rejects it. Only approved leave blocks bookings.
+        allow create: if request.resource.data.startDate <= request.resource.data.endDate &&
+          ((isAdminOrReception(tenantId) && request.resource.data.status in ['onaylandi', 'beklemede']) ||
+           (isTenantMember(tenantId) && request.resource.data.staffId == request.auth.uid &&
+            request.resource.data.status == 'beklemede')) &&
           audited(tenantId, 'staffLeaves', leaveId);
-        allow update: if isAdmin(tenantId) && audited(tenantId, 'staffLeaves', leaveId);
+        allow update: if isAdmin(tenantId) &&
+          request.resource.data.get('status', 'onaylandi') in ['beklemede', 'onaylandi', 'reddedildi'] &&
+          request.resource.data.startDate <= request.resource.data.endDate &&
+          audited(tenantId, 'staffLeaves', leaveId);
         allow delete: if isAdmin(tenantId) && auditedDelete(tenantId, 'staffLeaves', leaveId);
       }
 

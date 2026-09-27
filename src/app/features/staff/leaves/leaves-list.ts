@@ -9,7 +9,8 @@ import { SlideOverDrawer } from '../../../core/ui/slide-over-drawer/slide-over-d
 import { StatusBadge } from '../../../core/ui/status-badge/status-badge';
 import { ConfirmService } from '../../../core/ui/confirm/confirm.service';
 import { AuthService } from '../../../core/auth/auth.service';
-import { LEAVE_TYPE_LABELS, LeaveType, StaffLeave, WithId } from '../../../core/models';
+import { BadgeVariant } from '../../../core/ui/status-badge/status-badge';
+import { LEAVE_STATUS_LABELS, LEAVE_TYPE_LABELS, LeaveStatus, LeaveType, StaffLeave, WithId } from '../../../core/models';
 import { LeaveService } from './leave.service';
 import { StaffService } from '../personnel/staff.service';
 
@@ -34,6 +35,11 @@ export class LeavesList extends SimpleCrudListBase<StaffLeave> {
   private readonly auth = inject(AuthService);
 
   readonly leaveTypeLabels = LEAVE_TYPE_LABELS;
+  readonly leaveStatusLabels = LEAVE_STATUS_LABELS;
+  readonly leaveStatusVariants: Record<LeaveStatus, BadgeVariant> = { beklemede: 'amber', onaylandi: 'emerald', reddedildi: 'rose' };
+  /** Admin and reception record leave for anyone (approved right away); others request their own. */
+  readonly canManage = computed(() => this.auth.role() === 'admin' || this.auth.role() === 'reception');
+  readonly isAdmin = this.auth.isAdmin;
   readonly leaveTypes: LeaveType[] = ['yillik', 'rapor', 'ucretsiz', 'diger'];
 
   readonly items: Signal<WithId<StaffLeave>[]> = this.leaveService.watchAllSignal();
@@ -45,9 +51,8 @@ export class LeavesList extends SimpleCrudListBase<StaffLeave> {
   form: LeaveForm = { staffId: '', type: 'yillik', startDate: '', endDate: '', note: '' };
 
   openCreateDrawer(): void {
-    const isAdmin = this.auth.isAdmin();
     this.form = {
-      staffId: isAdmin ? '' : this.auth.user()?.uid ?? '',
+      staffId: this.canManage() ? '' : this.auth.user()?.uid ?? '',
       type: 'yillik',
       startDate: '',
       endDate: '',
@@ -62,18 +67,37 @@ export class LeavesList extends SimpleCrudListBase<StaffLeave> {
 
   async save(): Promise<void> {
     if (!this.form.staffId || !this.form.startDate || !this.form.endDate) return;
+    if (this.form.endDate < this.form.startDate) {
+      await this.confirmService.error('Geçersiz Tarih', 'Bitiş tarihi başlangıçtan önce olamaz.');
+      return;
+    }
     this.saving.set(true);
     try {
       await this.leaveService.create({
         staffId: this.form.staffId,
         type: this.form.type,
+        status: this.canManage() ? 'onaylandi' : 'beklemede',
         startDate: Timestamp.fromDate(new Date(this.form.startDate)),
         endDate: Timestamp.fromDate(new Date(this.form.endDate)),
         note: this.form.note.trim() || undefined,
       } as Omit<StaffLeave, 'id'>);
       this.closeDrawer();
+    } catch (err) {
+      await this.confirmService.error('İzin Kaydedilemedi', err instanceof Error ? err.message : undefined);
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  statusOf(item: StaffLeave): LeaveStatus {
+    return item.status ?? 'onaylandi';
+  }
+
+  async review(item: WithId<StaffLeave>, status: 'onaylandi' | 'reddedildi'): Promise<void> {
+    try {
+      await this.leaveService.update(item.id, { status });
+    } catch (err) {
+      await this.confirmService.error('İzin Güncellenemedi', err instanceof Error ? err.message : undefined);
     }
   }
 

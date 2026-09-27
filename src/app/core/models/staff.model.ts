@@ -40,9 +40,19 @@ export const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   diger: 'Diğer',
 };
 
+/** Leaves created before approval existed have no status and count as approved. */
+export type LeaveStatus = 'beklemede' | 'onaylandi' | 'reddedildi';
+
+export const LEAVE_STATUS_LABELS: Record<LeaveStatus, string> = {
+  beklemede: 'Onay Bekliyor',
+  onaylandi: 'Onaylandı',
+  reddedildi: 'Reddedildi',
+};
+
 export interface StaffLeave {
   staffId: string;
   type: LeaveType;
+  status?: LeaveStatus;
   startDate: FirestoreDate;
   endDate: FirestoreDate;
   note?: string;

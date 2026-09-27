@@ -182,12 +182,27 @@ async function runChecks() {
   );
   step('appointment saved; overlapping one rejected');
 
-  await auditedAdd('staffLeaves', { staffId, type: 'yillik', startDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 5))), endDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 6))) });
+  await auditedAdd('staffLeaves', { staffId, type: 'yillik', status: 'onaylandi', startDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 5))), endDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 6))) });
   await fails(
     call('saveAppointment', { customerId: customer, staffId, roomId: room, serviceId: service, start: new Date(Date.UTC(2030, 0, 5, 12)).toISOString() }),
     'failed-precondition',
   );
   step('appointment on staff leave rejected');
+
+  // Pending leave doesn't block; inverted dates, past, out-of-hours and inactive-customer bookings are rejected.
+  await auditedAdd('staffLeaves', { staffId, type: 'yillik', status: 'beklemede', startDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 8))), endDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 8))) });
+  await assert.rejects(
+    auditedAdd('staffLeaves', { staffId, type: 'yillik', status: 'onaylandi', startDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 9))), endDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 8))) }),
+    /permission|PERMISSION/i,
+  );
+  const { id: pendingLeaveAppt } = await call('saveAppointment', { customerId: customer, staffId, roomId: room, serviceId: service, start: new Date(Date.UTC(2030, 0, 8, 9)).toISOString() });
+  await fails(call('saveAppointment', { customerId: customer, staffId, roomId: room, serviceId: service, start: new Date(Date.UTC(2020, 0, 1, 10)).toISOString() }), 'failed-precondition');
+  await fails(call('saveAppointment', { customerId: customer, staffId, roomId: room, serviceId: service, start: new Date(Date.UTC(2030, 0, 3, 3)).toISOString() }), 'failed-precondition'); // 06:00 Istanbul
+  await fails(call('saveAppointment', { customerId: customer, staffId, roomId: room, serviceId: service, start: new Date(Date.UTC(2030, 0, 3, 17, 30)).toISOString() }), 'failed-precondition'); // ends 21:30
+  const passive = (await auditedAdd('customers', { ad: 'Pasif', telefon: '0', cinsiyet: 'kadin', etiketler: [], kvkkOnay: true, active: false })).id;
+  await fails(call('saveAppointment', { customerId: passive, staffId, roomId: room, serviceId: service, start: new Date(Date.UTC(2030, 0, 4, 10)).toISOString() }), 'failed-precondition');
+  await auditedUpdate('appointments', pendingLeaveAppt, { status: 'İptal', updatedBy: auth.currentUser.uid });
+  step('pending leave does not block; bad leave dates, past, out-of-hours and inactive-customer bookings rejected');
 
   // --- package sale must hit payments; direct create denied ---
   await assert.rejects(addDoc(col('customerPackages'), { customerId: customer }), /permission|PERMISSION/i);
