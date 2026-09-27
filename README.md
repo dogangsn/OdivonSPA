@@ -24,7 +24,7 @@ npm --prefix server test  # backend birim testleri (POS tutarı, prim motoru, ka
 npm run test:e2e          # emulator + yerel server üzerinde uçtan uca (rules + API rotaları), Java gerekir
 ```
 
-`.github/workflows/ci.yml` bu üç kontrolü her PR'da ve `master` dışındaki dallara push'ta çalıştırır. `master`'a push'ta deploy iş akışı önce birim testleri çalıştırır; test kırıksa yayına çıkmaz.
+`.github/workflows/ci.yml` bu üç kontrolü her PR'da çalıştırır (Actions sekmesinden elle de başlatılabilir). `master`'a push'ta deploy iş akışı önce birim testleri çalıştırır; test kırıksa yayına çıkmaz.
 
 ## Mimari notları
 

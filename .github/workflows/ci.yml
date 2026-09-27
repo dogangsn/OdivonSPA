@@ -1,9 +1,9 @@
 name: CI
 
+# master pushes run the unit tests in deploy-firebase.yml before deploying.
 on:
   pull_request:
-  push:
-    branches-ignore: [master] # master runs the same checks in deploy-firebase.yml before deploying
+  workflow_dispatch:
 
 permissions:
   contents: read
