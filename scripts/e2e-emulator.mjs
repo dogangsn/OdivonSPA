@@ -37,6 +37,8 @@ function routeFor(name, data) {
       return { method: 'POST', path: '/api/packages/sell', body: data };
     case 'checkoutSession':
       return { method: 'POST', path: '/api/pos/checkout-session', body: data };
+    case 'createPayment':
+      return { method: 'POST', path: '/api/payments', body: data };
     case 'refundPayment':
       return { method: 'POST', path: `/api/payments/${data.paymentId}/refund`, body: { reason: data.reason } };
     case 'payoutCommissions':
@@ -160,12 +162,42 @@ async function runChecks() {
   assert.equal((await getDoc(doc(db, `tenants/${tenantId}/appointments/${apptId}`))).data().status, 'Tamamlandı');
   step(`checkout ${sale.receiptNo}; commission 120 accrued; appointment completed`);
 
+  // --- malformed POS input must be rejected before any stock/package/money changes ---
+  const product = (await addDoc(col('products'), { ad: 'Yağ', fiyat: 50, mevcutStok: 5, active: true })).id;
+  const posBase = { customerId: customer, staffId, roomId: room };
+  await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: -3 }], payments: [] }), 'invalid-argument');
+  await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: 1.5 }], payments: [{ method: 'nakit', amount: 75 }] }), 'invalid-argument');
+  await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: 1, discount: -100 }], payments: [{ method: 'nakit', amount: 150 }] }), 'invalid-argument');
+  await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: 1, discount: 80 }], payments: [] }), 'invalid-argument');
+  await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: 1 }], discountAmount: 80, payments: [] }), 'invalid-argument');
+  await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: 2 }], payments: [{ method: 'nakit', amount: 150 }, { method: 'kart', amount: -50 }] }), 'invalid-argument');
+  await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: 3 }, { kind: 'product', refId: product, qty: 3 }], payments: [{ method: 'nakit', amount: 300 }] }), 'failed-precondition');
+  assert.equal((await getDoc(doc(db, `tenants/${tenantId}/products/${product}`))).data().mevcutStok, 5);
+  step('negative/fractional qty, bad discounts, negative payments and split-line overselling rejected; stock untouched');
+
+  // --- manual payments go through the server; direct writes and double refunds are blocked ---
+  await assert.rejects(addDoc(col('payments'), { amount: 99999, method: 'nakit', isRefund: false }), /permission|PERMISSION/i);
+  await fails(call('createPayment', { method: 'nakit', amount: -10 }), 'invalid-argument');
+  const { paymentId } = await call('createPayment', { customerId: customer, method: 'nakit', amount: 200, note: 'Bahşiş' });
+  await call('refundPayment', { paymentId, reason: 'Test' });
+  await fails(call('refundPayment', { paymentId, reason: 'Tekrar' }), 'failed-precondition');
+  step('direct payment write denied; manual payment 200 recorded, refunded once, second refund rejected');
+
   // --- close today's register (Istanbul day): 600 session + 1000 package ---
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Istanbul' }).format(new Date());
   const closed = await call('closeCashRegisterDay', { date: today });
   assert.equal(closed.totalIncome, 1600);
   assert.equal(closed.netCash, 1600);
-  step(`day ${today} closed: income 1600 (package sale included)`);
+  step(`day ${today} closed: income 1600 (package sale included, manual payment netted by its refund)`);
+
+  // --- a closed day is final: no new money until an admin reopens it ---
+  await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: 1 }], payments: [{ method: 'nakit', amount: 50 }] }), 'failed-precondition');
+  await fails(call('createPayment', { method: 'kart', amount: 10 }), 'failed-precondition');
+  await fails(call('sellPackage', { customerId: customer, packagePlanId: plan, payments: [{ method: 'kart', amount: 1000 }] }), 'failed-precondition');
+  await fails(call('closeCashRegisterDay', { date: '2026-02-30' }), 'invalid-argument');
+  await call('reopenCashRegisterDay', { date: today, reason: 'Düzeltme' });
+  await call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: 1 }], payments: [{ method: 'nakit', amount: 50 }] });
+  step('closed day rejects checkout, payment and package sale; works again after reopen');
 
   // --- /internal/mark-expired-packages is guarded by the cron secret, not Firebase auth ---
   const resp = await fetch(`${SERVER_URL}/internal/mark-expired-packages`, { method: 'POST', headers: { 'X-Cron-Secret': CRON_SECRET } });

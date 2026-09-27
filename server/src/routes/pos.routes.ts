@@ -1,14 +1,15 @@
 import { Router } from 'express';
+import { Timestamp } from 'firebase-admin/firestore';
 import { db, FieldValue } from '../lib/admin';
 import { requireTenantAuth } from '../lib/context';
 import { writeAuditLog } from '../lib/audit';
 import { dateStampInTz, getTenantTimezone } from '../lib/time';
 import { CommissionRuleRecord, resolveCommissionAmount } from '../commissions/commission-engine';
 import { ApiError, asyncHandler } from '../lib/errors';
+import { assertCashDayOpen } from '../lib/cash-day';
+import { assertPayments, isMoney, isPositiveInt, MAX_LINE_QTY, PaymentMethod, round2 } from '../lib/validation';
 
 export const posRouter = Router();
-
-type PaymentMethod = 'nakit' | 'kart' | 'havale' | 'diger';
 
 interface CheckoutItemInput {
   kind: 'service' | 'product';
@@ -39,6 +40,28 @@ posRouter.post(
     if (!data?.customerId || !data?.staffId || !data?.roomId || !data.items?.length) {
       throw new ApiError('invalid-argument', 'Müşteri, terapist, oda ve en az bir hizmet/ürün zorunludur.');
     }
+    for (const item of data.items) {
+      if (item?.kind !== 'service' && item?.kind !== 'product') {
+        throw new ApiError('invalid-argument', 'Geçersiz satır türü.');
+      }
+      if (!item.refId || typeof item.refId !== 'string') {
+        throw new ApiError('invalid-argument', 'Satırda hizmet/ürün seçilmemiş.');
+      }
+      if (!isPositiveInt(item.qty, MAX_LINE_QTY)) {
+        throw new ApiError('invalid-argument', `Adet 1 ile ${MAX_LINE_QTY} arasında tam sayı olmalıdır.`);
+      }
+      if (item.discount != null && !isMoney(item.discount)) {
+        throw new ApiError('invalid-argument', 'Satır indirimi geçerli ve negatif olmayan bir tutar olmalıdır.');
+      }
+      if (item.customerPackageId != null && (item.kind !== 'service' || typeof item.customerPackageId !== 'string')) {
+        throw new ApiError('invalid-argument', 'Paket kullanımı yalnızca hizmet satırında yapılabilir.');
+      }
+    }
+    if (data.discountAmount != null && !isMoney(data.discountAmount)) {
+      throw new ApiError('invalid-argument', 'Genel indirim geçerli ve negatif olmayan bir tutar olmalıdır.');
+    }
+    // A fully package-redeemed session has nothing to charge, so an empty payments list is valid.
+    const payments = assertPayments(data.payments ?? [], { allowEmpty: true });
 
     const tenantRoot = db.collection('tenants').doc(ctx.tenantId);
     const globalDiscount = data.discountAmount ?? 0;
@@ -46,6 +69,7 @@ posRouter.post(
 
     const result = await db.runTransaction(async (tx) => {
       // ---- Reads ----
+      await assertCashDayOpen(tx, ctx.tenantId, timeZone);
       const staffSnap = await tx.get(tenantRoot.collection('staff').doc(data.staffId));
       if (!staffSnap.exists) throw new ApiError('not-found', 'Terapist bulunamadı.');
       const staffData = staffSnap.data() as { primOraniVarsayilan: number };
@@ -88,13 +112,21 @@ posRouter.post(
 
           if (isPackageRedemption) {
             const pkgSnap = packagesById.get(item.customerPackageId!);
-            const pkg = pkgSnap?.data() as { customerId: string; kalanSeans: number; status: string } | undefined;
+            const pkg = pkgSnap?.data() as
+              | { customerId: string; kalanSeans: number; status: string; bitisTarihi?: Timestamp }
+              | undefined;
             if (!pkgSnap?.exists || !pkg) throw new ApiError('not-found', 'Paket bulunamadı.');
             if (pkg.customerId !== data.customerId) throw new ApiError('failed-precondition', 'Paket bu müşteriye ait değil.');
             if (pkg.status !== 'active') throw new ApiError('failed-precondition', 'Paket aktif değil.');
-            if (pkg.kalanSeans < item.qty) throw new ApiError('failed-precondition', 'Paketin kalan seans hakkı yetersiz.');
+            // The daily cron flips status to expired; don't let a missed run allow redeeming an expired package.
+            if (pkg.bitisTarihi && pkg.bitisTarihi.toMillis() < Date.now()) {
+              throw new ApiError('failed-precondition', 'Paketin süresi dolmuş.');
+            }
+            const alreadyRedeemed = packageDecrements.get(item.customerPackageId!) ?? 0;
+            if (pkg.kalanSeans < alreadyRedeemed + item.qty) throw new ApiError('failed-precondition', 'Paketin kalan seans hakkı yetersiz.');
             packageDecrements.set(item.customerPackageId!, (packageDecrements.get(item.customerPackageId!) ?? 0) + item.qty);
           } else {
+            if (discount > lineBasis) throw new ApiError('invalid-argument', `"${service.ad}" için indirim satır tutarını aşamaz.`);
             totalAmount += lineBasis - discount;
           }
 
@@ -121,17 +153,23 @@ posRouter.post(
           }
         } else {
           const product = productsById.get(item.refId) as { ad: string; fiyat: number; mevcutStok: number };
-          if (product.mevcutStok < item.qty) {
+          const alreadyTaken = productDecrements.get(item.refId) ?? 0;
+          if (product.mevcutStok < alreadyTaken + item.qty) {
             throw new ApiError('failed-precondition', `"${product.ad}" için stok yetersiz.`);
           }
-          totalAmount += product.fiyat * item.qty - discount;
+          const productLine = product.fiyat * item.qty;
+          if (discount > productLine) throw new ApiError('invalid-argument', `"${product.ad}" için indirim satır tutarını aşamaz.`);
+          totalAmount += productLine - discount;
           productDecrements.set(item.refId, (productDecrements.get(item.refId) ?? 0) + item.qty);
           resolvedItems.push({ kind: 'product', refId: item.refId, ad: product.ad, qty: item.qty, price: product.fiyat, discount });
         }
       }
 
+      if (globalDiscount > round2(totalAmount)) {
+        throw new ApiError('invalid-argument', 'Genel indirim seans tutarını aşamaz.');
+      }
       totalAmount = round2(totalAmount - globalDiscount);
-      const paymentsTotal = round2((data.payments ?? []).reduce((sum, p) => sum + p.amount, 0));
+      const paymentsTotal = round2(payments.reduce((sum, p) => sum + p.amount, 0));
       if (Math.abs(paymentsTotal - totalAmount) > EPSILON) {
         throw new ApiError('failed-precondition', 'Ödeme tutarları toplamı seans tutarına eşit olmalı.');
       }
@@ -166,7 +204,7 @@ posRouter.post(
         items: resolvedItems,
         totalAmount,
         discountAmount: globalDiscount,
-        payments: data.payments,
+        payments,
         commissionAccrualIds: accrualRefs.map((r) => r.id),
         receiptNo,
         createdAt: FieldValue.serverTimestamp(),
@@ -202,7 +240,3 @@ posRouter.post(
     res.json(result);
   }),
 );
-
-function round2(value: number): number {
-  return Math.round(value * 100) / 100;
-}

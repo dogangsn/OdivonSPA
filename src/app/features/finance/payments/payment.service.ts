@@ -29,7 +29,7 @@ export class PaymentService extends FirestoreCrudService<Payment> {
   }
 
   async createManualPayment(input: { customerId?: string; method: Payment['method']; amount: number; note?: string }): Promise<void> {
-    await this.create({ ...input, isRefund: false } as Omit<Payment, 'id'>);
+    await this.api.post<{ paymentId: string }>('/api/payments', input);
   }
 
   async refund(paymentId: string, reason?: string): Promise<void> {

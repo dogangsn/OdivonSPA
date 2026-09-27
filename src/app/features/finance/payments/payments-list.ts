@@ -37,6 +37,10 @@ export class PaymentsList {
   readonly payments = this.paymentService.watchAllSignal();
   readonly customers = this.customerService.watchAllSignal();
   readonly customerNameById = computed(() => new Map(this.customers().map((c) => [c.id, c.ad])));
+  /** Payments that already have a refund — older refunds predate `refundId`, so derive it from the refund rows too. */
+  readonly refundedIds = computed(
+    () => new Set(this.payments().flatMap((p) => [p.isRefund ? p.originalPaymentId : undefined, p.refundId ? p.id : undefined]).filter(Boolean)),
+  );
 
   readonly drawerOpen = signal(false);
   readonly saving = signal(false);
@@ -62,6 +66,9 @@ export class PaymentsList {
         note: this.form.note.trim() || undefined,
       });
       this.closeDrawer();
+      await this.confirmService.toastSuccess('Ödeme kaydedildi');
+    } catch (err) {
+      await this.confirmService.error('Ödeme Kaydedilemedi', err instanceof Error ? err.message : undefined);
     } finally {
       this.saving.set(false);
     }

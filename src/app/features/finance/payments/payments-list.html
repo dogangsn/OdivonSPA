@@ -39,7 +39,7 @@
               <td class="py-4 px-6 text-slate-500 dark:text-slate-400">{{ p.note || '—' }}</td>
               <td class="py-4 px-6 text-slate-500 dark:text-slate-400">{{ p.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}</td>
               <td class="py-4 px-6 text-right">
-                @if (!p.isRefund && p.amount > 0) {
+                @if (!p.isRefund && p.amount > 0 && !refundedIds().has(p.id)) {
                   <button type="button" (click)="refund(p.id)" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 cursor-pointer">
                     İade Et
                   </button>

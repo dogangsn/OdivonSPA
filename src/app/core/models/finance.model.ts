@@ -8,6 +8,7 @@ export interface Payment {
   note?: string;
   isRefund: boolean;
   originalPaymentId?: string;
+  refundId?: string; // set on the original once it has been refunded
   createdAt: FirestoreDate;
   createdBy: string;
 }

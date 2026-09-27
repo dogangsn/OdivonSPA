@@ -4,10 +4,11 @@ import { db, FieldValue } from '../lib/admin';
 import { requireTenantAuth } from '../lib/context';
 import { writeAuditLog } from '../lib/audit';
 import { ApiError, asyncHandler } from '../lib/errors';
+import { assertCashDayOpen } from '../lib/cash-day';
+import { getTenantTimezone } from '../lib/time';
+import { assertPayments, PaymentMethod, round2 } from '../lib/validation';
 
 export const packagesRouter = Router();
-
-type PaymentMethod = 'nakit' | 'kart' | 'havale' | 'diger';
 
 interface SellPackageBody {
   customerId: string;
@@ -20,14 +21,18 @@ packagesRouter.post(
   '/packages/sell',
   asyncHandler(async (req, res) => {
     const ctx = requireTenantAuth(req, ['admin', 'reception']);
-    const { customerId, packagePlanId, payments } = req.body as SellPackageBody;
-    if (!customerId || !packagePlanId || !payments?.length) {
+    const body = req.body as SellPackageBody;
+    const { customerId, packagePlanId } = body;
+    if (!customerId || !packagePlanId || !body.payments?.length) {
       throw new ApiError('invalid-argument', 'Müşteri, paket planı ve ödeme zorunludur.');
     }
+    const payments = assertPayments(body.payments);
 
     const root = db.collection('tenants').doc(ctx.tenantId);
+    const timeZone = await getTenantTimezone(ctx.tenantId);
 
     const result = await db.runTransaction(async (tx) => {
+      await assertCashDayOpen(tx, ctx.tenantId, timeZone);
       const [planSnap, customerSnap] = await Promise.all([
         tx.get(root.collection('packagePlans').doc(packagePlanId)),
         tx.get(root.collection('customers').doc(customerId)),
@@ -38,7 +43,7 @@ packagesRouter.post(
       const plan = planSnap.data() as { fiyat: number; seansAdedi: number; gecerlilikGunu: number; ad: string; active: boolean };
       if (!plan.active) throw new ApiError('failed-precondition', 'Paket planı aktif değil.');
 
-      const paid = Math.round(payments.reduce((s, p) => s + p.amount, 0) * 100) / 100;
+      const paid = round2(payments.reduce((s, p) => s + p.amount, 0));
       if (Math.abs(paid - plan.fiyat) > 0.01) {
         throw new ApiError('failed-precondition', 'Ödeme tutarı paket fiyatına eşit olmalı.');
       }
@@ -60,7 +65,6 @@ packagesRouter.post(
       });
 
       for (const payment of payments) {
-        if (payment.amount <= 0) continue;
         tx.set(root.collection('payments').doc(), {
           customerId,
           method: payment.method,

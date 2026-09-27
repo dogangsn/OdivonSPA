@@ -103,9 +103,8 @@ service cloud.firestore {
 
       match /payments/{paymentId} {
         allow read: if isTenantMember(tenantId);
-        // Plain (non-refund) manual payments may be entered directly; refunds require the callable.
-        allow create: if isAdminOrReception(tenantId) && request.resource.data.isRefund == false;
-        allow update, delete: if false;
+        // All payments (manual, refunds) go through the server so amounts and the closed cash-day lock are enforced.
+        allow write: if false;
       }
 
       match /commissionRules/{ruleId} {

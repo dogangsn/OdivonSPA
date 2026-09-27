@@ -5,6 +5,7 @@ import { requireTenantAuth } from '../lib/context';
 import { writeAuditLog } from '../lib/audit';
 import { dayBoundsInTz, getTenantTimezone } from '../lib/time';
 import { ApiError, asyncHandler } from '../lib/errors';
+import { isDateId } from '../lib/validation';
 
 export const cashRegisterRouter = Router();
 
@@ -21,7 +22,7 @@ cashRegisterRouter.post(
   asyncHandler(async (req, res) => {
     const ctx = requireTenantAuth(req, ['admin', 'reception']);
     const date = req.params.date;
-    if (!date) {
+    if (!isDateId(date)) {
       throw new ApiError('invalid-argument', 'date (YYYY-MM-DD) zorunludur.');
     }
 
@@ -104,7 +105,7 @@ cashRegisterRouter.post(
     const ctx = requireTenantAuth(req, ['admin']);
     const date = req.params.date;
     const { reason } = req.body as ReopenCashRegisterDayBody;
-    if (!date) {
+    if (!isDateId(date)) {
       throw new ApiError('invalid-argument', 'date (YYYY-MM-DD) zorunludur.');
     }
 
