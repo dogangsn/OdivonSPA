@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   useEmulators: false,
-  // TODO: replace with the real Render service URL once it's created (see deployment runbook).
+  // Render web service `odivonspa-server` (render.yaml); /health should return { status: 'ok' }.
   apiBaseUrl: 'https://odivonspa-server.onrender.com',
   firebase: {
     projectId: 'odivonspa',
