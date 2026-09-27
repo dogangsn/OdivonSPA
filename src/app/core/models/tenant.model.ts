@@ -13,7 +13,7 @@ export interface Tenant {
   };
 }
 
-/** Mirrors the custom claims Cloud Functions set on the Firebase Auth token. */
+/** Tenant and spa role of the signed-in user, as returned by Main API `GET /spa/me`. */
 export interface TenantClaims {
   tenantId: string;
   role: 'admin' | 'reception' | 'therapist';

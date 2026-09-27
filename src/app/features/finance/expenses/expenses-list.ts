@@ -1,7 +1,6 @@
 import { Component, Signal, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Timestamp } from '@angular/fire/firestore';
 import { MatIconModule } from '@angular/material/icon';
 import { SimpleCrudListBase } from '../../../core/base/simple-crud-list-base';
 import { EmptyState } from '../../../core/ui/empty-state/empty-state';
@@ -70,7 +69,7 @@ export class ExpensesList extends SimpleCrudListBase<Expense> {
         amount: this.form.amount,
         staffId: this.form.staffId || undefined,
         note: this.form.note.trim() || undefined,
-        date: Timestamp.fromDate(new Date()),
+        date: new Date(),
       } as Omit<Expense, 'id'>);
       this.closeDrawer();
     } finally {

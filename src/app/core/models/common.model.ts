@@ -1,9 +1,8 @@
-import { Timestamp } from '@angular/fire/firestore';
-
-/** Every Firestore document gets its `id` merged in by FirestoreCrudService. */
+/** Every Main API record carries its `id`. */
 export type WithId<T> = T & { id: string };
 
-export type FirestoreDate = Timestamp | Date;
+/** Instants arrive from Main API as ISO strings and are revived to `Date` by ApiService. */
+export type FirestoreDate = Date;
 
 export type PaymentMethod = 'nakit' | 'kart' | 'havale' | 'diger';
 

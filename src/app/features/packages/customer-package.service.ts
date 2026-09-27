@@ -1,43 +1,31 @@
-import { Injectable, Signal, inject } from '@angular/core';
-import { Timestamp, orderBy, where } from '@angular/fire/firestore';
-import { FirestoreCrudService } from '../../core/services/firestore-crud.service';
-import { ApiService } from '../../core/http/api.service';
+import { Injectable, Signal } from '@angular/core';
+import { ApiCrudService } from '../../core/services/api-crud.service';
 import { CustomerPackage, PaymentMethod } from '../../core/models';
 
 @Injectable({ providedIn: 'root' })
-export class CustomerPackageService extends FirestoreCrudService<CustomerPackage> {
-  private readonly api = inject(ApiService);
-
+export class CustomerPackageService extends ApiCrudService<CustomerPackage> {
   constructor() {
-    super('customerPackages');
+    super('/spa/customer-packages');
   }
 
   async sell(input: { customerId: string; packagePlanId: string; payments: { method: PaymentMethod; amount: number }[] }) {
-    return this.api.post<{ customerPackageId: string }>('/api/packages/sell', input);
-  }
-
-  override watchAllSignal() {
-    return super.watchAllSignal(orderBy('satisTarihi', 'desc'));
+    return this.command(this.api.post<{ customerPackageId: string }>(`${this.path}/sell`, input));
   }
 
   /** Active, unused packages for one customer — used by POS to offer "redeem from package" per line item. */
   watchActiveForCustomer(customerId: string) {
-    return this.watchAll(where('customerId', '==', customerId), where('status', '==', 'active'));
+    return this.watchAll({ customerId, status: 'active' });
   }
 
   watchByCustomer(customerId: string) {
-    return this.watchAll(where('customerId', '==', customerId));
+    return this.watchAll({ customerId });
   }
 
   watchSoldByDateRange(start: Date, end: Date) {
-    return this.watchAll(
-      where('satisTarihi', '>=', Timestamp.fromDate(start)),
-      where('satisTarihi', '<', Timestamp.fromDate(end)),
-      orderBy('satisTarihi', 'desc'),
-    );
+    return this.watchAll({ from: start, to: end });
   }
 
   watchRecentSignal(count: Signal<number>) {
-    return this.watchWindowSignal(count, orderBy('satisTarihi', 'desc'));
+    return this.watchWindowSignal(count);
   }
 }

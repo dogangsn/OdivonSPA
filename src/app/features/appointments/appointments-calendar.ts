@@ -4,7 +4,6 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Timestamp } from '@angular/fire/firestore';
 import { MatIconModule } from '@angular/material/icon';
 import { SlideOverDrawer } from '../../core/ui/slide-over-drawer/slide-over-drawer';
 import { StatusBadge } from '../../core/ui/status-badge/status-badge';
@@ -110,8 +109,8 @@ export class AppointmentsCalendar {
   }
 
   cardStyle(appt: WithId<Appointment>): { top: string; height: string } {
-    const start = asDate(appt.start);
-    const end = asDate(appt.end);
+    const start = appt.start;
+    const end = appt.end;
     const minutesFromStart = (start.getHours() - START_HOUR) * 60 + start.getMinutes();
     const durationMin = Math.max(15, (end.getTime() - start.getTime()) / 60000);
     return {
@@ -121,7 +120,7 @@ export class AppointmentsCalendar {
   }
 
   formatTimeRange(appt: WithId<Appointment>): string {
-    return `${formatTime(asDate(appt.start))} – ${formatTime(asDate(appt.end))}`;
+    return `${formatTime(appt.start)} – ${formatTime(appt.end)}`;
   }
 
   prevDay(): void {
@@ -166,7 +165,7 @@ export class AppointmentsCalendar {
       staffId: appt.staffId,
       roomId: appt.roomId,
       serviceId: appt.serviceId,
-      time: formatTime(asDate(appt.start)),
+      time: formatTime(appt.start),
       notes: appt.notes ?? '',
     };
     this.bookingDrawerOpen.set(true);
@@ -267,10 +266,6 @@ function addDays(date: Date, days: number): Date {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
   return d;
-}
-
-function asDate(value: Timestamp | Date): Date {
-  return value instanceof Timestamp ? value.toDate() : value;
 }
 
 function formatTime(date: Date): string {

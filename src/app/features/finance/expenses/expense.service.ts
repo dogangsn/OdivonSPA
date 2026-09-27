@@ -1,23 +1,18 @@
 import { Injectable, Signal } from '@angular/core';
-import { Timestamp, orderBy, where } from '@angular/fire/firestore';
-import { FirestoreCrudService } from '../../../core/services/firestore-crud.service';
+import { ApiCrudService } from '../../../core/services/api-crud.service';
 import { Expense } from '../../../core/models';
 
 @Injectable({ providedIn: 'root' })
-export class ExpenseService extends FirestoreCrudService<Expense> {
+export class ExpenseService extends ApiCrudService<Expense> {
   constructor() {
-    super('expenses');
-  }
-
-  override watchAllSignal() {
-    return super.watchAllSignal(orderBy('date', 'desc'));
+    super('/spa/expenses');
   }
 
   watchByDateRange(start: Date, end: Date) {
-    return this.watchAll(where('date', '>=', Timestamp.fromDate(start)), where('date', '<', Timestamp.fromDate(end)), orderBy('date', 'desc'));
+    return this.watchAll({ from: start, to: end });
   }
 
   watchRecentSignal(count: Signal<number>) {
-    return this.watchWindowSignal(count, orderBy('date', 'desc'));
+    return this.watchWindowSignal(count);
   }
 }

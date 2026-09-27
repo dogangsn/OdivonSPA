@@ -16,7 +16,7 @@ import { StaffService } from '../staff/personnel/staff.service';
 
 function millis(value: FirestoreDate | undefined): number {
   if (!value) return 0;
-  return value instanceof Date ? value.getTime() : value.toMillis();
+  return value.getTime();
 }
 
 @Component({

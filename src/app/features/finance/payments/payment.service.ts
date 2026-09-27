@@ -1,42 +1,31 @@
-import { Injectable, Signal, inject } from '@angular/core';
-import { Timestamp, orderBy, where } from '@angular/fire/firestore';
-import { FirestoreCrudService } from '../../../core/services/firestore-crud.service';
-import { ApiService } from '../../../core/http/api.service';
+import { Injectable, Signal } from '@angular/core';
+import { ApiCrudService } from '../../../core/services/api-crud.service';
 import { Payment } from '../../../core/models';
 
+/** Payments are never edited or deleted — refunds are reversing entries created by the server. */
 @Injectable({ providedIn: 'root' })
-export class PaymentService extends FirestoreCrudService<Payment> {
-  private readonly api = inject(ApiService);
-
+export class PaymentService extends ApiCrudService<Payment> {
   constructor() {
-    super('payments');
-  }
-
-  override watchAllSignal() {
-    return super.watchAllSignal(orderBy('createdAt', 'desc'));
+    super('/spa/payments');
   }
 
   watchByCustomer(customerId: string) {
-    return this.watchAll(where('customerId', '==', customerId));
+    return this.watchAll({ customerId });
   }
 
   watchByDateRange(start: Date, end: Date) {
-    return this.watchAll(
-      where('createdAt', '>=', Timestamp.fromDate(start)),
-      where('createdAt', '<', Timestamp.fromDate(end)),
-      orderBy('createdAt', 'desc'),
-    );
+    return this.watchAll({ from: start, to: end });
   }
 
   async createManualPayment(input: { customerId?: string; method: Payment['method']; amount: number; note?: string }): Promise<void> {
-    await this.api.post<{ paymentId: string }>('/api/payments', input);
+    await this.command(this.api.post(this.path, input));
   }
 
   async refund(paymentId: string, reason?: string): Promise<void> {
-    await this.api.post<{ refundId: string }>(`/api/payments/${paymentId}/refund`, { reason });
+    await this.command(this.api.post(`${this.path}/${paymentId}/refund`, { reason }));
   }
 
   watchRecentSignal(count: Signal<number>) {
-    return this.watchWindowSignal(count, orderBy('createdAt', 'desc'));
+    return this.watchWindowSignal(count);
   }
 }

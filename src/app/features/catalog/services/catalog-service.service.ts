@@ -1,16 +1,11 @@
 import { Injectable } from '@angular/core';
-import { orderBy } from '@angular/fire/firestore';
-import { FirestoreCrudService } from '../../../core/services/firestore-crud.service';
+import { ApiCrudService } from '../../../core/services/api-crud.service';
 import { Service } from '../../../core/models';
 
 /** Named CatalogServiceService (not ServiceService) to avoid the confusing "Service" x2 stutter. */
 @Injectable({ providedIn: 'root' })
-export class CatalogServiceService extends FirestoreCrudService<Service> {
+export class CatalogServiceService extends ApiCrudService<Service> {
   constructor() {
-    super('services');
-  }
-
-  override watchAllSignal() {
-    return super.watchAllSignal(orderBy('ad', 'asc'));
+    super('/spa/services');
   }
 }

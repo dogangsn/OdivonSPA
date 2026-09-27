@@ -1,19 +1,14 @@
 import { Injectable, Signal } from '@angular/core';
-import { orderBy } from '@angular/fire/firestore';
-import { FirestoreCrudService } from '../../../core/services/firestore-crud.service';
+import { ApiCrudService } from '../../../core/services/api-crud.service';
 import { StaffTask } from '../../../core/models';
 
 @Injectable({ providedIn: 'root' })
-export class TaskService extends FirestoreCrudService<StaffTask> {
+export class TaskService extends ApiCrudService<StaffTask> {
   constructor() {
-    super('tasks');
-  }
-
-  override watchAllSignal() {
-    return super.watchAllSignal(orderBy('createdAt', 'desc'));
+    super('/spa/tasks');
   }
 
   watchRecentSignal(count: Signal<number>) {
-    return this.watchWindowSignal(count, orderBy('createdAt', 'desc'));
+    return this.watchWindowSignal(count);
   }
 }

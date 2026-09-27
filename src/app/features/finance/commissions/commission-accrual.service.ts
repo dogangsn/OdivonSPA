@@ -1,34 +1,27 @@
-import { Injectable, inject } from '@angular/core';
-import { Timestamp, orderBy, where } from '@angular/fire/firestore';
-import { FirestoreCrudService } from '../../../core/services/firestore-crud.service';
-import { ApiService } from '../../../core/http/api.service';
+import { Injectable } from '@angular/core';
+import { ApiCrudService } from '../../../core/services/api-crud.service';
 import { CommissionAccrual } from '../../../core/models';
 
+/** Accruals are written by POS checkout only; admins list and pay them out here. */
 @Injectable({ providedIn: 'root' })
-export class CommissionAccrualService extends FirestoreCrudService<CommissionAccrual> {
-  private readonly api = inject(ApiService);
-
+export class CommissionAccrualService extends ApiCrudService<CommissionAccrual> {
   constructor() {
-    super('commissionAccruals');
-  }
-
-  override watchAllSignal() {
-    return super.watchAllSignal(orderBy('date', 'desc'));
+    super('/spa/commissions/accruals');
   }
 
   watchByDateRange(start: Date, end: Date) {
-    return this.watchAll(where('date', '>=', Timestamp.fromDate(start)), where('date', '<', Timestamp.fromDate(end)), orderBy('date', 'desc'));
+    return this.watchAll({ from: start, to: end });
   }
 
   watchPending() {
-    return this.watchAll(where('status', '==', 'pending'));
+    return this.watchAll({ status: 'pending' });
   }
 
   watchByStaff(staffId: string) {
-    return this.watchAll(where('staffId', '==', staffId), orderBy('date', 'desc'));
+    return this.watchAll({ staffId });
   }
 
   async payout(staffId: string, accrualIds: string[]): Promise<{ payoutId: string; expenseId: string; totalAmount: number }> {
-    return this.api.post('/api/commissions/payout', { staffId, accrualIds });
+    return this.command(this.api.post('/spa/commissions/payout', { staffId, accrualIds }));
   }
 }

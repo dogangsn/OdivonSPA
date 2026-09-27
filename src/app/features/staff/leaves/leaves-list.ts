@@ -1,6 +1,5 @@
 import { Component, Signal, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Timestamp } from '@angular/fire/firestore';
 import { MatIconModule } from '@angular/material/icon';
 import { SimpleCrudListBase } from '../../../core/base/simple-crud-list-base';
 import { EmptyState } from '../../../core/ui/empty-state/empty-state';
@@ -80,8 +79,8 @@ export class LeavesList extends SimpleCrudListBase<StaffLeave> {
         staffId: this.form.staffId,
         type: this.form.type,
         status: this.canManage() ? 'onaylandi' : 'beklemede',
-        startDate: Timestamp.fromDate(new Date(this.form.startDate)),
-        endDate: Timestamp.fromDate(new Date(this.form.endDate)),
+        startDate: new Date(this.form.startDate),
+        endDate: new Date(this.form.endDate),
         note: this.form.note.trim() || undefined,
       } as Omit<StaffLeave, 'id'>);
       this.closeDrawer();

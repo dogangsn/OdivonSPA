@@ -1,6 +1,5 @@
 import { Component, Signal, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Timestamp } from '@angular/fire/firestore';
 import { MatIconModule } from '@angular/material/icon';
 import { SimpleCrudListBase } from '../../../core/base/simple-crud-list-base';
 import { EmptyState } from '../../../core/ui/empty-state/empty-state';
@@ -75,7 +74,7 @@ export class TasksList extends SimpleCrudListBase<StaffTask> {
         baslik: this.form.baslik.trim(),
         aciklama: this.form.aciklama.trim() || undefined,
         staffId: this.form.staffId || undefined,
-        dueDate: this.form.dueDate ? Timestamp.fromDate(new Date(this.form.dueDate)) : undefined,
+        dueDate: this.form.dueDate ? new Date(this.form.dueDate) : undefined,
         status: 'acik',
         priority: this.form.priority,
       } as Omit<StaffTask, 'id'>);

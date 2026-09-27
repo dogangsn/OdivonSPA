@@ -3,7 +3,6 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Firestore, doc, docData } from '@angular/fire/firestore';
 import { AuthService } from '../../core/auth/auth.service';
 import { FirestoreDatePipe } from '../../core/pipes/firestore-date.pipe';
 import { PAYMENT_METHOD_LABELS } from '../../core/models';
@@ -57,7 +56,6 @@ import { StaffService } from '../staff/personnel/staff.service';
 export class SessionReceipt {
   private readonly sessionService = inject(SessionService);
   private readonly auth = inject(AuthService);
-  private readonly firestore = inject(Firestore);
   private readonly customers = inject(CustomerService).watchAllSignal();
   private readonly staff = inject(StaffService).watchAllSignal();
 
@@ -66,11 +64,7 @@ export class SessionReceipt {
 
   readonly session = toSignal(toObservable(this.id).pipe(switchMap((id) => this.sessionService.watchOne(id))), { initialValue: undefined });
 
-  private readonly tenant = toSignal(
-    docData(doc(this.firestore, `tenants/${this.auth.tenantId()}`)),
-    { initialValue: undefined },
-  );
-  readonly tenantName = computed(() => (this.tenant() as { name?: string } | undefined)?.name ?? 'OdivonSPA');
+  readonly tenantName = computed(() => this.auth.tenantName() ?? 'OdivonSPA');
   readonly customerName = computed(() => this.customers().find((c) => c.id === this.session()?.customerId)?.ad ?? '—');
   readonly staffName = computed(() => this.staff().find((s) => s.id === this.session()?.staffId)?.ad ?? '—');
 

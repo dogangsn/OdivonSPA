@@ -3,7 +3,6 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Timestamp } from '@angular/fire/firestore';
 import { MatIconModule } from '@angular/material/icon';
 import { SimpleCrudListBase } from '../../../core/base/simple-crud-list-base';
 import { SlideOverDrawer } from '../../../core/ui/slide-over-drawer/slide-over-drawer';
@@ -83,7 +82,7 @@ export class PersonnelList extends SimpleCrudListBase<Staff> {
 
   openEditDrawer(item: WithId<Staff>): void {
     this.editingId.set(item.id);
-    const startDate = item.iseGirisTarihi instanceof Timestamp ? item.iseGirisTarihi.toDate() : item.iseGirisTarihi;
+    const startDate = item.iseGirisTarihi;
     this.form = {
       uzmanliklarText: item.uzmanliklar.join(', '),
       primOraniVarsayilan: item.primOraniVarsayilan,
@@ -110,7 +109,7 @@ export class PersonnelList extends SimpleCrudListBase<Staff> {
         iban: this.form.iban.trim() || undefined,
         telefon: this.form.telefon.trim() || undefined,
         renk: this.form.renk,
-        iseGirisTarihi: this.form.iseGirisTarihi ? Timestamp.fromDate(new Date(this.form.iseGirisTarihi)) : undefined,
+        iseGirisTarihi: this.form.iseGirisTarihi ? new Date(this.form.iseGirisTarihi) : undefined,
       });
       this.closeDrawer();
     } finally {

@@ -8,8 +8,8 @@ import { ApiService } from '../../../core/http/api.service';
 import { ApiError } from '../../../core/http/api-error';
 import { Logo } from '../../../core/ui/logo/logo';
 
-/** Creates the Firebase Auth user, then calls the `createTenant` callable which sets up
- *  `/tenants/{id}` and stamps the caller's custom claims to `{ tenantId, role: 'admin' }`. */
+/** Creates the Firebase Auth user, then `POST /spa/onboarding` on Main API creates the spa
+ *  tenant and makes the caller its owner (admin). */
 @Component({
   selector: 'app-onboarding',
   standalone: true,
@@ -80,7 +80,7 @@ export class Onboarding {
         await this.auth.registerAuthUser(this.email(), this.password());
       }
 
-      await this.api.post<{ tenantId: string }>('/api/tenants', { businessName: this.businessName(), ownerName: this.ownerName() });
+      await this.api.post<{ tenantId: string }>('/spa/onboarding', { businessName: this.businessName(), ownerName: this.ownerName() });
 
       await this.auth.forceRefreshClaims();
       await this.router.navigateByUrl('/panel');

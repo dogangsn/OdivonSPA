@@ -1,7 +1,5 @@
-import { Injectable, Signal, inject } from '@angular/core';
-import { Timestamp, orderBy, where } from '@angular/fire/firestore';
-import { FirestoreCrudService } from '../../core/services/firestore-crud.service';
-import { ApiService } from '../../core/http/api.service';
+import { Injectable, Signal } from '@angular/core';
+import { ApiCrudService } from '../../core/services/api-crud.service';
 import { PaymentMethod, Session } from '../../core/models';
 
 export interface CheckoutItemInput {
@@ -28,37 +26,26 @@ export interface CheckoutSessionResult {
   totalAmount: number;
 }
 
-/** Sessions (POS sales) are read directly from Firestore but only ever created via the `checkoutSession` callable. */
+/** Sessions (POS sales) are only ever created by the server-side checkout. */
 @Injectable({ providedIn: 'root' })
-export class SessionService extends FirestoreCrudService<Session> {
-  private readonly api = inject(ApiService);
-
+export class SessionService extends ApiCrudService<Session> {
   constructor() {
-    super('sessions');
+    super('/spa/sessions');
   }
 
-  override watchAllSignal() {
-    return super.watchAllSignal(orderBy('createdAt', 'desc'));
-  }
-
-  /** No orderBy on purpose: avoids a composite index; callers sort client-side. */
   watchByCustomer(customerId: string) {
-    return this.watchAll(where('customerId', '==', customerId));
+    return this.watchAll({ customerId });
   }
 
   watchByDateRange(start: Date, end: Date) {
-    return this.watchAll(
-      where('createdAt', '>=', Timestamp.fromDate(start)),
-      where('createdAt', '<', Timestamp.fromDate(end)),
-      orderBy('createdAt', 'desc'),
-    );
+    return this.watchAll({ from: start, to: end });
   }
 
   async checkout(input: CheckoutSessionInput): Promise<CheckoutSessionResult> {
-    return this.api.post<CheckoutSessionResult>('/api/pos/checkout-session', input);
+    return this.command(this.api.post<CheckoutSessionResult>(`${this.path}/checkout`, input));
   }
 
   watchRecentSignal(count: Signal<number>) {
-    return this.watchWindowSignal(count, orderBy('createdAt', 'desc'));
+    return this.watchWindowSignal(count);
   }
 }

@@ -30,7 +30,7 @@ function round2(v: number): number {
   return Math.round(v * 100) / 100;
 }
 function asDate(v: unknown): Date {
-  return v instanceof Date ? v : (v as { toDate: () => Date }).toDate();
+  return v instanceof Date ? v : new Date(v as string);
 }
 function dateKey(v: unknown): string {
   return toDateInput(asDate(v));

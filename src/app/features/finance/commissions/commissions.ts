@@ -23,7 +23,7 @@ function toDateStr(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 function asDate(value: unknown): Date {
-  return value instanceof Date ? value : (value as { toDate: () => Date }).toDate();
+  return value instanceof Date ? value : new Date(value as string);
 }
 function round2(value: number): number {
   return Math.round(value * 100) / 100;

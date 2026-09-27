@@ -1,16 +1,11 @@
 import { Injectable } from '@angular/core';
-import { orderBy } from '@angular/fire/firestore';
-import { FirestoreCrudService } from '../../../core/services/firestore-crud.service';
+import { ApiCrudService } from '../../../core/services/api-crud.service';
 import { Staff } from '../../../core/models';
 
-/** Doc id == Firebase Auth uid; created by the `createTenant`/`inviteStaffUser` callables. */
+/** Id == Firebase Auth uid; created by onboarding or staff invite (see StaffAdminService). */
 @Injectable({ providedIn: 'root' })
-export class StaffService extends FirestoreCrudService<Staff> {
+export class StaffService extends ApiCrudService<Staff> {
   constructor() {
-    super('staff');
-  }
-
-  override watchAllSignal() {
-    return super.watchAllSignal(orderBy('ad', 'asc'));
+    super('/spa/staff');
   }
 }
