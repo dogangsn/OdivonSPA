@@ -30,6 +30,10 @@ export class Shell {
   });
 
   readonly userEmail = computed(() => this.auth.user()?.email ?? '');
+  readonly userName = computed(() => {
+    const user = this.auth.user();
+    return user?.displayName?.trim() || user?.email?.split('@')[0] || 'Kullanıcı';
+  });
   readonly userInitials = computed(() => {
     const email = this.userEmail();
     return email ? email.slice(0, 2).toUpperCase() : '?';
