@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { Router } from 'express';
 import { auth, db, FieldValue, tenantDoc } from '../lib/admin';
 import { requireTenantAuth, StaffRole } from '../lib/context';
@@ -5,6 +6,13 @@ import { writeAuditLog } from '../lib/audit';
 import { ApiError, asyncHandler } from '../lib/errors';
 
 export const staffRouter = Router();
+
+const STAFF_ROLES: readonly StaffRole[] = ['admin', 'reception', 'therapist'];
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isStaffRole(value: unknown): value is StaffRole {
+  return typeof value === 'string' && (STAFF_ROLES as readonly string[]).includes(value);
+}
 
 async function countOtherActiveAdmins(tenantId: string, excludingStaffId: string): Promise<number> {
   const snapshot = await db.collection(`tenants/${tenantId}/staff`).where('role', '==', 'admin').where('active', '==', true).get();
@@ -32,18 +40,30 @@ staffRouter.post(
   '/staff/invite',
   asyncHandler(async (req, res) => {
     const ctx = requireTenantAuth(req, ['admin']);
-    const { email, ad, role } = req.body as InviteStaffBody;
+    const body = req.body as InviteStaffBody;
+    const email = body.email?.trim().toLowerCase();
+    const ad = body.ad?.trim();
+    const role = body.role;
     if (!email || !ad || !role) {
       throw new ApiError('invalid-argument', 'E-posta, ad ve rol zorunludur.');
     }
+    if (!EMAIL_PATTERN.test(email)) throw new ApiError('invalid-argument', 'Geçerli bir e-posta adresi girin.');
+    if (!isStaffRole(role)) throw new ApiError('invalid-argument', 'Geçersiz rol.');
 
-    const tempPassword = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
-    const userRecord = await auth.createUser({ email, password: tempPassword, displayName: ad });
+    // Never shown to anyone — the invitee sets their own password through the reset link below.
+    const tempPassword = randomBytes(24).toString('base64url');
+    const userRecord = await auth.createUser({ email, password: tempPassword, displayName: ad }).catch((err: { code?: string }) => {
+      if (err?.code === 'auth/email-already-exists') {
+        throw new ApiError('failed-precondition', 'Bu e-posta adresiyle kayıtlı bir kullanıcı zaten var.');
+      }
+      throw err;
+    });
     await auth.setCustomUserClaims(userRecord.uid, { tenantId: ctx.tenantId, role });
 
     await tenantDoc(ctx.tenantId, 'staff', userRecord.uid).set({
       ad,
       email,
+      emailNormalized: email,
       role,
       uzmanliklar: [],
       primOraniVarsayilan: 0,
@@ -79,6 +99,7 @@ staffRouter.patch(
     if (!staffId || !role) {
       throw new ApiError('invalid-argument', 'staffId ve role zorunludur.');
     }
+    if (!isStaffRole(role)) throw new ApiError('invalid-argument', 'Geçersiz rol.');
 
     const staffRef = tenantDoc(ctx.tenantId, 'staff', staffId);
     const staffSnap = await staffRef.get();
@@ -87,7 +108,8 @@ staffRouter.patch(
     }
     const before = staffSnap.data() as { role: string; active: boolean };
 
-    await assertNotLastActiveAdmin(ctx.tenantId, staffId, before);
+    // Only a demotion can leave the tenant without an admin.
+    if (role !== 'admin') await assertNotLastActiveAdmin(ctx.tenantId, staffId, before);
 
     await auth.setCustomUserClaims(staffId, { tenantId: ctx.tenantId, role });
     await staffRef.update({ role, updatedAt: FieldValue.serverTimestamp(), updatedBy: ctx.uid });

@@ -215,23 +215,38 @@ export class AppointmentsCalendar {
     this.detailAppointment.set(null);
   }
 
+  /** Tamamlandı, Gelmedi and İptal are final; only open appointments can be edited or change status. */
+  isOpen(appt: WithId<Appointment>): boolean {
+    return appt.status === 'Bekliyor' || appt.status === 'Onaylandı' || appt.status === 'Geldi';
+  }
+
+  /** "Tamamlandı" is set only by a POS checkout, so the manual flow stops at "Geldi". */
   nextStatus(appt: WithId<Appointment>): AppointmentStatus | null {
     const idx = this.statusFlow.indexOf(appt.status);
-    return idx >= 0 && idx < this.statusFlow.length - 1 ? this.statusFlow[idx + 1] : null;
+    const next = idx >= 0 && idx < this.statusFlow.length - 1 ? this.statusFlow[idx + 1] : null;
+    return next === 'Tamamlandı' ? null : next;
   }
 
   async advanceStatus(appt: WithId<Appointment>): Promise<void> {
     const next = this.nextStatus(appt);
     if (!next) return;
-    await this.appointmentService.update(appt.id, { status: next });
-    this.detailAppointment.set({ ...appt, status: next });
+    try {
+      await this.appointmentService.update(appt.id, { status: next });
+      this.detailAppointment.set({ ...appt, status: next });
+    } catch (err) {
+      await this.confirmService.error('Durum Güncellenemedi', err instanceof Error ? err.message : undefined);
+    }
   }
 
   async markStatus(appt: WithId<Appointment>, status: AppointmentStatus): Promise<void> {
     const confirmed = await this.confirmService.confirm({ title: `Randevuyu "${status}" Olarak İşaretle`, text: 'Bu işlemi onaylıyor musunuz?' });
     if (!confirmed) return;
-    await this.appointmentService.update(appt.id, { status });
-    this.closeDetailDrawer();
+    try {
+      await this.appointmentService.update(appt.id, { status });
+      this.closeDetailDrawer();
+    } catch (err) {
+      await this.confirmService.error('Durum Güncellenemedi', err instanceof Error ? err.message : undefined);
+    }
   }
 
   convertToSession(appt: WithId<Appointment>): void {

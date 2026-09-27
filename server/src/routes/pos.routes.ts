@@ -82,6 +82,13 @@ posRouter.post(
       const productSnaps = await Promise.all(productRefs.map((id) => tx.get(tenantRoot.collection('products').doc(id))));
       const packageSnaps = await Promise.all(packageRefs.map((id) => tx.get(tenantRoot.collection('customerPackages').doc(id))));
       const rulesSnap = await tx.get(tenantRoot.collection('commissionRules').where('active', '==', true));
+      if (data.appointmentId) {
+        const apptSnap = await tx.get(tenantRoot.collection('appointments').doc(data.appointmentId));
+        if (!apptSnap.exists) throw new ApiError('not-found', 'Randevu bulunamadı.');
+        if (!['Bekliyor', 'Onaylandı', 'Geldi'].includes(apptSnap.data()?.['status'])) {
+          throw new ApiError('failed-precondition', 'Bu randevu zaten kapatılmış (tamamlandı, iptal veya gelmedi).');
+        }
+      }
 
       const servicesById = new Map(serviceSnaps.map((s) => [s.id, s.data()]));
       const productsById = new Map(productSnaps.map((s) => [s.id, s.data()]));

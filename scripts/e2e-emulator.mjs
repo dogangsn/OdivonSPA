@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, collection, addDoc, doc, getDoc, getDocs, Timestamp } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator, collection, addDoc, doc, getDoc, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SERVER_PORT = Number(process.env.E2E_SERVER_PORT ?? 8787);
@@ -162,8 +162,31 @@ async function runChecks() {
   assert.equal((await getDoc(doc(db, `tenants/${tenantId}/appointments/${apptId}`))).data().status, 'Tamamlandı');
   step(`checkout ${sale.receiptNo}; commission 120 accrued; appointment completed`);
 
+  // --- a completed appointment is final: no status change, reschedule or second checkout ---
+  const apptRef = doc(db, `tenants/${tenantId}/appointments/${apptId}`);
+  const uid = auth.currentUser.uid;
+  await assert.rejects(updateDoc(apptRef, { status: 'Bekliyor', updatedBy: uid }), /permission|PERMISSION/i);
+  await fails(call('saveAppointment', { id: apptId, customerId: customer, staffId, roomId: room, serviceId: service, start: start.toISOString() }), 'failed-precondition');
+  await fails(
+    call('checkoutSession', { appointmentId: apptId, customerId: customer, staffId, roomId: room, items: [{ kind: 'service', refId: service, qty: 1 }], payments: [{ method: 'nakit', amount: 600 }] }),
+    'failed-precondition',
+  );
+  const { id: appt2 } = await call('saveAppointment', { customerId: customer, staffId, roomId: room, serviceId: service, start: new Date(Date.UTC(2030, 0, 2, 10)).toISOString() });
+  const appt2Ref = doc(db, `tenants/${tenantId}/appointments/${appt2}`);
+  await assert.rejects(updateDoc(appt2Ref, { status: 'Tamamlandı', updatedBy: uid }), /permission|PERMISSION/i);
+  await updateDoc(appt2Ref, { status: 'Onaylandı', updatedBy: uid });
+  step('completed appointment locked; client cannot set "Tamamlandı"; open one moves to "Onaylandı"');
+
+  // --- staff role/active change only via the server; invite input validated ---
+  await assert.rejects(updateDoc(doc(db, `tenants/${tenantId}/staff/${staffId}`), { role: 'admin' }), /permission|PERMISSION/i);
+  await updateDoc(doc(db, `tenants/${tenantId}/staff/${staffId}`), { telefon: '0555' });
+  await fails(call('inviteStaffUser', { email: `x-${Date.now()}@test.local`, ad: 'X', role: 'superadmin' }), 'invalid-argument');
+  await fails(call('inviteStaffUser', { email, ad: 'Dup', role: 'reception' }), 'failed-precondition');
+  step('direct staff role write denied; profile edit allowed; bad role and duplicate e-mail rejected');
+
   // --- malformed POS input must be rejected before any stock/package/money changes ---
   const product = (await addDoc(col('products'), { ad: 'Yağ', fiyat: 50, mevcutStok: 5, active: true })).id;
+  await assert.rejects(addDoc(col('stockMovements'), { productId: product, type: 'giris', qty: 0.5, createdBy: auth.currentUser.uid }), /permission|PERMISSION/i);
   const posBase = { customerId: customer, staffId, roomId: room };
   await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: -3 }], payments: [] }), 'invalid-argument');
   await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: 1.5 }], payments: [{ method: 'nakit', amount: 75 }] }), 'invalid-argument');

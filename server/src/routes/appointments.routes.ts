@@ -18,6 +18,7 @@ interface SaveAppointmentBody {
 }
 
 const MAX_APPOINTMENT_MS = 12 * 60 * 60 * 1000;
+const OPEN_STATUSES = ['Bekliyor', 'Onaylandı', 'Geldi'];
 
 /** Creates/updates an appointment with server-side staff/room overlap and staff-leave checks. */
 appointmentsRouter.post(
@@ -86,7 +87,11 @@ appointmentsRouter.post(
 
       if (data.id) {
         const ref = root.collection('appointments').doc(data.id);
-        if (!(await tx.get(ref)).exists) throw new ApiError('not-found', 'Randevu bulunamadı.');
+        const existing = await tx.get(ref);
+        if (!existing.exists) throw new ApiError('not-found', 'Randevu bulunamadı.');
+        if (!OPEN_STATUSES.includes(existing.data()?.['status'])) {
+          throw new ApiError('failed-precondition', 'Tamamlanan, iptal edilen veya gelinmeyen randevu düzenlenemez.');
+        }
         tx.update(ref, { ...payload, updatedAt: FieldValue.serverTimestamp(), updatedBy: ctx.uid });
         return data.id;
       }

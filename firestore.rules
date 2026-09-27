@@ -39,7 +39,10 @@ service cloud.firestore {
 
       match /staff/{staffId} {
         allow read: if isTenantMember(tenantId);
-        allow create, update: if isAdmin(tenantId);
+        // Profiles are created by the invite route; role/active/email mirror Auth claims and change only via the server.
+        allow create: if false;
+        allow update: if isAdmin(tenantId) &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'active', 'email', 'emailNormalized']);
         allow delete: if false; // deactivate via `active: false`, never delete.
       }
 
@@ -61,14 +64,18 @@ service cloud.firestore {
 
       match /products/{productId} {
         allow read: if isTenantMember(tenantId);
-        // mevcutStok is also updated here as part of the client-side stock movement transaction.
-        allow update: if isAdminOrReception(tenantId);
+        // Reception may only move stock (the client-side stock movement transaction); price etc. stay admin-only.
+        allow update: if isAdmin(tenantId) ||
+          (isAdminOrReception(tenantId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mevcutStok']));
         allow create, delete: if isAdmin(tenantId);
       }
 
       match /stockMovements/{movementId} {
         allow read: if isTenantMember(tenantId);
-        allow create: if isAdminOrReception(tenantId);
+        allow create: if isAdminOrReception(tenantId) &&
+          request.resource.data.createdBy == request.auth.uid &&
+          request.resource.data.qty is int && request.resource.data.qty != 0 &&
+          exists(/databases/$(database)/documents/tenants/$(tenantId)/products/$(request.resource.data.productId));
         allow update, delete: if false; // immutable movement log.
       }
 
@@ -87,11 +94,14 @@ service cloud.firestore {
 
       match /appointments/{appointmentId} {
         allow read: if isTenantMember(tenantId);
-        // Create/reschedule go through the saveAppointment callable (overlap + leave checks);
-        // clients may only change the status.
+        // Create/reschedule go through the saveAppointment route (overlap + leave checks);
+        // clients may only move an open appointment along the status flow. "Tamamlandı" is set by POS checkout only.
         allow create: if false;
         allow update: if isAdminOrReception(tenantId) &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'updatedBy']);
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'updatedBy']) &&
+          resource.data.status in ['Bekliyor', 'Onaylandı', 'Geldi'] &&
+          request.resource.data.status in ['Bekliyor', 'Onaylandı', 'Geldi', 'Gelmedi', 'İptal'] &&
+          request.resource.data.updatedBy == request.auth.uid;
         allow delete: if false; // cancel via status: 'İptal'.
       }
 

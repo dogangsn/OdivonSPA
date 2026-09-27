@@ -199,6 +199,7 @@
           Seansa Çevir (POS)
         </button>
       }
+      @if (isOpen(appt)) {
       <div class="grid grid-cols-2 gap-2">
         <button type="button" (click)="openEditBooking(appt)" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">Düzenle</button>
         <button type="button" (click)="markStatus(appt, 'Gelmedi')" class="px-4 py-2.5 rounded-xl border border-amber-200 dark:border-amber-800/40 text-amber-700 dark:text-amber-400 text-xs font-bold hover:bg-amber-50 dark:hover:bg-amber-950/60 cursor-pointer">Gelmedi</button>
@@ -206,6 +207,7 @@
       <button type="button" (click)="markStatus(appt, 'İptal')" class="w-full px-4 py-2.5 rounded-xl border border-rose-200 dark:border-rose-800/40 text-rose-600 dark:text-rose-400 text-xs font-bold hover:bg-rose-50 dark:hover:bg-rose-950/60 cursor-pointer">
         Randevuyu İptal Et
       </button>
+      }
     </div>
   </app-slide-over-drawer>
 }

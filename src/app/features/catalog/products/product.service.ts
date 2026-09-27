@@ -21,6 +21,7 @@ export class ProductService extends FirestoreCrudService<Product> {
     const tenantId = this.auth.tenantId();
     if (!tenantId) throw new Error('Tenant context missing.');
     const uid = this.auth.user()?.uid ?? 'unknown';
+    if (!Number.isInteger(signedDelta)) throw new Error('Stok miktarı tam sayı olmalıdır.');
 
     const productRef = doc(this.firestore, `tenants/${tenantId}/products/${productId}`);
     const movementRef = doc(this.firestore, `tenants/${tenantId}/stockMovements/${crypto.randomUUID()}`);
