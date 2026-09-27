@@ -6,25 +6,28 @@ import {
   Firestore,
   Query,
   QueryConstraint,
-  addDoc,
   collection,
   collectionData,
-  deleteDoc,
   doc,
   docData,
+  getDoc,
   query,
   serverTimestamp,
-  updateDoc,
+  writeBatch,
 } from '@angular/fire/firestore';
 import { Observable, of } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { WithId } from '../models';
 import { ConfirmService } from '../ui/confirm/confirm.service';
+import { auditEntry, deleteAuditId, pickKeys } from './audit-trail';
 
 /**
  * Base class for tenant-scoped Firestore collections (`tenants/{tenantId}/{collectionName}`).
  * Extend it per feature, e.g. `class CustomerService extends FirestoreCrudService<Customer> { constructor() { super('customers'); } }`.
  * Every read/write is automatically scoped to the current user's tenant.
+ *
+ * Writes are batched with an `auditLogs` entry; firestore.rules reject an audited collection's write
+ * unless that entry exists in the same batch and names the caller (see `audited()` in the rules).
  */
 @Injectable()
 export abstract class FirestoreCrudService<T extends DocumentData> {
@@ -64,12 +67,27 @@ export abstract class FirestoreCrudService<T extends DocumentData> {
     return docData(ref, { idField: 'id' }) as Observable<WithId<T> | undefined>;
   }
 
+  private auditRef(id?: string) {
+    const tenantId = this.auth.tenantId()!;
+    const logs = collection(this.firestore, `tenants/${tenantId}/auditLogs`);
+    return id ? doc(logs, id) : doc(logs);
+  }
+
+  private actor() {
+    const user = this.auth.user();
+    return { uid: user?.uid ?? 'unknown', email: user?.email ?? '' };
+  }
+
   async create(data: Omit<T, 'id'>): Promise<string> {
     const ref = this.collectionRef();
     if (!ref) throw new Error('Tenant context missing — cannot create document.');
-    const uid = this.auth.user()?.uid ?? 'unknown';
-    const payload = { ...data, createdAt: serverTimestamp(), createdBy: uid };
-    const created = await addDoc(ref, payload as unknown as T);
+    const actor = this.actor();
+    const created = doc(ref);
+    const auditRef = this.auditRef();
+    const batch = writeBatch(this.firestore);
+    batch.set(created, { ...data, createdAt: serverTimestamp(), createdBy: actor.uid, auditId: auditRef.id } as DocumentData);
+    batch.set(auditRef, auditEntry(this.collectionName, 'create', created.id, null, data as DocumentData, actor));
+    await batch.commit();
     await this.feedback.toastSuccess('Kayıt başarıyla oluşturuldu');
     return created.id;
   }
@@ -77,8 +95,16 @@ export abstract class FirestoreCrudService<T extends DocumentData> {
   async update(id: string, patch: Partial<T>): Promise<void> {
     const ref = this.docRef(id);
     if (!ref) throw new Error('Tenant context missing — cannot update document.');
-    const uid = this.auth.user()?.uid ?? 'unknown';
-    await updateDoc(ref, { ...patch, updatedAt: serverTimestamp(), updatedBy: uid } as DocumentData);
+    const actor = this.actor();
+    const current = await getDoc(ref);
+    const auditRef = this.auditRef();
+    const batch = writeBatch(this.firestore);
+    batch.update(ref, { ...patch, updatedAt: serverTimestamp(), updatedBy: actor.uid, auditId: auditRef.id } as DocumentData);
+    batch.set(
+      auditRef,
+      auditEntry(this.collectionName, 'update', id, pickKeys(current.data() ?? {}, Object.keys(patch)), patch as DocumentData, actor),
+    );
+    await batch.commit();
     await this.feedback.toastSuccess('Değişiklikler kaydedildi');
   }
 
@@ -91,7 +117,11 @@ export abstract class FirestoreCrudService<T extends DocumentData> {
   async remove(id: string): Promise<void> {
     const ref = this.docRef(id);
     if (!ref) throw new Error('Tenant context missing — cannot delete document.');
-    await deleteDoc(ref);
+    const current = await getDoc(ref);
+    const batch = writeBatch(this.firestore);
+    batch.delete(ref);
+    batch.set(this.auditRef(deleteAuditId(this.collectionName, id)), auditEntry(this.collectionName, 'delete', id, current.data() ?? null, null, this.actor()));
+    await batch.commit();
     await this.feedback.toastSuccess('Kayıt silindi');
   }
 }

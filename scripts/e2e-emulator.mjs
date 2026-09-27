@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, collection, addDoc, doc, getDoc, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator, collection, addDoc, doc, getDoc, getDocs, updateDoc, writeBatch, serverTimestamp, increment, runTransaction, Timestamp } from 'firebase/firestore';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SERVER_PORT = Number(process.env.E2E_SERVER_PORT ?? 8787);
@@ -112,13 +112,62 @@ async function runChecks() {
 
   const col = (name) => collection(db, `tenants/${tenantId}/${name}`);
 
+  // Mirrors FirestoreCrudService: every client write is batched with its own auditLogs entry.
+  const logEntry = (entity, action, entityId, after) => ({
+    entity, action, entityId, before: null, after, userId: auth.currentUser.uid, userEmail: email, createdAt: serverTimestamp(),
+  });
+  const auditedAdd = async (name, data) => {
+    const ref = doc(col(name));
+    const log = doc(col('auditLogs'));
+    const batch = writeBatch(db);
+    batch.set(ref, { ...data, auditId: log.id });
+    batch.set(log, logEntry(name, 'create', ref.id, data));
+    await batch.commit();
+    return { id: ref.id };
+  };
+  const auditedUpdate = async (name, id, patch) => {
+    const log = doc(col('auditLogs'));
+    const batch = writeBatch(db);
+    batch.update(doc(col(name), id), { ...patch, auditId: log.id });
+    batch.set(log, logEntry(name, 'update', id, patch));
+    await batch.commit();
+  };
+  const auditedDelete = async (name, id) => {
+    const batch = writeBatch(db);
+    batch.delete(doc(col(name), id));
+    batch.set(doc(col('auditLogs'), `del-${name}-${id}`), logEntry(name, 'delete', id, null));
+    await batch.commit();
+  };
+
   // --- catalog + customer via rules-protected client writes ---
-  const room = (await addDoc(col('rooms'), { ad: 'Oda 1', kapasite: 1, active: true })).id;
-  const service = (await addDoc(col('services'), { ad: 'Klasik Masaj', tur: 'Masaj', kategori: 'Masaj', sureDk: 60, fiyat: 600, uygunStaffIds: [], active: true })).id;
-  const customer = (await addDoc(col('customers'), { ad: 'Ayşe', telefon: '0532', cinsiyet: 'kadin', etiketler: [], kvkkOnay: true, active: true })).id;
-  await addDoc(col('commissionRules'), { scope: 'service', refId: service, type: 'percent', value: 20, priority: 1, active: true });
-  const plan = (await addDoc(col('packagePlans'), { ad: '5 Seans', serviceId: service, seansAdedi: 5, fiyat: 1000, gecerlilikGunu: 90, active: true })).id;
-  step('catalog written under rules');
+  const room = (await auditedAdd('rooms', { ad: 'Oda 1', kapasite: 1, active: true })).id;
+  const service = (await auditedAdd('services', { ad: 'Klasik Masaj', tur: 'Masaj', kategori: 'Masaj', sureDk: 60, fiyat: 600, uygunStaffIds: [], active: true })).id;
+  const customer = (await auditedAdd('customers', { ad: 'Ayşe', telefon: '0532', cinsiyet: 'kadin', etiketler: [], kvkkOnay: true, active: true })).id;
+  await auditedAdd('commissionRules', { scope: 'service', refId: service, type: 'percent', value: 20, priority: 1, active: true });
+  const plan = (await auditedAdd('packagePlans', { ad: '5 Seans', serviceId: service, seansAdedi: 5, fiyat: 1000, gecerlilikGunu: 90, active: true })).id;
+  await assert.rejects(addDoc(col('customers'), { ad: 'Kayıtsız', active: true }), /permission|PERMISSION/i);
+  await assert.rejects(
+    (async () => {
+      const b = writeBatch(db);
+      const ref = doc(col('customers'));
+      const log = doc(col('auditLogs'));
+      b.set(ref, { ad: 'Sahte', active: true, auditId: log.id });
+      b.set(log, { ...logEntry('customers', 'create', ref.id, null), userId: 'someone-else' });
+      await b.commit();
+    })(),
+    /permission|PERMISSION/i,
+  );
+  await auditedUpdate('customers', customer, { telefon: '0533' });
+  const tempRoom = (await auditedAdd('rooms', { ad: 'Geçici', kapasite: 1, active: true })).id;
+  await assert.rejects(
+    (async () => { const b = writeBatch(db); b.delete(doc(col('rooms'), tempRoom)); await b.commit(); })(),
+    /permission|PERMISSION/i,
+  );
+  await auditedDelete('rooms', tempRoom);
+  const logs = (await getDocs(col('auditLogs'))).docs.map((d) => d.data());
+  assert.ok(logs.some((l) => l.entity === 'customers' && l.action === 'update' && l.entityId === customer));
+  assert.ok(logs.some((l) => l.entity === 'rooms' && l.action === 'delete' && l.entityId === tempRoom));
+  step('catalog written under rules; writes without (or with a forged) audit entry denied; update/delete logged');
 
   // --- direct appointment create must be blocked; server route enforces overlap ---
   await assert.rejects(addDoc(col('appointments'), { staffId: 'x' }), /permission|PERMISSION/i);
@@ -133,7 +182,7 @@ async function runChecks() {
   );
   step('appointment saved; overlapping one rejected');
 
-  await addDoc(col('staffLeaves'), { staffId, type: 'yillik', startDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 5))), endDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 6))) });
+  await auditedAdd('staffLeaves', { staffId, type: 'yillik', startDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 5))), endDate: Timestamp.fromDate(new Date(Date.UTC(2030, 0, 6))) });
   await fails(
     call('saveAppointment', { customerId: customer, staffId, roomId: room, serviceId: service, start: new Date(Date.UTC(2030, 0, 5, 12)).toISOString() }),
     'failed-precondition',
@@ -165,7 +214,7 @@ async function runChecks() {
   // --- a completed appointment is final: no status change, reschedule or second checkout ---
   const apptRef = doc(db, `tenants/${tenantId}/appointments/${apptId}`);
   const uid = auth.currentUser.uid;
-  await assert.rejects(updateDoc(apptRef, { status: 'Bekliyor', updatedBy: uid }), /permission|PERMISSION/i);
+  await assert.rejects(auditedUpdate('appointments', apptId, { status: 'Bekliyor', updatedBy: uid }), /permission|PERMISSION/i);
   await fails(call('saveAppointment', { id: apptId, customerId: customer, staffId, roomId: room, serviceId: service, start: start.toISOString() }), 'failed-precondition');
   await fails(
     call('checkoutSession', { appointmentId: apptId, customerId: customer, staffId, roomId: room, items: [{ kind: 'service', refId: service, qty: 1 }], payments: [{ method: 'nakit', amount: 600 }] }),
@@ -173,20 +222,34 @@ async function runChecks() {
   );
   const { id: appt2 } = await call('saveAppointment', { customerId: customer, staffId, roomId: room, serviceId: service, start: new Date(Date.UTC(2030, 0, 2, 10)).toISOString() });
   const appt2Ref = doc(db, `tenants/${tenantId}/appointments/${appt2}`);
-  await assert.rejects(updateDoc(appt2Ref, { status: 'Tamamlandı', updatedBy: uid }), /permission|PERMISSION/i);
-  await updateDoc(appt2Ref, { status: 'Onaylandı', updatedBy: uid });
+  await assert.rejects(auditedUpdate('appointments', appt2, { status: 'Tamamlandı', updatedBy: uid }), /permission|PERMISSION/i);
+  await assert.rejects(updateDoc(appt2Ref, { status: 'Onaylandı', updatedBy: uid }), /permission|PERMISSION/i);
+  await auditedUpdate('appointments', appt2, { status: 'Onaylandı', updatedBy: uid });
   step('completed appointment locked; client cannot set "Tamamlandı"; open one moves to "Onaylandı"');
 
   // --- staff role/active change only via the server; invite input validated ---
-  await assert.rejects(updateDoc(doc(db, `tenants/${tenantId}/staff/${staffId}`), { role: 'admin' }), /permission|PERMISSION/i);
-  await updateDoc(doc(db, `tenants/${tenantId}/staff/${staffId}`), { telefon: '0555' });
+  await assert.rejects(auditedUpdate('staff', staffId, { role: 'admin' }), /permission|PERMISSION/i);
+  await auditedUpdate('staff', staffId, { telefon: '0555' });
   await fails(call('inviteStaffUser', { email: `x-${Date.now()}@test.local`, ad: 'X', role: 'superadmin' }), 'invalid-argument');
   await fails(call('inviteStaffUser', { email, ad: 'Dup', role: 'reception' }), 'failed-precondition');
   step('direct staff role write denied; profile edit allowed; bad role and duplicate e-mail rejected');
 
   // --- malformed POS input must be rejected before any stock/package/money changes ---
-  const product = (await addDoc(col('products'), { ad: 'Yağ', fiyat: 50, mevcutStok: 5, active: true })).id;
+  const product = (await auditedAdd('products', { ad: 'Yağ', fiyat: 50, mevcutStok: 5, active: true })).id;
   await assert.rejects(addDoc(col('stockMovements'), { productId: product, type: 'giris', qty: 0.5, createdBy: auth.currentUser.uid }), /permission|PERMISSION/i);
+  // Same shape as ProductService.recordStockMovement: stock bump + movement + audit entry in one transaction.
+  await runTransaction(db, async (tx) => {
+    const log = doc(col('auditLogs'));
+    tx.update(doc(col('products'), product), { mevcutStok: increment(2), auditId: log.id });
+    tx.set(doc(col('stockMovements')), { productId: product, type: 'giris', qty: 2, note: null, createdAt: serverTimestamp(), createdBy: auth.currentUser.uid });
+    tx.set(log, logEntry('products', 'update', product, { mevcutStok: 7 }));
+  });
+  await runTransaction(db, async (tx) => {
+    const log = doc(col('auditLogs'));
+    tx.update(doc(col('products'), product), { mevcutStok: increment(-2), auditId: log.id });
+    tx.set(doc(col('stockMovements')), { productId: product, type: 'fire', qty: -2, note: null, createdAt: serverTimestamp(), createdBy: auth.currentUser.uid });
+    tx.set(log, logEntry('products', 'update', product, { mevcutStok: 5 }));
+  });
   const posBase = { customerId: customer, staffId, roomId: room };
   await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: -3 }], payments: [] }), 'invalid-argument');
   await fails(call('checkoutSession', { ...posBase, items: [{ kind: 'product', refId: product, qty: 1.5 }], payments: [{ method: 'nakit', amount: 75 }] }), 'invalid-argument');

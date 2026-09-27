@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { doc, increment, orderBy, runTransaction, serverTimestamp } from '@angular/fire/firestore';
+import { collection, doc, increment, orderBy, runTransaction, serverTimestamp } from '@angular/fire/firestore';
 import { FirestoreCrudService } from '../../../core/services/firestore-crud.service';
 import { Product, StockMovementType } from '../../../core/models';
+import { auditEntry } from '../../../core/services/audit-trail';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService extends FirestoreCrudService<Product> {
@@ -25,6 +26,8 @@ export class ProductService extends FirestoreCrudService<Product> {
 
     const productRef = doc(this.firestore, `tenants/${tenantId}/products/${productId}`);
     const movementRef = doc(this.firestore, `tenants/${tenantId}/stockMovements/${crypto.randomUUID()}`);
+    const auditRef = doc(collection(this.firestore, `tenants/${tenantId}/auditLogs`));
+    const actor = { uid, email: this.auth.user()?.email ?? '' };
 
     await runTransaction(this.firestore, async (tx) => {
       const productSnap = await tx.get(productRef);
@@ -33,7 +36,8 @@ export class ProductService extends FirestoreCrudService<Product> {
       if (current + signedDelta < 0) {
         throw new Error('Stok miktarı negatif olamaz.');
       }
-      tx.update(productRef, { mevcutStok: increment(signedDelta) });
+      tx.update(productRef, { mevcutStok: increment(signedDelta), auditId: auditRef.id });
+      tx.set(auditRef, auditEntry('products', 'update', productId, { mevcutStok: current }, { mevcutStok: current + signedDelta, hareket: type }, actor));
       tx.set(movementRef, {
         productId,
         type,
