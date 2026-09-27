@@ -1,23 +1,21 @@
 import { Router } from 'express';
-import { Timestamp } from 'firebase-admin/firestore';
 import { db, FieldValue } from '../lib/admin';
 import { requireTenantAuth } from '../lib/context';
 import { writeAuditLog } from '../lib/audit';
 import { dateStampInTz, getTenantTimezone } from '../lib/time';
-import { CommissionRuleRecord, resolveCommissionAmount } from '../commissions/commission-engine';
+import { CommissionRuleRecord } from '../commissions/commission-engine';
 import { ApiError, asyncHandler } from '../lib/errors';
 import { assertCashDayOpen } from '../lib/cash-day';
-import { assertPayments, isMoney, isPositiveInt, MAX_LINE_QTY, PaymentMethod, round2 } from '../lib/validation';
+import { assertPayments, isMoney, isPositiveInt, MAX_LINE_QTY, PaymentMethod } from '../lib/validation';
+import {
+  CheckoutItemInput,
+  CustomerPackageRecord,
+  priceCheckout,
+  ProductRecord,
+  ServiceRecord,
+} from '../lib/checkout-pricing';
 
 export const posRouter = Router();
-
-interface CheckoutItemInput {
-  kind: 'service' | 'product';
-  refId: string;
-  qty: number;
-  discount?: number;
-  customerPackageId?: string; // when redeeming instead of charging
-}
 
 interface CheckoutSessionBody {
   appointmentId?: string;
@@ -28,8 +26,6 @@ interface CheckoutSessionBody {
   payments: { method: PaymentMethod; amount: number }[];
   discountAmount?: number;
 }
-
-const EPSILON = 0.01;
 
 posRouter.post(
   '/pos/checkout-session',
@@ -90,96 +86,20 @@ posRouter.post(
         }
       }
 
-      const servicesById = new Map(serviceSnaps.map((s) => [s.id, s.data()]));
-      const productsById = new Map(productSnaps.map((s) => [s.id, s.data()]));
-      const packagesById = new Map(packageSnaps.map((s) => [s.id, s]));
-      const rules = rulesSnap.docs.map((d) => d.data() as CommissionRuleRecord);
-
-      for (const id of serviceRefs) {
-        if (!servicesById.get(id)) throw new ApiError('not-found', `Hizmet bulunamadı: ${id}`);
-      }
-      for (const id of productRefs) {
-        if (!productsById.get(id)) throw new ApiError('not-found', `Ürün bulunamadı: ${id}`);
-      }
-
-      // ---- Resolve line items & validate stock/package balances ----
-      let totalAmount = 0;
-      const resolvedItems: Record<string, unknown>[] = [];
-      const commissionLines: { staffId: string; amount: number }[] = [];
-      const productDecrements = new Map<string, number>();
-      const packageDecrements = new Map<string, number>();
-
-      for (const item of data.items) {
-        const discount = item.discount ?? 0;
-
-        if (item.kind === 'service') {
-          const service = servicesById.get(item.refId) as { ad: string; fiyat: number; tur: string };
-          const lineBasis = service.fiyat * item.qty;
-          const isPackageRedemption = !!item.customerPackageId;
-
-          if (isPackageRedemption) {
-            const pkgSnap = packagesById.get(item.customerPackageId!);
-            const pkg = pkgSnap?.data() as
-              | { customerId: string; kalanSeans: number; status: string; bitisTarihi?: Timestamp }
-              | undefined;
-            if (!pkgSnap?.exists || !pkg) throw new ApiError('not-found', 'Paket bulunamadı.');
-            if (pkg.customerId !== data.customerId) throw new ApiError('failed-precondition', 'Paket bu müşteriye ait değil.');
-            if (pkg.status !== 'active') throw new ApiError('failed-precondition', 'Paket aktif değil.');
-            // The daily cron flips status to expired; don't let a missed run allow redeeming an expired package.
-            if (pkg.bitisTarihi && pkg.bitisTarihi.toMillis() < Date.now()) {
-              throw new ApiError('failed-precondition', 'Paketin süresi dolmuş.');
-            }
-            const alreadyRedeemed = packageDecrements.get(item.customerPackageId!) ?? 0;
-            if (pkg.kalanSeans < alreadyRedeemed + item.qty) throw new ApiError('failed-precondition', 'Paketin kalan seans hakkı yetersiz.');
-            packageDecrements.set(item.customerPackageId!, (packageDecrements.get(item.customerPackageId!) ?? 0) + item.qty);
-          } else {
-            if (discount > lineBasis) throw new ApiError('invalid-argument', `"${service.ad}" için indirim satır tutarını aşamaz.`);
-            totalAmount += lineBasis - discount;
-          }
-
-          resolvedItems.push({
-            kind: 'service',
-            refId: item.refId,
-            ad: service.ad,
-            qty: item.qty,
-            price: service.fiyat,
-            discount,
-            customerPackageId: item.customerPackageId ?? null,
-          });
-
-          const commission = resolveCommissionAmount({
-            serviceId: item.refId,
-            serviceType: service.tur,
-            staffId: data.staffId,
-            basisAmount: lineBasis,
-            rules,
-            staffDefaultPercent: staffData.primOraniVarsayilan ?? 0,
-          });
-          if (commission > 0) {
-            commissionLines.push({ staffId: data.staffId, amount: commission });
-          }
-        } else {
-          const product = productsById.get(item.refId) as { ad: string; fiyat: number; mevcutStok: number };
-          const alreadyTaken = productDecrements.get(item.refId) ?? 0;
-          if (product.mevcutStok < alreadyTaken + item.qty) {
-            throw new ApiError('failed-precondition', `"${product.ad}" için stok yetersiz.`);
-          }
-          const productLine = product.fiyat * item.qty;
-          if (discount > productLine) throw new ApiError('invalid-argument', `"${product.ad}" için indirim satır tutarını aşamaz.`);
-          totalAmount += productLine - discount;
-          productDecrements.set(item.refId, (productDecrements.get(item.refId) ?? 0) + item.qty);
-          resolvedItems.push({ kind: 'product', refId: item.refId, ad: product.ad, qty: item.qty, price: product.fiyat, discount });
-        }
-      }
-
-      if (globalDiscount > round2(totalAmount)) {
-        throw new ApiError('invalid-argument', 'Genel indirim seans tutarını aşamaz.');
-      }
-      totalAmount = round2(totalAmount - globalDiscount);
-      const paymentsTotal = round2(payments.reduce((sum, p) => sum + p.amount, 0));
-      if (Math.abs(paymentsTotal - totalAmount) > EPSILON) {
-        throw new ApiError('failed-precondition', 'Ödeme tutarları toplamı seans tutarına eşit olmalı.');
-      }
+      const priced = priceCheckout({
+        customerId: data.customerId,
+        staffId: data.staffId,
+        staffDefaultPercent: staffData.primOraniVarsayilan ?? 0,
+        items: data.items,
+        payments,
+        globalDiscount,
+        services: new Map(serviceSnaps.filter((s) => s.exists).map((s) => [s.id, s.data() as ServiceRecord])),
+        products: new Map(productSnaps.filter((s) => s.exists).map((s) => [s.id, s.data() as ProductRecord])),
+        packages: new Map(packageSnaps.filter((s) => s.exists).map((s) => [s.id, s.data() as CustomerPackageRecord])),
+        rules: rulesSnap.docs.map((d) => d.data() as CommissionRuleRecord),
+        now: Date.now(),
+      });
+      const { totalAmount, resolvedItems, commissionLines, productDecrements, packageDecrements } = priced;
 
       // ---- Sequential receipt number ----
       const counterRef = tenantRoot.collection('counters').doc('sessions');

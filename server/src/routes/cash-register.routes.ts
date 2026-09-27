@@ -5,11 +5,10 @@ import { requireTenantAuth } from '../lib/context';
 import { writeAuditLog } from '../lib/audit';
 import { dayBoundsInTz, getTenantTimezone } from '../lib/time';
 import { ApiError, asyncHandler } from '../lib/errors';
-import { isDateId } from '../lib/validation';
+import { isDateId, PaymentMethod } from '../lib/validation';
+import { summarizeCashDay } from '../lib/cash-summary';
 
 export const cashRegisterRouter = Router();
-
-type PaymentMethod = 'nakit' | 'kart' | 'havale' | 'diger';
 
 function dayBounds(dateStr: string, timeZone: string): { start: Timestamp; end: Timestamp } {
   const { start, end } = dayBoundsInTz(dateStr, timeZone);
@@ -60,46 +59,23 @@ cashRegisterRouter.post(
         ),
       ]);
 
-      const totalsByMethod: Partial<Record<PaymentMethod, number>> = {};
-      const addToMethod = (method: PaymentMethod, amount: number) => {
-        totalsByMethod[method] = round2((totalsByMethod[method] ?? 0) + amount);
-      };
-
-      let totalIncome = 0;
-      for (const doc of sessionsSnap.docs) {
-        const session = doc.data() as { payments: { method: PaymentMethod; amount: number }[] };
-        for (const payment of session.payments ?? []) {
-          addToMethod(payment.method, payment.amount);
-          totalIncome += payment.amount;
-        }
-      }
-      for (const doc of paymentsSnap.docs) {
-        const payment = doc.data() as { method: PaymentMethod; amount: number };
-        addToMethod(payment.method, payment.amount);
-        totalIncome += payment.amount;
-      }
-
-      const totalExpense = expensesSnap.docs.reduce(
-        (sum, doc) => sum + (doc.data()['amount'] as number),
-        0,
-      );
-      const totalCommission = accrualsSnap.docs.reduce(
-        (sum, doc) => sum + (doc.data()['amount'] as number),
-        0,
-      );
-
-      const netCash = round2(totalIncome - totalExpense);
+      const summary = summarizeCashDay({
+        sessions: sessionsSnap.docs.map(
+          (d) => d.data() as { payments?: { method: PaymentMethod; amount: number }[] },
+        ),
+        payments: paymentsSnap.docs.map(
+          (d) => d.data() as { method: PaymentMethod; amount: number },
+        ),
+        expenses: expensesSnap.docs.map((d) => d.data() as { amount: number }),
+        accruals: accrualsSnap.docs.map((d) => d.data() as { amount: number }),
+      });
 
       tx.set(
         dayRef,
         {
           date,
           status: 'closed',
-          totalsByMethod,
-          totalIncome: round2(totalIncome),
-          totalExpense: round2(totalExpense),
-          totalCommission: round2(totalCommission),
-          netCash,
+          ...summary,
           closedAt: FieldValue.serverTimestamp(),
           closedBy: ctx.uid,
           reopenHistory: daySnap.exists ? (daySnap.data()?.['reopenHistory'] ?? []) : [],
@@ -107,7 +83,7 @@ cashRegisterRouter.post(
         { merge: false },
       );
 
-      return { netCash, totalIncome: round2(totalIncome), totalExpense: round2(totalExpense) };
+      return summary;
     });
 
     await writeAuditLog({
@@ -162,7 +138,3 @@ cashRegisterRouter.post(
     res.json({ success: true });
   }),
 );
-
-function round2(value: number): number {
-  return Math.round(value * 100) / 100;
-}
