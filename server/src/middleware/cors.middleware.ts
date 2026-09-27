@@ -1,4 +1,5 @@
 import cors from 'cors';
+import { ApiError } from '../lib/errors';
 
 // Defaults cover local dev and the Firebase Hosting domains, so a forgotten env var can't lock out the live site.
 const DEFAULT_ORIGINS = 'http://localhost:4200,http://localhost:4201,http://localhost:4210,https://odivonspa.web.app,https://odivonspa.firebaseapp.com';
@@ -11,7 +12,7 @@ export const corsMiddleware = cors({
       callback(null, true);
       return;
     }
-    callback(new Error(`Origin not allowed: ${origin}`));
+    callback(new ApiError('permission-denied', `Bu kaynaktan erişime izin verilmiyor: ${origin}`));
   },
   credentials: false,
 });

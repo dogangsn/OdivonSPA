@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
-export type ApiErrorCode = 'unauthenticated' | 'invalid-argument' | 'failed-precondition' | 'permission-denied' | 'not-found' | 'internal' | 'unavailable';
+export type ApiErrorCode = 'unauthenticated' | 'invalid-argument' | 'failed-precondition' | 'permission-denied' | 'not-found' | 'resource-exhausted' | 'internal' | 'unavailable';
 
 /** Client-side mirror of the server's `{ code, message }` error body. `.message` is always the Turkish string shown to the user. */
 export class ApiError extends Error {

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { Timestamp } from 'firebase-admin/firestore';
-import { FieldValue, tenantCollection, tenantDoc } from '../lib/admin';
+import { db, FieldValue, tenantCollection, tenantDoc } from '../lib/admin';
 import { requireTenantAuth } from '../lib/context';
 import { writeAuditLog } from '../lib/audit';
 import { dayBoundsInTz, getTenantTimezone } from '../lib/time';
@@ -27,59 +27,88 @@ cashRegisterRouter.post(
     }
 
     const dayRef = tenantDoc(ctx.tenantId, 'cashRegisterDays', date);
-    const daySnap = await dayRef.get();
-    if (daySnap.exists && daySnap.data()?.['status'] === 'closed') {
-      throw new ApiError('failed-precondition', 'Bu gün zaten kapatılmış.');
-    }
-
     const { start, end } = dayBounds(date, await getTenantTimezone(ctx.tenantId));
 
-    const [sessionsSnap, paymentsSnap, expensesSnap, accrualsSnap] = await Promise.all([
-      tenantCollection(ctx.tenantId, 'sessions').where('createdAt', '>=', start).where('createdAt', '<', end).get(),
-      tenantCollection(ctx.tenantId, 'payments').where('createdAt', '>=', start).where('createdAt', '<', end).get(),
-      tenantCollection(ctx.tenantId, 'expenses').where('date', '>=', start).where('date', '<', end).get(),
-      tenantCollection(ctx.tenantId, 'commissionAccruals').where('date', '>=', start).where('date', '<', end).get(),
-    ]);
+    // One transaction: the day-doc read conflicts with checkout/payment writes (which read it too),
+    // so a sale can't slip in between totalling and closing, and two concurrent closes can't both win.
+    const { netCash, totalIncome, totalExpense } = await db.runTransaction(async (tx) => {
+      const daySnap = await tx.get(dayRef);
+      if (daySnap.exists && daySnap.data()?.['status'] === 'closed') {
+        throw new ApiError('failed-precondition', 'Bu gün zaten kapatılmış.');
+      }
 
-    const totalsByMethod: Partial<Record<PaymentMethod, number>> = {};
-    const addToMethod = (method: PaymentMethod, amount: number) => {
-      totalsByMethod[method] = round2((totalsByMethod[method] ?? 0) + amount);
-    };
+      const [sessionsSnap, paymentsSnap, expensesSnap, accrualsSnap] = await Promise.all([
+        tx.get(
+          tenantCollection(ctx.tenantId, 'sessions')
+            .where('createdAt', '>=', start)
+            .where('createdAt', '<', end),
+        ),
+        tx.get(
+          tenantCollection(ctx.tenantId, 'payments')
+            .where('createdAt', '>=', start)
+            .where('createdAt', '<', end),
+        ),
+        tx.get(
+          tenantCollection(ctx.tenantId, 'expenses')
+            .where('date', '>=', start)
+            .where('date', '<', end),
+        ),
+        tx.get(
+          tenantCollection(ctx.tenantId, 'commissionAccruals')
+            .where('date', '>=', start)
+            .where('date', '<', end),
+        ),
+      ]);
 
-    let totalIncome = 0;
-    for (const doc of sessionsSnap.docs) {
-      const session = doc.data() as { payments: { method: PaymentMethod; amount: number }[] };
-      for (const payment of session.payments ?? []) {
+      const totalsByMethod: Partial<Record<PaymentMethod, number>> = {};
+      const addToMethod = (method: PaymentMethod, amount: number) => {
+        totalsByMethod[method] = round2((totalsByMethod[method] ?? 0) + amount);
+      };
+
+      let totalIncome = 0;
+      for (const doc of sessionsSnap.docs) {
+        const session = doc.data() as { payments: { method: PaymentMethod; amount: number }[] };
+        for (const payment of session.payments ?? []) {
+          addToMethod(payment.method, payment.amount);
+          totalIncome += payment.amount;
+        }
+      }
+      for (const doc of paymentsSnap.docs) {
+        const payment = doc.data() as { method: PaymentMethod; amount: number };
         addToMethod(payment.method, payment.amount);
         totalIncome += payment.amount;
       }
-    }
-    for (const doc of paymentsSnap.docs) {
-      const payment = doc.data() as { method: PaymentMethod; amount: number };
-      addToMethod(payment.method, payment.amount);
-      totalIncome += payment.amount;
-    }
 
-    const totalExpense = expensesSnap.docs.reduce((sum, doc) => sum + (doc.data()['amount'] as number), 0);
-    const totalCommission = accrualsSnap.docs.reduce((sum, doc) => sum + (doc.data()['amount'] as number), 0);
+      const totalExpense = expensesSnap.docs.reduce(
+        (sum, doc) => sum + (doc.data()['amount'] as number),
+        0,
+      );
+      const totalCommission = accrualsSnap.docs.reduce(
+        (sum, doc) => sum + (doc.data()['amount'] as number),
+        0,
+      );
 
-    const netCash = round2(totalIncome - totalExpense);
+      const netCash = round2(totalIncome - totalExpense);
 
-    await dayRef.set(
-      {
-        date,
-        status: 'closed',
-        totalsByMethod,
-        totalIncome: round2(totalIncome),
-        totalExpense: round2(totalExpense),
-        totalCommission: round2(totalCommission),
-        netCash,
-        closedAt: FieldValue.serverTimestamp(),
-        closedBy: ctx.uid,
-        reopenHistory: daySnap.exists ? daySnap.data()?.['reopenHistory'] ?? [] : [],
-      },
-      { merge: false },
-    );
+      tx.set(
+        dayRef,
+        {
+          date,
+          status: 'closed',
+          totalsByMethod,
+          totalIncome: round2(totalIncome),
+          totalExpense: round2(totalExpense),
+          totalCommission: round2(totalCommission),
+          netCash,
+          closedAt: FieldValue.serverTimestamp(),
+          closedBy: ctx.uid,
+          reopenHistory: daySnap.exists ? (daySnap.data()?.['reopenHistory'] ?? []) : [],
+        },
+        { merge: false },
+      );
+
+      return { netCash, totalIncome: round2(totalIncome), totalExpense: round2(totalExpense) };
+    });
 
     await writeAuditLog({
       tenantId: ctx.tenantId,
@@ -90,7 +119,7 @@ cashRegisterRouter.post(
       actor: ctx,
     });
 
-    res.json({ date, netCash, totalIncome: round2(totalIncome), totalExpense: round2(totalExpense) });
+    res.json({ date, netCash, totalIncome, totalExpense });
   }),
 );
 

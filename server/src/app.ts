@@ -1,7 +1,9 @@
 import express, { Express } from 'express';
+import helmet from 'helmet';
 import { corsMiddleware } from './middleware/cors.middleware';
 import { authMiddleware } from './middleware/auth.middleware';
 import { internalAuthMiddleware } from './middleware/internal-auth.middleware';
+import { apiRateLimit, sensitiveRateLimit } from './middleware/rate-limit.middleware';
 import { errorMiddleware } from './lib/errors';
 import { healthRouter } from './routes/health.routes';
 import { tenantsRouter } from './routes/tenants.routes';
@@ -20,19 +22,24 @@ export function createApp(): Express {
   // Render sits behind a reverse proxy; needed for req.ip / x-forwarded-for to resolve correctly.
   app.set('trust proxy', true);
 
+  app.disable('x-powered-by');
+  // The API is called cross-origin from Firebase Hosting, so resources must not be pinned to same-origin.
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(corsMiddleware);
-  app.use(express.json());
+  app.use(express.json({ limit: '100kb' }));
 
   app.use(healthRouter);
 
-  app.use('/api', authMiddleware, tenantsRouter);
-  app.use('/api', authMiddleware, staffRouter);
-  app.use('/api', authMiddleware, posRouter);
-  app.use('/api', authMiddleware, paymentsRouter);
-  app.use('/api', authMiddleware, commissionsRouter);
-  app.use('/api', authMiddleware, cashRegisterRouter);
-  app.use('/api', authMiddleware, packagesRouter);
-  app.use('/api', authMiddleware, appointmentsRouter);
+  app.use('/api', authMiddleware, apiRateLimit);
+  app.post(['/api/tenants', '/api/staff/invite'], sensitiveRateLimit);
+  app.use('/api', tenantsRouter);
+  app.use('/api', staffRouter);
+  app.use('/api', posRouter);
+  app.use('/api', paymentsRouter);
+  app.use('/api', commissionsRouter);
+  app.use('/api', cashRegisterRouter);
+  app.use('/api', packagesRouter);
+  app.use('/api', appointmentsRouter);
 
   app.use('/internal', internalAuthMiddleware, internalRouter);
 

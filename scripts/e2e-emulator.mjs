@@ -227,6 +227,24 @@ async function runChecks() {
   assert.equal(resp.status, 200);
   step('internal mark-expired-packages endpoint reachable with cron secret');
 
+  // --- HTTP hardening: security headers, CORS rejection and malformed bodies get proper status codes ---
+  const health = await fetch(`${SERVER_URL}/health`);
+  assert.equal(health.headers.get('x-content-type-options'), 'nosniff');
+  assert.equal(health.headers.get('x-powered-by'), null);
+  const badOrigin = await fetch(`${SERVER_URL}/health`, { headers: { Origin: 'https://evil.example' } });
+  assert.equal(badOrigin.status, 403);
+  const token = await auth.currentUser.getIdToken();
+  const badJson = await fetch(`${SERVER_URL}/api/payments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: '{not json',
+  });
+  assert.equal(badJson.status, 400);
+  const resolved = await fetch(`${SERVER_URL}/api/membership/resolve`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+  assert.equal(resolved.status, 200);
+  assert.ok(resolved.headers.get('ratelimit-policy'), 'rate limit headers present');
+  step('helmet headers set; foreign origin 403; malformed JSON 400; rate limit headers present');
+
   console.log('\nAll e2e checks passed.');
 }
 

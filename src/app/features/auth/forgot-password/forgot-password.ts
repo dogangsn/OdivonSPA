@@ -25,8 +25,16 @@ export class ForgotPassword {
     try {
       await this.auth.resetPassword(this.email());
       this.sent.set(true);
-    } catch {
-      this.errorMessage.set('Bu e-posta ile bir hesap bulunamadı.');
+    } catch (err) {
+      // Never reveal whether an account exists: an unknown address looks exactly like a sent e-mail.
+      const code = (err as { code?: string })?.code;
+      if (code === 'auth/invalid-email' || code === 'auth/missing-email') {
+        this.errorMessage.set('Geçerli bir e-posta adresi girin.');
+      } else if (code === 'auth/too-many-requests' || code === 'auth/network-request-failed') {
+        this.errorMessage.set('İstek şu anda gönderilemedi. Lütfen biraz sonra tekrar deneyin.');
+      } else {
+        this.sent.set(true);
+      }
     } finally {
       this.submitting.set(false);
     }
