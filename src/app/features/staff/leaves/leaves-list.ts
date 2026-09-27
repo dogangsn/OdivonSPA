@@ -13,6 +13,7 @@ import { BadgeVariant } from '../../../core/ui/status-badge/status-badge';
 import { LEAVE_STATUS_LABELS, LEAVE_TYPE_LABELS, LeaveStatus, LeaveType, StaffLeave, WithId } from '../../../core/models';
 import { LeaveService } from './leave.service';
 import { StaffService } from '../personnel/staff.service';
+import { ListWindow, LoadMore } from '../../../core/ui/load-more/load-more';
 
 interface LeaveForm {
   staffId: string;
@@ -25,7 +26,7 @@ interface LeaveForm {
 @Component({
   selector: 'app-leaves-list',
   standalone: true,
-  imports: [FormsModule, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge],
+  imports: [FormsModule, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
   templateUrl: './leaves-list.html',
 })
 export class LeavesList extends SimpleCrudListBase<StaffLeave> {
@@ -42,7 +43,9 @@ export class LeavesList extends SimpleCrudListBase<StaffLeave> {
   readonly isAdmin = this.auth.isAdmin;
   readonly leaveTypes: LeaveType[] = ['yillik', 'rapor', 'ucretsiz', 'diger'];
 
-  readonly items: Signal<WithId<StaffLeave>[]> = this.leaveService.watchAllSignal();
+  readonly listWindow = new ListWindow();
+  readonly items: Signal<WithId<StaffLeave>[]> = this.leaveService.watchRecentSignal(this.listWindow.count);
+  readonly hasMore = this.listWindow.hasMore(this.items);
   readonly staff = this.staffService.watchAllSignal();
   readonly staffNameById = computed(() => new Map(this.staff().map((s) => [s.id, s.ad])));
 

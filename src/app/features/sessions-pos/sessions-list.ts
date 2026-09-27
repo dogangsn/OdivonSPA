@@ -8,11 +8,12 @@ import { PAYMENT_METHOD_LABELS } from '../../core/models';
 import { SessionService } from './session.service';
 import { CustomerService } from '../customers/customer.service';
 import { StaffService } from '../staff/personnel/staff.service';
+import { ListWindow, LoadMore } from '../../core/ui/load-more/load-more';
 
 @Component({
   selector: 'app-sessions-list',
   standalone: true,
-  imports: [RouterLink, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState],
+  imports: [RouterLink, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, LoadMore],
   templateUrl: './sessions-list.html',
 })
 export class SessionsList {
@@ -21,7 +22,9 @@ export class SessionsList {
   private readonly staffService = inject(StaffService);
 
   readonly paymentMethodLabels = PAYMENT_METHOD_LABELS;
-  readonly sessions = this.sessionService.watchAllSignal();
+  readonly listWindow = new ListWindow();
+  readonly sessions = this.sessionService.watchRecentSignal(this.listWindow.count);
+  readonly hasMore = this.listWindow.hasMore(this.sessions);
   private readonly customers = this.customerService.watchAllSignal();
   private readonly staff = this.staffService.watchAllSignal();
 

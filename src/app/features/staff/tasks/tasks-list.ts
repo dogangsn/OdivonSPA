@@ -11,6 +11,7 @@ import { ConfirmService } from '../../../core/ui/confirm/confirm.service';
 import { StaffTask, TaskPriority, TaskStatus, WithId } from '../../../core/models';
 import { TaskService } from './task.service';
 import { StaffService } from '../personnel/staff.service';
+import { ListWindow, LoadMore } from '../../../core/ui/load-more/load-more';
 
 interface TaskForm {
   baslik: string;
@@ -28,7 +29,7 @@ const PRIORITY_VARIANT: Record<TaskPriority, BadgeVariant> = { dusuk: 'slate', n
 @Component({
   selector: 'app-tasks-list',
   standalone: true,
-  imports: [FormsModule, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge],
+  imports: [FormsModule, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
   templateUrl: './tasks-list.html',
 })
 export class TasksList extends SimpleCrudListBase<StaffTask> {
@@ -43,7 +44,9 @@ export class TasksList extends SimpleCrudListBase<StaffTask> {
   readonly statuses: TaskStatus[] = ['acik', 'devam', 'tamamlandi'];
   readonly priorities: TaskPriority[] = ['dusuk', 'normal', 'yuksek'];
 
-  readonly items: Signal<WithId<StaffTask>[]> = this.taskService.watchAllSignal();
+  readonly listWindow = new ListWindow();
+  readonly items: Signal<WithId<StaffTask>[]> = this.taskService.watchRecentSignal(this.listWindow.count);
+  readonly hasMore = this.listWindow.hasMore(this.items);
   readonly staff = this.staffService.watchAllSignal();
   readonly staffNameById = computed(() => new Map(this.staff().map((s) => [s.id, s.ad])));
 

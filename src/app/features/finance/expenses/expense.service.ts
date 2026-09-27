@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Signal } from '@angular/core';
 import { Timestamp, orderBy, where } from '@angular/fire/firestore';
 import { FirestoreCrudService } from '../../../core/services/firestore-crud.service';
 import { Expense } from '../../../core/models';
@@ -15,5 +15,9 @@ export class ExpenseService extends FirestoreCrudService<Expense> {
 
   watchByDateRange(start: Date, end: Date) {
     return this.watchAll(where('date', '>=', Timestamp.fromDate(start)), where('date', '<', Timestamp.fromDate(end)), orderBy('date', 'desc'));
+  }
+
+  watchRecentSignal(count: Signal<number>) {
+    return this.watchWindowSignal(count, orderBy('date', 'desc'));
   }
 }

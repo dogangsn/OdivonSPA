@@ -10,6 +10,7 @@ import { ConfirmService } from '../../../core/ui/confirm/confirm.service';
 import { PAYMENT_METHOD_LABELS, PaymentMethod } from '../../../core/models';
 import { PaymentService } from './payment.service';
 import { CustomerService } from '../../customers/customer.service';
+import { ListWindow, LoadMore } from '../../../core/ui/load-more/load-more';
 
 interface PaymentForm {
   customerId: string;
@@ -23,7 +24,7 @@ const EMPTY_FORM: PaymentForm = { customerId: '', method: 'nakit', amount: 0, no
 @Component({
   selector: 'app-payments-list',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge],
+  imports: [FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
   templateUrl: './payments-list.html',
 })
 export class PaymentsList {
@@ -34,7 +35,9 @@ export class PaymentsList {
   readonly paymentMethodLabels = PAYMENT_METHOD_LABELS;
   readonly paymentMethods: PaymentMethod[] = ['nakit', 'kart', 'havale', 'diger'];
 
-  readonly payments = this.paymentService.watchAllSignal();
+  readonly listWindow = new ListWindow();
+  readonly payments = this.paymentService.watchRecentSignal(this.listWindow.count);
+  readonly hasMore = this.listWindow.hasMore(this.payments);
   readonly customers = this.customerService.watchAllSignal();
   readonly customerNameById = computed(() => new Map(this.customers().map((c) => [c.id, c.ad])));
   /** Payments that already have a refund — older refunds predate `refundId`, so derive it from the refund rows too. */

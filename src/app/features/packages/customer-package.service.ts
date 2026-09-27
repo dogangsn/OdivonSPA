@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Signal, inject } from '@angular/core';
 import { Timestamp, orderBy, where } from '@angular/fire/firestore';
 import { FirestoreCrudService } from '../../core/services/firestore-crud.service';
 import { ApiService } from '../../core/http/api.service';
@@ -35,5 +35,9 @@ export class CustomerPackageService extends FirestoreCrudService<CustomerPackage
       where('satisTarihi', '<', Timestamp.fromDate(end)),
       orderBy('satisTarihi', 'desc'),
     );
+  }
+
+  watchRecentSignal(count: Signal<number>) {
+    return this.watchWindowSignal(count, orderBy('satisTarihi', 'desc'));
   }
 }

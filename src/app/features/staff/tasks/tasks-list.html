@@ -50,6 +50,7 @@
       </app-empty-state>
     }
   </div>
+  <app-load-more [visible]="hasMore()" (more)="listWindow.more()"></app-load-more>
 </div>
 
 <app-slide-over-drawer [open]="drawerOpen()" title="Yeni Görev" widthClass="max-w-md" (closed)="closeDrawer()">

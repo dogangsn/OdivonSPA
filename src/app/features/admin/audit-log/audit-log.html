@@ -79,6 +79,7 @@
         </tbody>
       </table>
     </div>
+    <app-load-more [visible]="hasMore()" (more)="listWindow.more()"></app-load-more>
     <app-pagination [page]="page()" [totalPages]="totalPages()" (pageChange)="goToPage($event)"></app-pagination>
   </div>
 </div>

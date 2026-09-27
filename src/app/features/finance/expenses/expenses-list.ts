@@ -11,6 +11,7 @@ import { ConfirmService } from '../../../core/ui/confirm/confirm.service';
 import { EXPENSE_CATEGORY_LABELS, Expense, ExpenseCategory, WithId } from '../../../core/models';
 import { ExpenseService } from './expense.service';
 import { StaffService } from '../../staff/personnel/staff.service';
+import { ListWindow, LoadMore } from '../../../core/ui/load-more/load-more';
 
 interface ExpenseForm {
   kategori: ExpenseCategory;
@@ -24,7 +25,7 @@ const EMPTY_FORM: ExpenseForm = { kategori: 'genel', amount: 0, staffId: '', not
 @Component({
   selector: 'app-expenses-list',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer],
+  imports: [FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, LoadMore],
   templateUrl: './expenses-list.html',
 })
 export class ExpensesList extends SimpleCrudListBase<Expense> {
@@ -35,7 +36,9 @@ export class ExpensesList extends SimpleCrudListBase<Expense> {
   readonly categoryLabels = EXPENSE_CATEGORY_LABELS;
   readonly categories: ExpenseCategory[] = ['maas', 'prim', 'avans', 'genel'];
 
-  readonly items: Signal<WithId<Expense>[]> = this.expenseService.watchAllSignal();
+  readonly listWindow = new ListWindow();
+  readonly items: Signal<WithId<Expense>[]> = this.expenseService.watchRecentSignal(this.listWindow.count);
+  readonly hasMore = this.listWindow.hasMore(this.items);
   readonly staff = this.staffService.watchAllSignal();
   readonly staffNameById = computed(() => new Map(this.staff().map((s) => [s.id, s.ad])));
 

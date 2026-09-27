@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Signal, inject } from '@angular/core';
 import { Timestamp, orderBy, where } from '@angular/fire/firestore';
 import { FirestoreCrudService } from '../../../core/services/firestore-crud.service';
 import { ApiService } from '../../../core/http/api.service';
@@ -34,5 +34,9 @@ export class PaymentService extends FirestoreCrudService<Payment> {
 
   async refund(paymentId: string, reason?: string): Promise<void> {
     await this.api.post<{ refundId: string }>(`/api/payments/${paymentId}/refund`, { reason });
+  }
+
+  watchRecentSignal(count: Signal<number>) {
+    return this.watchWindowSignal(count, orderBy('createdAt', 'desc'));
   }
 }

@@ -1,5 +1,5 @@
-import { Injectable, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Injectable, Signal, inject } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import {
   CollectionReference,
   DocumentData,
@@ -11,11 +11,12 @@ import {
   doc,
   docData,
   getDoc,
+  limit,
   query,
   serverTimestamp,
   writeBatch,
 } from '@angular/fire/firestore';
-import { Observable, of } from 'rxjs';
+import { Observable, of, switchMap } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { WithId } from '../models';
 import { ConfirmService } from '../ui/confirm/confirm.service';
@@ -55,6 +56,17 @@ export abstract class FirestoreCrudService<T extends DocumentData> {
     if (!ref) return of([]);
     const q: Query<T> = constraints.length ? query(ref, ...constraints) : ref;
     return collectionData(q, { idField: 'id' }) as Observable<WithId<T>[]>;
+  }
+
+  /**
+   * Newest-first live window for collections that only grow (sessions, payments, logs…): reads `count`
+   * documents instead of the whole collection. Raise `count` ("Daha fazla yükle") to extend it.
+   * Must be called in an injection context (a component field initializer).
+   */
+  watchWindowSignal(count: Signal<number>, ...constraints: QueryConstraint[]): Signal<WithId<T>[]> {
+    return toSignal(toObservable(count).pipe(switchMap((n) => this.watchAll(...constraints, limit(n)))), {
+      initialValue: [] as WithId<T>[],
+    });
   }
 
   watchAllSignal(...constraints: QueryConstraint[]) {

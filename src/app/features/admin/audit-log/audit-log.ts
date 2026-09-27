@@ -8,6 +8,7 @@ import { Pagination } from '../../../core/ui/pagination/pagination';
 import { FirestoreDatePipe } from '../../../core/pipes/firestore-date.pipe';
 import { AuditLog, WithId } from '../../../core/models';
 import { AuditLogService } from './audit-log.service';
+import { ListWindow, LoadMore } from '../../../core/ui/load-more/load-more';
 
 const ACTION_LABELS: Record<AuditLog['action'], string> = {
   create: 'Oluşturma',
@@ -19,14 +20,16 @@ const ACTION_LABELS: Record<AuditLog['action'], string> = {
 @Component({
   selector: 'app-audit-log',
   standalone: true,
-  imports: [FormsModule, FirestoreDatePipe, JsonPipe, MatIconModule, EmptyState, Pagination],
+  imports: [FormsModule, FirestoreDatePipe, JsonPipe, MatIconModule, EmptyState, Pagination, LoadMore],
   templateUrl: './audit-log.html',
 })
 export class AuditLogPage extends SimpleCrudListBase<AuditLog> {
   private readonly auditLogService = inject(AuditLogService);
 
   readonly actionLabels = ACTION_LABELS;
-  readonly items: Signal<WithId<AuditLog>[]> = this.auditLogService.watchAllSignal();
+  readonly listWindow = new ListWindow();
+  readonly items: Signal<WithId<AuditLog>[]> = this.auditLogService.watchRecentSignal(this.listWindow.count);
+  readonly hasMore = this.listWindow.hasMore(this.items);
 
   readonly filterEntity = signal('');
   readonly filterAction = signal<AuditLog['action'] | ''>('');

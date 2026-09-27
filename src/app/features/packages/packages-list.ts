@@ -12,6 +12,7 @@ import { PackagePlanService } from './package-plan.service';
 import { CustomerPackageService } from './customer-package.service';
 import { CustomerService } from '../customers/customer.service';
 import { CatalogServiceService } from '../catalog/services/catalog-service.service';
+import { ListWindow, LoadMore } from '../../core/ui/load-more/load-more';
 
 type Tab = 'plans' | 'sold';
 
@@ -28,7 +29,7 @@ const EMPTY_PLAN_FORM: PlanForm = { ad: '', serviceId: '', seansAdedi: 5, fiyat:
 @Component({
   selector: 'app-packages-list',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge],
+  imports: [FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
   templateUrl: './packages-list.html',
 })
 export class PackagesList {
@@ -40,7 +41,9 @@ export class PackagesList {
 
   readonly tab = signal<Tab>('plans');
   readonly plans = this.planService.watchAllSignal();
-  readonly soldPackages = this.customerPackageService.watchAllSignal();
+  readonly listWindow = new ListWindow();
+  readonly soldPackages = this.customerPackageService.watchRecentSignal(this.listWindow.count);
+  readonly hasMore = this.listWindow.hasMore(this.soldPackages);
   readonly customers = this.customerService.watchAllSignal();
   readonly services = this.serviceService.watchAllSignal();
 

@@ -61,6 +61,7 @@
         </tbody>
       </table>
     </div>
+    <app-load-more [visible]="hasMore()" (more)="listWindow.more()"></app-load-more>
   </div>
 </div>
 
