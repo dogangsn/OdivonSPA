@@ -58,8 +58,15 @@ service cloud.firestore {
 
     match /tenants/{tenantId} {
       allow get: if isTenantMember(tenantId);
-      allow update: if isAdmin(tenantId);
-      // create/delete happen only via the createTenant Cloud Function (Admin SDK).
+      // Admins edit name/settings from İşletme Ayarları; plan/active stay server-only.
+      allow update: if isAdmin(tenantId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'settings', 'auditId']) &&
+        request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 120 &&
+        request.resource.data.settings.workDayStart.matches('^[0-2][0-9]:[0-5][0-9]$') &&
+        request.resource.data.settings.workDayEnd.matches('^[0-2][0-9]:[0-5][0-9]$') &&
+        request.resource.data.settings.workDayStart < request.resource.data.settings.workDayEnd &&
+        audited(tenantId, 'tenants', tenantId);
+      // create/delete happen only via the createTenant route (Admin SDK).
       allow create, delete: if false;
 
       match /staff/{staffId} {

@@ -204,6 +204,24 @@ async function runChecks() {
   await auditedUpdate('appointments', pendingLeaveAppt, { status: 'İptal', updatedBy: auth.currentUser.uid });
   step('pending leave does not block; bad leave dates, past, out-of-hours and inactive-customer bookings rejected');
 
+  // --- İşletme Ayarları: admin edits name/settings via an audited write; plan and bad hours are refused ---
+  const tenantRef = doc(db, `tenants/${tenantId}`);
+  const tenantUpdate = async (patch) => {
+    const log = doc(col('auditLogs'));
+    const b = writeBatch(db);
+    b.update(tenantRef, { ...patch, auditId: log.id });
+    b.set(log, logEntry('tenants', 'update', tenantId, null));
+    await b.commit();
+  };
+  const settings = { timezone: 'Europe/Istanbul', currency: 'TRY', workDayStart: '08:00', workDayEnd: '22:00' };
+  await tenantUpdate({ name: 'Test Spa Merkez', settings });
+  await assert.rejects(tenantUpdate({ name: 'X', settings, plan: 'pro' }), /permission|PERMISSION/i);
+  await assert.rejects(tenantUpdate({ name: 'X', settings: { ...settings, workDayStart: '22:00', workDayEnd: '08:00' } }), /permission|PERMISSION/i);
+  await assert.rejects(updateDoc(tenantRef, { name: 'Logsuz' }), /permission|PERMISSION/i);
+  const { id: earlyAppt } = await call('saveAppointment', { customerId: customer, staffId, roomId: room, serviceId: service, start: new Date(Date.UTC(2030, 0, 3, 5, 30)).toISOString() }); // 08:30 Istanbul
+  await auditedUpdate('appointments', earlyAppt, { status: 'İptal', updatedBy: auth.currentUser.uid });
+  step('tenant settings saved with audit; plan change, inverted hours and unaudited write denied; new hours honoured');
+
   // --- package sale must hit payments; direct create denied ---
   await assert.rejects(addDoc(col('customerPackages'), { customerId: customer }), /permission|PERMISSION/i);
   await fails(call('sellPackage', { customerId: customer, packagePlanId: plan, payments: [{ method: 'nakit', amount: 900 }] }), 'failed-precondition');

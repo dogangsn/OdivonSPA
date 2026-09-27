@@ -135,6 +135,10 @@ export const routes: Routes = [
             loadComponent: () => import('./features/admin/users-roles/users-roles').then((m) => m.UsersRoles),
           },
           {
+            path: 'ayarlar',
+            loadComponent: () => import('./features/admin/settings/tenant-settings').then((m) => m.TenantSettings),
+          },
+          {
             path: 'denetim',
             loadComponent: () => import('./features/admin/audit-log/audit-log').then((m) => m.AuditLogPage),
           },

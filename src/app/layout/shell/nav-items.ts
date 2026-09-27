@@ -59,6 +59,7 @@ export const NAV_GROUPS: NavGroup[] = [
     title: 'YÖNETİM',
     items: [
       { label: 'Kullanıcılar & Roller', icon: 'heroicons_outline:shield-check', route: '/yonetim/kullanicilar', roles: ['admin'] },
+      { label: 'İşletme Ayarları', icon: 'heroicons_outline:cog-6-tooth', route: '/yonetim/ayarlar', roles: ['admin'] },
       { label: 'Denetim Kaydı', icon: 'heroicons_outline:document-magnifying-glass', route: '/yonetim/denetim', roles: ['admin'] },
     ],
   },
