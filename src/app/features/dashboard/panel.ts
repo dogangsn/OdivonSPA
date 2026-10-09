@@ -35,6 +35,10 @@ export class Panel {
     { initialValue: [] },
   );
 
+  readonly activeCustomerCount = computed(() => this.customers().filter((c) => c.active).length);
+  readonly completedAppointmentCount = computed(() => this.appointments().filter((a) => a.status === 'Tamamlandı').length);
+  readonly sessionCount = computed(() => this.sessions().length);
+  readonly pendingAccrualCount = computed(() => this.pendingAccruals().length);
   readonly appointmentCount = computed(() => this.appointments().filter((a) => a.status !== 'İptal').length);
   readonly revenueToday = computed(
     () => this.sessions().reduce((s, x) => s + x.totalAmount, 0) + this.payments().reduce((s, p) => s + p.amount, 0),

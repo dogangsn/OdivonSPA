@@ -1,10 +1,13 @@
 <div
-  class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all"
+  class="h-full flex flex-col p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md transition-all"
 >
-  <div class="flex items-center justify-between">
-    <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ label() }}</span>
+  <div class="flex items-center justify-between gap-3">
+    <span
+      class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate"
+      >{{ label() }}</span
+    >
     <div
-      class="w-10 h-10 rounded-xl flex items-center justify-center"
+      class="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center shadow-xs"
       [class]="classes.iconBg + ' ' + classes.iconText"
     >
       <mat-icon class="icon-size-5" [svgIcon]="icon()"></mat-icon>
@@ -12,16 +15,40 @@
   </div>
 
   <div class="mt-4">
-    <div class="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+    <div
+      class="font-black text-slate-900 dark:text-white tracking-tight leading-none truncate"
+      [class]="size() === 'lg' ? 'text-4xl sm:text-5xl' : 'text-3xl'"
+    >
       {{ value() }}
       @if (valueSuffix()) {
         <span class="text-xl font-bold text-slate-400">{{ valueSuffix() }}</span>
       }
     </div>
     @if (subLabel()) {
-      <div class="text-xs font-semibold mt-1" [class]="classes.valueText">{{ subLabel() }}</div>
+      <div class="text-xs font-semibold mt-1.5" [class]="classes.valueText">{{ subLabel() }}</div>
     }
   </div>
+
+  @if (footerLeft() || footerRight()) {
+    <div class="mt-auto pt-5">
+      <div
+        class="flex items-center justify-between gap-3 pt-3.5 border-t border-slate-100 dark:border-slate-800/80 text-xs"
+      >
+        <span class="text-slate-500 dark:text-slate-400 truncate">{{ footerLeft() }}</span>
+        @if (footerRight()) {
+          <span
+            class="inline-flex items-center gap-1.5 font-bold shrink-0"
+            [class]="classes.valueText"
+          >
+            @if (live()) {
+              <span class="w-2 h-2 rounded-full animate-pulse" [class]="classes.dot"></span>
+            }
+            {{ footerRight() }}
+          </span>
+        }
+      </div>
+    </div>
+  }
 
   <ng-content select="[footer]"></ng-content>
 </div>

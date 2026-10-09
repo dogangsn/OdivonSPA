@@ -49,6 +49,9 @@ module.exports = {
         '80': '20rem',
         '96': '24rem',
       },
+      boxShadow: {
+        xs: '0 1px 2px 0 rgba(15, 23, 42, 0.04)',
+      },
       zIndex: {
         '49': '49',
         '50': '50',

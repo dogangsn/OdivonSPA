@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { EmptyState } from '../../../core/ui/empty-state/empty-state';
+import { KpiCard } from '../../../core/ui/kpi-card/kpi-card';
 import { FirestoreDatePipe } from '../../../core/pipes/firestore-date.pipe';
 import { SlideOverDrawer } from '../../../core/ui/slide-over-drawer/slide-over-drawer';
 import { StatusBadge } from '../../../core/ui/status-badge/status-badge';
@@ -24,7 +25,7 @@ const EMPTY_FORM: PaymentForm = { customerId: '', method: 'nakit', amount: 0, no
 @Component({
   selector: 'app-payments-list',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
+  imports: [KpiCard, FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
   templateUrl: './payments-list.html',
 })
 export class PaymentsList {
@@ -40,6 +41,48 @@ export class PaymentsList {
   readonly hasMore = this.listWindow.hasMore(this.payments);
   readonly customers = this.customerService.watchAllSignal();
   readonly customerNameById = computed(() => new Map(this.customers().map((c) => [c.id, c.ad])));
+
+  readonly searchQuery = signal('');
+  readonly filteredPayments = computed(() => {
+    const query = this.searchQuery().trim().toLowerCase();
+    if (!query) return this.payments();
+    const names = this.customerNameById();
+    return this.payments().filter(
+      (p) =>
+        (p.customerId ? names.get(p.customerId) ?? '' : '').toLowerCase().includes(query) ||
+        this.paymentMethodLabels[p.method].toLowerCase().includes(query) ||
+        (p.note ?? '').toLowerCase().includes(query),
+    );
+  });
+  readonly totals = computed(() => {
+    let income = 0;
+    let refund = 0;
+    let cash = 0;
+    let incomeCount = 0;
+    let refundCount = 0;
+    for (const p of this.filteredPayments()) {
+      if (p.amount < 0) {
+        refund += -p.amount;
+        refundCount++;
+      } else {
+        income += p.amount;
+        incomeCount++;
+        if (p.method === 'nakit') cash += p.amount;
+      }
+    }
+    return {
+      income,
+      refund,
+      net: income - refund,
+      incomeCount,
+      refundCount,
+      cashShare: income ? Math.round((cash / income) * 100) : 0,
+    };
+  });
+
+  onSearchInput(event: Event): void {
+    this.searchQuery.set((event.target as HTMLInputElement).value);
+  }
   /** Payments that already have a refund — older refunds predate `refundId`, so derive it from the refund rows too. */
   readonly refundedIds = computed(
     () => new Set(this.payments().flatMap((p) => [p.isRefund ? p.originalPaymentId : undefined, p.refundId ? p.id : undefined]).filter(Boolean)),

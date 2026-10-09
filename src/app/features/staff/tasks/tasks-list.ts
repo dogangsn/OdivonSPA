@@ -2,6 +2,7 @@ import { Component, Signal, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { SimpleCrudListBase } from '../../../core/base/simple-crud-list-base';
+import { KpiCard } from '../../../core/ui/kpi-card/kpi-card';
 import { EmptyState } from '../../../core/ui/empty-state/empty-state';
 import { FirestoreDatePipe } from '../../../core/pipes/firestore-date.pipe';
 import { SlideOverDrawer } from '../../../core/ui/slide-over-drawer/slide-over-drawer';
@@ -28,7 +29,7 @@ const PRIORITY_VARIANT: Record<TaskPriority, BadgeVariant> = { dusuk: 'slate', n
 @Component({
   selector: 'app-tasks-list',
   standalone: true,
-  imports: [FormsModule, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
+  imports: [KpiCard, FormsModule, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
   templateUrl: './tasks-list.html',
 })
 export class TasksList extends SimpleCrudListBase<StaffTask> {
@@ -48,6 +49,19 @@ export class TasksList extends SimpleCrudListBase<StaffTask> {
   readonly hasMore = this.listWindow.hasMore(this.items);
   readonly staff = this.staffService.watchAllSignal();
   readonly staffNameById = computed(() => new Map(this.staff().map((s) => [s.id, s.ad])));
+
+  readonly countByStatus = computed(() => {
+    const counts: Record<TaskStatus, number> = { acik: 0, devam: 0, tamamlandi: 0 };
+    for (const t of this.items()) counts[t.status]++;
+    return counts;
+  });
+  readonly completionRate = computed(() => {
+    const total = this.items().length;
+    return total ? Math.round((this.countByStatus().tamamlandi / total) * 100) : 0;
+  });
+  readonly highPriorityOpen = computed(
+    () => this.items().filter((t) => t.priority === 'yuksek' && t.status !== 'tamamlandi').length,
+  );
 
   protected override matchesSearch(item: WithId<StaffTask>, query: string): boolean {
     return item.baslik.toLowerCase().includes(query);

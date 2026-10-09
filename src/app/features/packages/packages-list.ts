@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { FirestoreDatePipe } from '../../core/pipes/firestore-date.pipe';
 import { EmptyState } from '../../core/ui/empty-state/empty-state';
+import { KpiCard } from '../../core/ui/kpi-card/kpi-card';
 import { SlideOverDrawer } from '../../core/ui/slide-over-drawer/slide-over-drawer';
 import { StatusBadge } from '../../core/ui/status-badge/status-badge';
 import { ConfirmService } from '../../core/ui/confirm/confirm.service';
@@ -29,7 +30,7 @@ const EMPTY_PLAN_FORM: PlanForm = { ad: '', serviceId: '', seansAdedi: 5, fiyat:
 @Component({
   selector: 'app-packages-list',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
+  imports: [KpiCard, FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
   templateUrl: './packages-list.html',
 })
 export class PackagesList {
@@ -50,6 +51,17 @@ export class PackagesList {
   readonly customerNameById = computed(() => new Map(this.customers().map((c) => [c.id, c.ad])));
   readonly planById = computed(() => new Map(this.plans().map((p) => [p.id, p])));
   readonly serviceNameById = computed(() => new Map(this.services().map((s) => [s.id, s.ad])));
+
+  readonly activePlanCount = computed(() => this.plans().filter((p) => p.active).length);
+  readonly soldStats = computed(() => {
+    const sold = this.soldPackages();
+    const active = sold.filter((p) => p.status === 'active');
+    return {
+      active: active.length,
+      expired: sold.filter((p) => p.status === 'expired').length,
+      remaining: active.reduce((sum, p) => sum + p.kalanSeans, 0),
+    };
+  });
 
   // ---- Plan drawer ----
   readonly planDrawerOpen = signal(false);

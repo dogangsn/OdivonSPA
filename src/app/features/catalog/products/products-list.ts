@@ -1,8 +1,9 @@
-import { Component, Signal, inject, signal } from '@angular/core';
+import { Component, Signal, inject, signal, computed } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { SimpleCrudListBase } from '../../../core/base/simple-crud-list-base';
+import { KpiCard } from '../../../core/ui/kpi-card/kpi-card';
 import { EmptyState } from '../../../core/ui/empty-state/empty-state';
 import { Pagination } from '../../../core/ui/pagination/pagination';
 import { SlideOverDrawer } from '../../../core/ui/slide-over-drawer/slide-over-drawer';
@@ -24,7 +25,7 @@ const EMPTY_FORM: ProductForm = { sku: '', ad: '', fiyat: 0, kritikStokSeviyesi:
 @Component({
   selector: 'app-products-list',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, MatIconModule, EmptyState, Pagination, SlideOverDrawer, StatusBadge],
+  imports: [KpiCard, FormsModule, DecimalPipe, MatIconModule, EmptyState, Pagination, SlideOverDrawer, StatusBadge],
   templateUrl: './products-list.html',
 })
 export class ProductsList extends SimpleCrudListBase<Product> {
@@ -33,6 +34,11 @@ export class ProductsList extends SimpleCrudListBase<Product> {
 
   readonly items: Signal<WithId<Product>[]> = this.productService.watchAllSignal();
   readonly criticalCount = () => this.items().filter((p) => p.mevcutStok <= p.kritikStokSeviyesi).length;
+  readonly activeCount = computed(() => this.items().filter((p) => p.active).length);
+  readonly stockUnits = computed(() => this.items().reduce((sum, p) => sum + Math.max(0, p.mevcutStok), 0));
+  readonly stockValue = computed(() =>
+    this.items().reduce((sum, p) => sum + Math.max(0, p.mevcutStok) * p.fiyat, 0),
+  );
 
   readonly movementTypeLabels = STOCK_MOVEMENT_TYPE_LABELS;
 

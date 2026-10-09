@@ -4,6 +4,7 @@ import { switchMap } from 'rxjs';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { KpiAccent, KpiCard } from '../../core/ui/kpi-card/kpi-card';
 import { DonutChart } from '../../core/ui/charts/donut-chart';
 import { LineChart } from '../../core/ui/charts/line-chart';
 import { FirestoreDatePipe } from '../../core/pipes/firestore-date.pipe';
@@ -39,7 +40,7 @@ function dateKey(v: unknown): string {
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, DonutChart, LineChart],
+  imports: [KpiCard, FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, DonutChart, LineChart],
   templateUrl: './reports.html',
 })
 export class Reports {
@@ -52,6 +53,18 @@ export class Reports {
   private readonly staffService = inject(StaffService);
 
   readonly paymentMethodLabels = PAYMENT_METHOD_LABELS;
+  readonly paymentMethodIcons: Record<PaymentMethod, string> = {
+    nakit: 'heroicons_solid:wallet',
+    kart: 'heroicons_solid:credit-card',
+    havale: 'heroicons_solid:building-library',
+    diger: 'heroicons_solid:ellipsis-horizontal-circle',
+  };
+  readonly paymentMethodAccents: Record<PaymentMethod, KpiAccent> = {
+    nakit: 'emerald',
+    kart: 'sky',
+    havale: 'purple',
+    diger: 'amber',
+  };
   readonly paymentMethods: PaymentMethod[] = ['nakit', 'kart', 'havale', 'diger'];
   readonly expenseCategoryLabels = EXPENSE_CATEGORY_LABELS;
   readonly expenseCategories = ['maas', 'prim', 'avans', 'genel'] as const;
@@ -103,6 +116,11 @@ export class Reports {
     return totals;
   });
   readonly ciroTotal = computed(() => round2(Object.values(this.ciroByMethod()).reduce((s, v) => s + (v ?? 0), 0)));
+
+  methodShare(method: PaymentMethod): number {
+    const total = this.ciroTotal();
+    return total > 0 ? Math.round(((this.ciroByMethod()[method] ?? 0) / total) * 100) : 0;
+  }
 
   private readonly ciroByDayMap = computed(() => {
     const byDay = new Map<string, number>();

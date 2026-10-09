@@ -1,12 +1,14 @@
 @if (customer(); as c) {
   <div class="space-y-6">
     <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-      <a routerLink="/musteriler" class="hover:text-indigo-600 dark:hover:text-indigo-400">Müşteriler</a>
+      <a routerLink="/musteriler" class="hover:text-indigo-600 dark:hover:text-indigo-400"
+        >Müşteriler</a
+      >
       <span>/</span>
       <span class="text-slate-900 dark:text-white">{{ c.ad }}</span>
     </div>
 
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="odv-page-header">
       <div class="flex items-center gap-4">
         <div
           class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-lg font-black flex items-center justify-center shrink-0"
@@ -14,15 +16,23 @@
           {{ c.ad.slice(0, 2).toUpperCase() }}
         </div>
         <div>
-          <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{{ c.ad }}</h1>
-          <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">{{ c.telefon }}</p>
+          <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            {{ c.ad }}
+          </h1>
+          <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
+            {{ c.telefon }}
+          </p>
         </div>
       </div>
-      <app-status-badge [label]="c.active ? 'Aktif' : 'Pasif'" [variant]="c.active ? 'emerald' : 'slate'" [dot]="true"></app-status-badge>
+      <app-status-badge
+        [label]="c.active ? 'Aktif' : 'Pasif'"
+        [variant]="c.active ? 'emerald' : 'slate'"
+        [dot]="true"
+      ></app-status-badge>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-      <div class="lg:col-span-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 space-y-4">
+      <div class="odv-panel lg:col-span-1 p-6 space-y-4">
         <h3 class="text-sm font-bold text-slate-900 dark:text-white">Müşteri Bilgileri</h3>
         <dl class="space-y-3 text-xs">
           <div class="flex justify-between">
@@ -35,14 +45,25 @@
           </div>
           <div class="flex justify-between">
             <dt class="text-slate-500 dark:text-slate-400">KVKK Onayı</dt>
-            <dd class="font-semibold" [class]="c.kvkkOnay ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+            <dd
+              class="font-semibold"
+              [class]="
+                c.kvkkOnay
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-rose-600 dark:text-rose-400'
+              "
+            >
               {{ c.kvkkOnay ? 'Alındı' : 'Alınmadı' }}
             </dd>
           </div>
           @if (c.saglikNotu) {
             <div>
               <dt class="text-slate-500 dark:text-slate-400 mb-1">Sağlık Notu</dt>
-              <dd class="font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3">{{ c.saglikNotu }}</dd>
+              <dd
+                class="font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3"
+              >
+                {{ c.saglikNotu }}
+              </dd>
             </div>
           }
           @if (c.etiketler.length) {
@@ -50,7 +71,10 @@
               <dt class="text-slate-500 dark:text-slate-400 mb-1.5">Etiketler</dt>
               <dd class="flex flex-wrap gap-1">
                 @for (tag of c.etiketler; track tag) {
-                  <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-semibold">{{ tag }}</span>
+                  <span
+                    class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-semibold"
+                    >{{ tag }}</span
+                  >
                 }
               </dd>
             </div>
@@ -60,46 +84,86 @@
 
       <div class="lg:col-span-2 space-y-5">
         <div class="grid grid-cols-3 gap-4">
-          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4">
-            <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Toplam Harcama</div>
-            <div class="text-xl font-black text-slate-900 dark:text-white mt-1">₺{{ totalSpent() | number: '1.2-2' }}</div>
+          <div class="odv-panel p-4">
+            <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
+              Toplam Harcama
+            </div>
+            <div class="text-xl font-black text-slate-900 dark:text-white mt-1">
+              ₺{{ totalSpent() | number: '1.2-2' }}
+            </div>
           </div>
-          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4">
-            <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Seans</div>
-            <div class="text-xl font-black text-slate-900 dark:text-white mt-1">{{ sessions().length }}</div>
+          <div class="odv-panel p-4">
+            <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
+              Seans
+            </div>
+            <div class="text-xl font-black text-slate-900 dark:text-white mt-1">
+              {{ sessions().length }}
+            </div>
           </div>
-          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4">
-            <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">Aktif Paket</div>
-            <div class="text-xl font-black text-slate-900 dark:text-white mt-1">{{ activePackageCount() }}</div>
+          <div class="odv-panel p-4">
+            <div class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
+              Aktif Paket
+            </div>
+            <div class="text-xl font-black text-slate-900 dark:text-white mt-1">
+              {{ activePackageCount() }}
+            </div>
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6">
+        <div class="odv-panel p-6">
           <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3">Seans Geçmişi</h3>
           @for (s of sessions(); track s.id) {
-            <div class="flex items-center justify-between py-2.5 border-t border-slate-100 dark:border-slate-800 text-xs first:border-t-0">
+            <div
+              class="flex items-center justify-between py-2.5 border-t border-slate-100 dark:border-slate-800 text-xs first:border-t-0"
+            >
               <div>
-                <div class="font-mono font-bold text-slate-900 dark:text-white">{{ s.receiptNo }}</div>
-                <div class="text-slate-500 dark:text-slate-400">{{ s.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }} · {{ staffName().get(s.staffId) || '—' }}</div>
+                <div class="font-mono font-bold text-slate-900 dark:text-white">
+                  {{ s.receiptNo }}
+                </div>
+                <div class="text-slate-500 dark:text-slate-400">
+                  {{ s.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }} ·
+                  {{ staffName().get(s.staffId) || '—' }}
+                </div>
               </div>
-              <div class="font-bold text-slate-900 dark:text-white">₺{{ s.totalAmount | number: '1.2-2' }}</div>
+              <div class="font-bold text-slate-900 dark:text-white">
+                ₺{{ s.totalAmount | number: '1.2-2' }}
+              </div>
             </div>
           } @empty {
             <p class="text-xs text-slate-400">Henüz seans yok.</p>
           }
         </div>
 
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6">
+        <div class="odv-panel p-6">
           <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3">Paketler</h3>
           @for (p of packages(); track p.id) {
-            <div class="flex items-center justify-between py-2.5 border-t border-slate-100 dark:border-slate-800 text-xs first:border-t-0">
+            <div
+              class="flex items-center justify-between py-2.5 border-t border-slate-100 dark:border-slate-800 text-xs first:border-t-0"
+            >
               <div>
-                <div class="font-bold text-slate-900 dark:text-white">{{ planName().get(p.packagePlanId) || '—' }}</div>
-                <div class="text-slate-500 dark:text-slate-400">Bitiş: {{ p.bitisTarihi | fsDate }}</div>
+                <div class="font-bold text-slate-900 dark:text-white">
+                  {{ planName().get(p.packagePlanId) || '—' }}
+                </div>
+                <div class="text-slate-500 dark:text-slate-400">
+                  Bitiş: {{ p.bitisTarihi | fsDate }}
+                </div>
               </div>
               <div class="flex items-center gap-3">
-                <span class="font-semibold text-slate-700 dark:text-slate-200">{{ p.kalanSeans }} / {{ p.toplamSeans }} hak</span>
-                <app-status-badge [label]="p.status === 'active' ? 'Aktif' : p.status === 'expired' ? 'Süresi Doldu' : 'Tamamlandı'" [variant]="p.status === 'active' ? 'emerald' : p.status === 'expired' ? 'rose' : 'slate'"></app-status-badge>
+                <span class="font-semibold text-slate-700 dark:text-slate-200"
+                  >{{ p.kalanSeans }} / {{ p.toplamSeans }} hak</span
+                >
+                <app-status-badge
+                  [label]="
+                    p.status === 'active'
+                      ? 'Aktif'
+                      : p.status === 'expired'
+                        ? 'Süresi Doldu'
+                        : 'Tamamlandı'
+                  "
+                  [variant]="
+                    p.status === 'active' ? 'emerald' : p.status === 'expired' ? 'rose' : 'slate'
+                  "
+                ></app-status-badge>
               </div>
             </div>
           } @empty {
@@ -107,15 +171,29 @@
           }
         </div>
 
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6">
+        <div class="odv-panel p-6">
           <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3">Ödemeler</h3>
           @for (p of payments(); track p.id) {
-            <div class="flex items-center justify-between py-2.5 border-t border-slate-100 dark:border-slate-800 text-xs first:border-t-0">
+            <div
+              class="flex items-center justify-between py-2.5 border-t border-slate-100 dark:border-slate-800 text-xs first:border-t-0"
+            >
               <div>
-                <div class="font-semibold text-slate-900 dark:text-white">{{ paymentMethodLabels[p.method] }}{{ p.note ? ' — ' + p.note : '' }}</div>
-                <div class="text-slate-500 dark:text-slate-400">{{ p.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}</div>
+                <div class="font-semibold text-slate-900 dark:text-white">
+                  {{ paymentMethodLabels[p.method] }}{{ p.note ? ' — ' + p.note : '' }}
+                </div>
+                <div class="text-slate-500 dark:text-slate-400">
+                  {{ p.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}
+                </div>
               </div>
-              <div [class]="p.amount < 0 ? 'font-bold text-rose-600 dark:text-rose-400' : 'font-bold text-slate-900 dark:text-white'">₺{{ p.amount | number: '1.2-2' }}</div>
+              <div
+                [class]="
+                  p.amount < 0
+                    ? 'font-bold text-rose-600 dark:text-rose-400'
+                    : 'font-bold text-slate-900 dark:text-white'
+                "
+              >
+                ₺{{ p.amount | number: '1.2-2' }}
+              </div>
             </div>
           } @empty {
             <p class="text-xs text-slate-400">Seans dışı ödeme yok.</p>
@@ -125,5 +203,7 @@
     </div>
   </div>
 } @else {
-  <div class="flex items-center justify-center py-24 text-sm text-slate-400">Müşteri bulunamadı.</div>
+  <div class="flex items-center justify-center py-24 text-sm text-slate-400">
+    Müşteri bulunamadı.
+  </div>
 }

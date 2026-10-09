@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { DonutChart } from '../../../core/ui/charts/donut-chart';
 import { LineChart } from '../../../core/ui/charts/line-chart';
 import { SlideOverDrawer } from '../../../core/ui/slide-over-drawer/slide-over-drawer';
+import { KpiCard } from '../../../core/ui/kpi-card/kpi-card';
 import { ConfirmService } from '../../../core/ui/confirm/confirm.service';
 import { CommissionAccrualStatus, WithId, CommissionAccrual } from '../../../core/models';
 import { CommissionAccrualService } from './commission-accrual.service';
@@ -32,7 +33,7 @@ function round2(value: number): number {
 @Component({
   selector: 'app-commissions',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, RouterLink, MatIconModule, DonutChart, LineChart, SlideOverDrawer],
+  imports: [KpiCard, FormsModule, DecimalPipe, RouterLink, MatIconModule, DonutChart, LineChart, SlideOverDrawer],
   templateUrl: './commissions.html',
 })
 export class Commissions {

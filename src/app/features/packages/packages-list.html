@@ -1,29 +1,70 @@
 <div class="space-y-6">
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div class="odv-page-header">
     <div>
-      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Paketler</h1>
-      <p class="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Paket planı kataloğu ve satılan paketlerin kalan hak takibi.</p>
+      <h1 class="odv-page-title">Paketler</h1>
+      <p class="odv-page-subtitle">Paket planı kataloğu ve satılan paketlerin kalan hak takibi.</p>
     </div>
     <div class="flex items-center gap-3">
       @if (tab() === 'plans') {
-        <button type="button" (click)="openCreatePlanDrawer()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+        <button type="button" (click)="openCreatePlanDrawer()" class="odv-btn-primary">
           <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
-          <span>+ Yeni Plan</span>
+          <span>Yeni Plan</span>
         </button>
       } @else {
-        <button type="button" (click)="openSellDrawer()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
+        <button type="button" (click)="openSellDrawer()" class="odv-btn-primary">
           <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
-          <span>+ Paket Sat</span>
+          <span>Paket Sat</span>
         </button>
       }
     </div>
+  </div>
+
+  <div class="odv-kpi-grid">
+    <app-kpi-card
+      label="Paket Planı"
+      [value]="plans().length"
+      icon="heroicons_solid:rectangle-stack"
+      accent="indigo"
+      subLabel="Katalogdaki plan"
+      [footerLeft]="activePlanCount() + ' aktif'"
+      footerRight="Canlı Veri"
+      [live]="true"
+    ></app-kpi-card>
+    <app-kpi-card
+      label="Satılan Paket"
+      [value]="soldPackages().length"
+      icon="heroicons_solid:gift"
+      accent="purple"
+      subLabel="Listelenen satışlar"
+      [footerLeft]="'Son satışlar'"
+    ></app-kpi-card>
+    <app-kpi-card
+      label="Aktif Paket"
+      [value]="soldStats().active"
+      icon="heroicons_solid:check-badge"
+      accent="emerald"
+      subLabel="Kullanımı süren"
+      [footerLeft]="soldStats().expired + ' süresi dolan'"
+    ></app-kpi-card>
+    <app-kpi-card
+      label="Kalan Seans Hakkı"
+      [value]="soldStats().remaining"
+      icon="heroicons_solid:ticket"
+      accent="amber"
+      subLabel="Aktif paketlerde"
+      [footerLeft]="'Kullanılabilir seans'"
+    ></app-kpi-card>
   </div>
 
   <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl w-fit">
     <button
       type="button"
       (click)="tab.set('plans')"
-      [class]="tab() === 'plans' ? 'bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'"
+      [class]="
+        tab() === 'plans'
+          ? 'bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white'
+          : 'text-slate-500 dark:text-slate-400'
+      "
       class="px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer"
     >
       Paket Planları
@@ -31,7 +72,11 @@
     <button
       type="button"
       (click)="tab.set('sold')"
-      [class]="tab() === 'sold' ? 'bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'"
+      [class]="
+        tab() === 'sold'
+          ? 'bg-white dark:bg-slate-900 shadow-sm text-slate-900 dark:text-white'
+          : 'text-slate-500 dark:text-slate-400'
+      "
       class="px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer"
     >
       Satılan Paketler
@@ -39,11 +84,11 @@
   </div>
 
   @if (tab() === 'plans') {
-    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="odv-panel overflow-hidden">
       <div class="overflow-x-auto custom-scroll">
-        <table class="w-full text-left border-collapse">
+        <table class="odv-table">
           <thead>
-            <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <tr class="odv-thead-row">
               <th class="py-3.5 px-6">Plan</th>
               <th class="py-3.5 px-6">Bağlı Hizmet</th>
               <th class="py-3.5 px-6">Seans Adedi</th>
@@ -53,24 +98,46 @@
               <th class="py-3.5 px-6 text-right">İşlemler</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
+          <tbody class="odv-tbody">
             @for (plan of plans(); track plan.id) {
-              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+              <tr class="odv-tr">
                 <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">{{ plan.ad }}</td>
-                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ serviceNameById().get(plan.serviceId) || '—' }}</td>
-                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ plan.seansAdedi }} seans</td>
-                <td class="py-4 px-6 font-semibold text-slate-700 dark:text-slate-200">₺{{ plan.fiyat | number: '1.2-2' }}</td>
-                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ plan.gecerlilikGunu }} gün</td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">
+                  {{ serviceNameById().get(plan.serviceId) || '—' }}
+                </td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">
+                  {{ plan.seansAdedi }} seans
+                </td>
+                <td class="py-4 px-6 font-semibold text-slate-700 dark:text-slate-200">
+                  ₺{{ plan.fiyat | number: '1.2-2' }}
+                </td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">
+                  {{ plan.gecerlilikGunu }} gün
+                </td>
                 <td class="py-4 px-6">
-                  <app-status-badge [label]="plan.active ? 'Aktif' : 'Pasif'" [variant]="plan.active ? 'emerald' : 'slate'" [dot]="true"></app-status-badge>
+                  <app-status-badge
+                    [label]="plan.active ? 'Aktif' : 'Pasif'"
+                    [variant]="plan.active ? 'emerald' : 'slate'"
+                    [dot]="true"
+                  ></app-status-badge>
                 </td>
                 <td class="py-4 px-6 text-right">
                   <div class="flex items-center justify-end gap-1">
-                    <button type="button" (click)="openEditPlanDrawer(plan)" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-indigo-600 flex items-center justify-center transition-colors cursor-pointer">
-                      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                    <button type="button" (click)="openEditPlanDrawer(plan)" class="odv-icon-btn">
+                      <mat-icon
+                        class="icon-size-4"
+                        [svgIcon]="'heroicons_outline:pencil'"
+                      ></mat-icon>
                     </button>
-                    <button type="button" (click)="togglePlanPassive(plan)" class="w-8 h-8 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/60 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer">
-                      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:power'"></mat-icon>
+                    <button
+                      type="button"
+                      (click)="togglePlanPassive(plan)"
+                      class="odv-icon-btn-danger"
+                    >
+                      <mat-icon
+                        class="icon-size-4"
+                        [svgIcon]="'heroicons_outline:power'"
+                      ></mat-icon>
                     </button>
                   </div>
                 </td>
@@ -78,8 +145,12 @@
             } @empty {
               <tr>
                 <td colspan="7">
-                  <app-empty-state icon="heroicons_outline:cube" title="Henüz Paket Planı Yok" description="Yeni bir paket planı ekleyerek hemen başlayabilirsiniz.">
-                    <button type="button" (click)="openCreatePlanDrawer()" class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer">
+                  <app-empty-state
+                    icon="heroicons_outline:cube"
+                    title="Henüz Paket Planı Yok"
+                    description="Yeni bir paket planı ekleyerek hemen başlayabilirsiniz."
+                  >
+                    <button type="button" (click)="openCreatePlanDrawer()" class="odv-btn-soft">
                       + İlk Planı Ekle
                     </button>
                   </app-empty-state>
@@ -91,11 +162,11 @@
       </div>
     </div>
   } @else {
-    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="odv-panel overflow-hidden">
       <div class="overflow-x-auto custom-scroll">
-        <table class="w-full text-left border-collapse">
+        <table class="odv-table">
           <thead>
-            <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <tr class="odv-thead-row">
               <th class="py-3.5 px-6">Müşteri</th>
               <th class="py-3.5 px-6">Plan</th>
               <th class="py-3.5 px-6">Kalan Hak</th>
@@ -104,18 +175,40 @@
               <th class="py-3.5 px-6">Durum</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
+          <tbody class="odv-tbody">
             @for (pkg of soldPackages(); track pkg.id) {
-              <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
-                <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">{{ customerNameById().get(pkg.customerId) || '—' }}</td>
-                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ planById().get(pkg.packagePlanId)?.ad || '—' }}</td>
-                <td class="py-4 px-6 font-semibold text-slate-700 dark:text-slate-200">{{ pkg.kalanSeans }} / {{ pkg.toplamSeans }}</td>
-                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ pkg.satisTarihi | fsDate }}</td>
-                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ pkg.bitisTarihi | fsDate }}</td>
+              <tr class="odv-tr">
+                <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">
+                  {{ customerNameById().get(pkg.customerId) || '—' }}
+                </td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">
+                  {{ planById().get(pkg.packagePlanId)?.ad || '—' }}
+                </td>
+                <td class="py-4 px-6 font-semibold text-slate-700 dark:text-slate-200">
+                  {{ pkg.kalanSeans }} / {{ pkg.toplamSeans }}
+                </td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">
+                  {{ pkg.satisTarihi | fsDate }}
+                </td>
+                <td class="py-4 px-6 text-slate-600 dark:text-slate-300">
+                  {{ pkg.bitisTarihi | fsDate }}
+                </td>
                 <td class="py-4 px-6">
                   <app-status-badge
-                    [label]="pkg.status === 'active' ? 'Aktif' : pkg.status === 'expired' ? 'Süresi Doldu' : 'Tamamlandı'"
-                    [variant]="pkg.status === 'active' ? 'emerald' : pkg.status === 'expired' ? 'rose' : 'slate'"
+                    [label]="
+                      pkg.status === 'active'
+                        ? 'Aktif'
+                        : pkg.status === 'expired'
+                          ? 'Süresi Doldu'
+                          : 'Tamamlandı'
+                    "
+                    [variant]="
+                      pkg.status === 'active'
+                        ? 'emerald'
+                        : pkg.status === 'expired'
+                          ? 'rose'
+                          : 'slate'
+                    "
                     [dot]="true"
                   ></app-status-badge>
                 </td>
@@ -123,8 +216,12 @@
             } @empty {
               <tr>
                 <td colspan="6">
-                  <app-empty-state icon="heroicons_outline:cube" title="Henüz Satılan Paket Yok" description="Bir müşteriye paket satarak hemen başlayabilirsiniz.">
-                    <button type="button" (click)="openSellDrawer()" class="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer">
+                  <app-empty-state
+                    icon="heroicons_outline:cube"
+                    title="Henüz Satılan Paket Yok"
+                    description="Bir müşteriye paket satarak hemen başlayabilirsiniz."
+                  >
+                    <button type="button" (click)="openSellDrawer()" class="odv-btn-soft">
                       + Paket Sat
                     </button>
                   </app-empty-state>
@@ -139,14 +236,18 @@
   }
 </div>
 
-<app-slide-over-drawer [open]="planDrawerOpen()" [title]="isEditingPlan() ? 'Planı Düzenle' : 'Yeni Paket Planı'" (closed)="closePlanDrawer()">
+<app-slide-over-drawer
+  [open]="planDrawerOpen()"
+  [title]="isEditingPlan() ? 'Planı Düzenle' : 'Yeni Paket Planı'"
+  (closed)="closePlanDrawer()"
+>
   <div>
-    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Plan Adı <span class="text-rose-500">*</span></label>
-    <input type="text" [(ngModel)]="planForm.ad" name="planAd" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+    <label class="odv-label">Plan Adı <span class="text-rose-500">*</span></label>
+    <input type="text" [(ngModel)]="planForm.ad" name="planAd" class="odv-input" />
   </div>
   <div>
-    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Bağlı Hizmet <span class="text-rose-500">*</span></label>
-    <select [(ngModel)]="planForm.serviceId" name="planServiceId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+    <label class="odv-label">Bağlı Hizmet <span class="text-rose-500">*</span></label>
+    <select [(ngModel)]="planForm.serviceId" name="planServiceId" class="odv-input">
       <option value="">Seçiniz</option>
       @for (s of services(); track s.id) {
         <option [value]="s.id">{{ s.ad }}</option>
@@ -155,31 +256,60 @@
   </div>
   <div class="grid grid-cols-2 gap-3">
     <div>
-      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Seans Adedi</label>
-      <input type="number" min="1" [(ngModel)]="planForm.seansAdedi" name="planSeansAdedi" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+      <label class="odv-label">Seans Adedi</label>
+      <input
+        type="number"
+        min="1"
+        [(ngModel)]="planForm.seansAdedi"
+        name="planSeansAdedi"
+        class="odv-input"
+      />
     </div>
     <div>
-      <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Fiyat (₺)</label>
-      <input type="number" min="0" step="0.01" [(ngModel)]="planForm.fiyat" name="planFiyat" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+      <label class="odv-label">Fiyat (₺)</label>
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        [(ngModel)]="planForm.fiyat"
+        name="planFiyat"
+        class="odv-input"
+      />
     </div>
   </div>
   <div>
-    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Geçerlilik Süresi (gün)</label>
-    <input type="number" min="1" [(ngModel)]="planForm.gecerlilikGunu" name="planGecerlilik" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
+    <label class="odv-label">Geçerlilik Süresi (gün)</label>
+    <input
+      type="number"
+      min="1"
+      [(ngModel)]="planForm.gecerlilikGunu"
+      name="planGecerlilik"
+      class="odv-input"
+    />
   </div>
 
   <div drawerFooter class="flex items-center justify-end gap-3 w-full">
-    <button type="button" (click)="closePlanDrawer()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer">Vazgeç</button>
-    <button type="button" (click)="savePlan()" [disabled]="planSaving()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+    <button type="button" (click)="closePlanDrawer()" class="odv-btn-secondary">Vazgeç</button>
+    <button type="button" (click)="savePlan()" [disabled]="planSaving()" class="odv-btn-primary">
       {{ planSaving() ? 'Kaydediliyor...' : 'Kaydet' }}
     </button>
   </div>
 </app-slide-over-drawer>
 
-<app-slide-over-drawer [open]="sellDrawerOpen()" title="Paket Sat" widthClass="max-w-md" (closed)="closeSellDrawer()">
+<app-slide-over-drawer
+  [open]="sellDrawerOpen()"
+  title="Paket Sat"
+  widthClass="max-w-md"
+  (closed)="closeSellDrawer()"
+>
   <div>
-    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Müşteri <span class="text-rose-500">*</span></label>
-    <select [ngModel]="sellCustomerId()" (ngModelChange)="sellCustomerId.set($event)" name="sellCustomerId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+    <label class="odv-label">Müşteri <span class="text-rose-500">*</span></label>
+    <select
+      [ngModel]="sellCustomerId()"
+      (ngModelChange)="sellCustomerId.set($event)"
+      name="sellCustomerId"
+      class="odv-input"
+    >
       <option value="">Seçiniz</option>
       @for (c of customers(); track c.id) {
         <option [value]="c.id">{{ c.ad }} — {{ c.telefon }}</option>
@@ -187,25 +317,39 @@
     </select>
   </div>
   <div>
-    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Paket Planı <span class="text-rose-500">*</span></label>
-    <select [ngModel]="sellPlanId()" (ngModelChange)="sellPlanId.set($event)" name="sellPlanId" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
+    <label class="odv-label">Paket Planı <span class="text-rose-500">*</span></label>
+    <select
+      [ngModel]="sellPlanId()"
+      (ngModelChange)="sellPlanId.set($event)"
+      name="sellPlanId"
+      class="odv-input"
+    >
       <option value="">Seçiniz</option>
       @for (p of plans(); track p.id) {
-        <option [value]="p.id">{{ p.ad }} — {{ p.seansAdedi }} seans — ₺{{ p.fiyat | number: '1.2-2' }}</option>
+        <option [value]="p.id">
+          {{ p.ad }} — {{ p.seansAdedi }} seans — ₺{{ p.fiyat | number: '1.2-2' }}
+        </option>
       }
     </select>
   </div>
 
   <div>
-    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Ödeme Yöntemi</label>
-    <select [ngModel]="sellMethod()" (ngModelChange)="sellMethod.set($event)" name="sellMethod" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all">
-      @for (m of paymentMethods; track m) { <option [value]="m">{{ paymentMethodLabels[m] }}</option> }
+    <label class="odv-label">Ödeme Yöntemi</label>
+    <select
+      [ngModel]="sellMethod()"
+      (ngModelChange)="sellMethod.set($event)"
+      name="sellMethod"
+      class="odv-input"
+    >
+      @for (m of paymentMethods; track m) {
+        <option [value]="m">{{ paymentMethodLabels[m] }}</option>
+      }
     </select>
   </div>
 
   <div drawerFooter class="flex items-center justify-end gap-3 w-full">
-    <button type="button" (click)="closeSellDrawer()" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer">Vazgeç</button>
-    <button type="button" (click)="sellPackage()" [disabled]="sellSaving()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+    <button type="button" (click)="closeSellDrawer()" class="odv-btn-secondary">Vazgeç</button>
+    <button type="button" (click)="sellPackage()" [disabled]="sellSaving()" class="odv-btn-primary">
       {{ sellSaving() ? 'Kaydediliyor...' : 'Paketi Sat' }}
     </button>
   </div>

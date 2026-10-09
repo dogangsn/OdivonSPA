@@ -2,6 +2,7 @@ import { Component, Signal, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { SimpleCrudListBase } from '../../../core/base/simple-crud-list-base';
+import { KpiCard } from '../../../core/ui/kpi-card/kpi-card';
 import { EmptyState } from '../../../core/ui/empty-state/empty-state';
 import { FirestoreDatePipe } from '../../../core/pipes/firestore-date.pipe';
 import { SlideOverDrawer } from '../../../core/ui/slide-over-drawer/slide-over-drawer';
@@ -25,7 +26,7 @@ interface LeaveForm {
 @Component({
   selector: 'app-leaves-list',
   standalone: true,
-  imports: [FormsModule, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
+  imports: [KpiCard, FormsModule, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, StatusBadge, LoadMore],
   templateUrl: './leaves-list.html',
 })
 export class LeavesList extends SimpleCrudListBase<StaffLeave> {
@@ -47,6 +48,28 @@ export class LeavesList extends SimpleCrudListBase<StaffLeave> {
   readonly hasMore = this.listWindow.hasMore(this.items);
   readonly staff = this.staffService.watchAllSignal();
   readonly staffNameById = computed(() => new Map(this.staff().map((s) => [s.id, s.ad])));
+
+  readonly countByStatus = computed(() => {
+    const counts: Record<LeaveStatus, number> = { beklemede: 0, onaylandi: 0, reddedildi: 0 };
+    for (const l of this.items()) counts[this.statusOf(l)]++;
+    return counts;
+  });
+  readonly onLeaveToday = computed(() => {
+    const now = Date.now();
+    const staffIds = this.items()
+      .filter((l) => this.statusOf(l) === 'onaylandi')
+      .filter((l) => new Date(l.startDate).getTime() <= now && now <= endOfDay(new Date(l.endDate)))
+      .map((l) => l.staffId);
+    return new Set(staffIds).size;
+  });
+
+  protected override matchesSearch(item: WithId<StaffLeave>, query: string): boolean {
+    return (
+      (this.staffNameById().get(item.staffId) ?? '').toLowerCase().includes(query) ||
+      this.leaveTypeLabels[item.type].toLowerCase().includes(query) ||
+      (item.note ?? '').toLowerCase().includes(query)
+    );
+  }
 
   readonly drawerOpen = signal(false);
   readonly saving = signal(false);
@@ -109,4 +132,10 @@ export class LeavesList extends SimpleCrudListBase<StaffLeave> {
       await this.leaveService.remove(item.id);
     }
   }
+}
+
+function endOfDay(date: Date): number {
+  const end = new Date(date);
+  end.setHours(23, 59, 59, 999);
+  return end.getTime();
 }

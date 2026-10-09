@@ -8,6 +8,7 @@ import { SimpleCrudListBase } from '../../../core/base/simple-crud-list-base';
 import { SlideOverDrawer } from '../../../core/ui/slide-over-drawer/slide-over-drawer';
 import { StatusBadge } from '../../../core/ui/status-badge/status-badge';
 import { EmptyState } from '../../../core/ui/empty-state/empty-state';
+import { KpiCard } from '../../../core/ui/kpi-card/kpi-card';
 import { STAFF_ROLE_LABELS, Staff, WithId } from '../../../core/models';
 import { StaffService } from './staff.service';
 import { SessionService } from '../../sessions-pos/session.service';
@@ -38,7 +39,7 @@ interface StaffForm {
 @Component({
   selector: 'app-personnel-list',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, MatIconModule, SlideOverDrawer, StatusBadge, EmptyState],
+  imports: [KpiCard, FormsModule, DecimalPipe, MatIconModule, SlideOverDrawer, StatusBadge, EmptyState],
   templateUrl: './personnel-list.html',
 })
 export class PersonnelList extends SimpleCrudListBase<Staff> {
@@ -59,6 +60,13 @@ export class PersonnelList extends SimpleCrudListBase<Staff> {
     toObservable(this.monthRange).pipe(switchMap((r) => this.accrualService.watchByDateRange(r.start, r.end))),
     { initialValue: [] },
   );
+
+  readonly activeCount = computed(() => this.items().filter((s) => s.active).length);
+  readonly therapistCount = computed(() => this.items().filter((s) => s.active && s.role === 'therapist').length);
+  readonly monthTotals = computed(() => {
+    const sessions = this.monthSessions();
+    return { seans: sessions.length, ciro: round2(sessions.reduce((sum, s) => sum + s.totalAmount, 0)) };
+  });
 
   monthlySummaryFor(staffId: string) {
     const sessions = this.monthSessions().filter((s) => s.staffId === staffId);

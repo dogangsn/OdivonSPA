@@ -12,29 +12,52 @@
     <div class="h-[70px] flex items-center gap-3 px-4 shrink-0">
       <app-logo [size]="42" class="rounded-2xl shadow-lg shadow-violet-500/25 shrink-0"></app-logo>
       <div class="min-w-0">
-        <div class="text-lg font-black text-white tracking-tight">Odivon<span class="text-sky-400">SPA</span></div>
-        <div class="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">İşletme Yönetimi</div>
+        <div class="text-lg font-black text-white tracking-tight">
+          Odivon<span class="text-sky-400">SPA</span>
+        </div>
+        <div class="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
+          İşletme Yönetimi
+        </div>
       </div>
-      <button type="button" (click)="toggleSidebar()" aria-label="Menüyü kapat" class="ml-auto flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-white/5 hover:text-white lg:hidden">
+      <button
+        type="button"
+        (click)="toggleSidebar()"
+        aria-label="Menüyü kapat"
+        class="ml-auto flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-white/5 hover:text-white lg:hidden"
+      >
         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
       </button>
     </div>
 
-    <div class="mx-3 mb-3 flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.045] p-3">
-      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-black text-white shadow-lg shadow-indigo-950/40">{{ userInitials() }}</div>
+    <div
+      class="mx-3 mb-3 flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.045] p-3"
+    >
+      <div
+        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-black text-white shadow-lg shadow-indigo-950/40"
+      >
+        {{ userInitials() }}
+      </div>
       <div class="min-w-0 flex-1">
         <div class="truncate text-xs font-bold text-white">{{ userName() }}</div>
         <div class="truncate text-[10px] font-medium text-slate-500">{{ userEmail() }}</div>
       </div>
-      <span class="rounded-lg border border-indigo-400/25 bg-indigo-500/10 px-2 py-1 text-[9px] font-bold text-indigo-300">{{ userRoleLabel() }}</span>
+      <span
+        class="rounded-lg border border-indigo-400/25 bg-indigo-500/10 px-2 py-1 text-[9px] font-bold text-indigo-300"
+        >{{ userRoleLabel() }}</span
+      >
     </div>
 
     <nav class="flex-1 overflow-y-auto custom-scroll px-3 py-2 space-y-4">
       @for (group of visibleGroups(); track group.title) {
         <div>
-          <div class="mb-1.5 flex items-center justify-between px-2.5 text-[10px] font-bold uppercase tracking-[0.13em] text-slate-500">
+          <div
+            class="mb-1.5 flex items-center justify-between px-2.5 text-[10px] font-bold uppercase tracking-[0.13em] text-slate-500"
+          >
             <span>{{ group.title }}</span>
-            <mat-icon class="icon-size-3.5 text-slate-600" [svgIcon]="'heroicons_outline:chevron-down'"></mat-icon>
+            <mat-icon
+              class="icon-size-3.5 text-slate-600"
+              [svgIcon]="'heroicons_outline:chevron-down'"
+            ></mat-icon>
           </div>
           <div class="space-y-0.5">
             @for (item of group.items; track item.route) {
@@ -45,10 +68,7 @@
                 (click)="closeSidebar()"
                 class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all"
               >
-                <mat-icon
-                  class="icon-size-5"
-                  [svgIcon]="item.icon"
-                ></mat-icon>
+                <mat-icon class="icon-size-5" [svgIcon]="item.icon"></mat-icon>
                 <span>{{ item.label }}</span>
               </a>
             }
@@ -58,12 +78,29 @@
     </nav>
 
     <div class="mt-auto border-t border-white/[0.07] px-3 py-3">
-      <div class="mb-2 flex items-center justify-between px-2 text-[10px] font-semibold text-slate-400">
-        <span class="inline-flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,.75)]"></span>Sistem Çevrimiçi</span>
+      <div
+        class="mb-2 flex items-center justify-between px-2 text-[10px] font-semibold text-slate-400"
+      >
+        <span class="inline-flex items-center gap-2"
+          ><span
+            class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,.75)]"
+          ></span
+          >Sistem Çevrimiçi</span
+        >
         <span>v2.0</span>
       </div>
-      <button type="button" (click)="$event.stopPropagation(); logout()" aria-label="Oturumu kapat" [disabled]="loggingOut()" [attr.aria-busy]="loggingOut()" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-rose-300 disabled:cursor-wait disabled:opacity-60">
-        <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_outline:arrow-right-start-on-rectangle'"></mat-icon>
+      <button
+        type="button"
+        (click)="$event.stopPropagation(); logout()"
+        aria-label="Oturumu kapat"
+        [disabled]="loggingOut()"
+        [attr.aria-busy]="loggingOut()"
+        class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-rose-300 disabled:cursor-wait disabled:opacity-60"
+      >
+        <mat-icon
+          class="icon-size-4.5"
+          [svgIcon]="'heroicons_outline:arrow-right-start-on-rectangle'"
+        ></mat-icon>
         <span>{{ loggingOut() ? 'Çıkış yapılıyor...' : 'Oturumu kapat' }}</span>
       </button>
     </div>
@@ -86,34 +123,49 @@
 
       <div class="relative flex-1 max-w-xl">
         <mat-icon
-          class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 icon-size-4.5"
+          class="odv-search-icon icon-size-4.5"
           [svgIcon]="'heroicons_solid:magnifying-glass'"
         ></mat-icon>
-        <input
-          type="text"
-          placeholder="Sayfa veya işlem ara..."
-          class="w-full pl-10 pr-4 py-2.5 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all"
-        />
+        <input type="text" placeholder="Sayfa veya işlem ara..." class="odv-search" />
       </div>
 
       <div class="flex-1"></div>
 
       <div class="flex shrink-0 items-center gap-2">
-        <button type="button" class="topbar-pill topbar-pill-primary hidden 2xl:flex" aria-label="Odivon QR">
+        <button
+          type="button"
+          class="topbar-pill topbar-pill-primary hidden 2xl:flex"
+          aria-label="Odivon QR"
+        >
           <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:qr-code'"></mat-icon>
           <span>Odivon QR</span>
         </button>
 
-        <button type="button" class="topbar-pill topbar-pill-soft hidden xl:flex" aria-label="Paket bilgisi">
-          <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white text-indigo-600 shadow-sm dark:bg-slate-900">
+        <button
+          type="button"
+          class="topbar-pill topbar-pill-soft hidden xl:flex"
+          aria-label="Paket bilgisi"
+        >
+          <span
+            class="flex h-6 w-6 items-center justify-center rounded-full bg-white text-indigo-600 shadow-sm dark:bg-slate-900"
+          >
             <mat-icon class="icon-size-3.5" [svgIcon]="'heroicons_solid:star'"></mat-icon>
           </span>
           <span>Profesyonel</span>
-          <span class="rounded-full bg-amber-400 px-1.5 py-0.5 text-[8px] font-black text-white">PRO</span>
-          <mat-icon class="icon-size-3.5 text-indigo-400" [svgIcon]="'heroicons_outline:chevron-down'"></mat-icon>
+          <span class="rounded-full bg-amber-400 px-1.5 py-0.5 text-[8px] font-black text-white"
+            >PRO</span
+          >
+          <mat-icon
+            class="icon-size-3.5 text-indigo-400"
+            [svgIcon]="'heroicons_outline:chevron-down'"
+          ></mat-icon>
         </button>
 
-        <button type="button" class="topbar-pill topbar-pill-ai hidden xl:flex" aria-label="AI Asistan">
+        <button
+          type="button"
+          class="topbar-pill topbar-pill-ai hidden xl:flex"
+          aria-label="AI Asistan"
+        >
           <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:sparkles'"></mat-icon>
           <span>Asistan (AI)</span>
         </button>
@@ -129,16 +181,30 @@
 
         <button type="button" aria-label="Bildirimler" class="topbar-icon-button relative">
           <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:bell'"></mat-icon>
-          <span class="absolute right-1.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-white bg-rose-400 px-0.5 text-[8px] font-black text-white dark:border-slate-900">3</span>
+          <span
+            class="absolute right-1.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-white bg-rose-400 px-0.5 text-[8px] font-black text-white dark:border-slate-900"
+            >3</span
+          >
         </button>
 
         <button type="button" aria-label="Profil menüsü" class="profile-pill">
-          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-[10px] font-black text-white shadow-md shadow-indigo-500/20">{{ userInitials() }}</span>
+          <span
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-[10px] font-black text-white shadow-md shadow-indigo-500/20"
+            >{{ userInitials() }}</span
+          >
           <span class="hidden min-w-0 text-left sm:block">
-            <span class="block max-w-28 truncate text-[11px] font-bold text-slate-900 dark:text-white">{{ userName() }}</span>
-            <span class="block text-[9px] font-bold uppercase tracking-wider text-indigo-500">{{ userRoleLabel() }}</span>
+            <span
+              class="block max-w-28 truncate text-[11px] font-bold text-slate-900 dark:text-white"
+              >{{ userName() }}</span
+            >
+            <span class="block text-[9px] font-bold uppercase tracking-wider text-indigo-500">{{
+              userRoleLabel()
+            }}</span>
           </span>
-          <mat-icon class="icon-size-4 hidden text-slate-400 sm:block" [svgIcon]="'heroicons_outline:chevron-down'"></mat-icon>
+          <mat-icon
+            class="icon-size-4 hidden text-slate-400 sm:block"
+            [svgIcon]="'heroicons_outline:chevron-down'"
+          ></mat-icon>
         </button>
       </div>
     </header>

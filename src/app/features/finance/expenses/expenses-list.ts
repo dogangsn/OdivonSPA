@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { SimpleCrudListBase } from '../../../core/base/simple-crud-list-base';
+import { KpiCard } from '../../../core/ui/kpi-card/kpi-card';
 import { EmptyState } from '../../../core/ui/empty-state/empty-state';
 import { FirestoreDatePipe } from '../../../core/pipes/firestore-date.pipe';
 import { SlideOverDrawer } from '../../../core/ui/slide-over-drawer/slide-over-drawer';
@@ -24,7 +25,7 @@ const EMPTY_FORM: ExpenseForm = { kategori: 'genel', amount: 0, staffId: '', not
 @Component({
   selector: 'app-expenses-list',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, LoadMore],
+  imports: [KpiCard, FormsModule, DecimalPipe, FirestoreDatePipe, MatIconModule, EmptyState, SlideOverDrawer, LoadMore],
   templateUrl: './expenses-list.html',
 })
 export class ExpensesList extends SimpleCrudListBase<Expense> {
@@ -42,6 +43,11 @@ export class ExpensesList extends SimpleCrudListBase<Expense> {
   readonly staffNameById = computed(() => new Map(this.staff().map((s) => [s.id, s.ad])));
 
   readonly totalThisList = computed(() => round2(this.filtered().reduce((sum, e) => sum + e.amount, 0)));
+  readonly totalByCategory = computed(() => {
+    const totals: Record<ExpenseCategory, number> = { maas: 0, prim: 0, avans: 0, genel: 0 };
+    for (const e of this.filtered()) totals[e.kategori] += e.amount;
+    return totals;
+  });
 
   protected override matchesSearch(item: WithId<Expense>, query: string): boolean {
     return (item.note ?? '').toLowerCase().includes(query) || this.categoryLabels[item.kategori].toLowerCase().includes(query);

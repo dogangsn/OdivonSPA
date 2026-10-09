@@ -1,8 +1,9 @@
-import { Component, Signal, inject, signal } from '@angular/core';
+import { Component, Signal, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { SimpleCrudListBase } from '../../core/base/simple-crud-list-base';
+import { KpiCard } from '../../core/ui/kpi-card/kpi-card';
 import { EmptyState } from '../../core/ui/empty-state/empty-state';
 import { Pagination } from '../../core/ui/pagination/pagination';
 import { SlideOverDrawer } from '../../core/ui/slide-over-drawer/slide-over-drawer';
@@ -36,7 +37,7 @@ const EMPTY_FORM: CustomerForm = {
 @Component({
   selector: 'app-customers-list',
   standalone: true,
-  imports: [FormsModule, RouterLink, MatIconModule, EmptyState, Pagination, SlideOverDrawer, StatusBadge],
+  imports: [KpiCard, FormsModule, RouterLink, MatIconModule, EmptyState, Pagination, SlideOverDrawer, StatusBadge],
   templateUrl: './customers-list.html',
 })
 export class CustomersList extends SimpleCrudListBase<Customer> {
@@ -44,6 +45,14 @@ export class CustomersList extends SimpleCrudListBase<Customer> {
   private readonly confirmService = inject(ConfirmService);
 
   readonly items: Signal<WithId<Customer>[]> = this.customerService.watchAllSignal();
+
+  readonly activeCount = computed(() => this.items().filter((c) => c.active).length);
+  readonly kvkkCount = computed(() => this.items().filter((c) => c.kvkkOnay).length);
+  readonly taggedCount = computed(() => this.items().filter((c) => c.etiketler.length > 0).length);
+  readonly kvkkRate = computed(() => {
+    const total = this.items().length;
+    return total ? Math.round((this.kvkkCount() / total) * 100) : 0;
+  });
 
   readonly drawerOpen = signal(false);
   readonly isEditing = signal(false);

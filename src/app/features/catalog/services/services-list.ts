@@ -1,8 +1,9 @@
-import { Component, Signal, inject, signal } from '@angular/core';
+import { Component, Signal, inject, signal, computed } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { SimpleCrudListBase } from '../../../core/base/simple-crud-list-base';
+import { KpiCard } from '../../../core/ui/kpi-card/kpi-card';
 import { EmptyState } from '../../../core/ui/empty-state/empty-state';
 import { Pagination } from '../../../core/ui/pagination/pagination';
 import { SlideOverDrawer } from '../../../core/ui/slide-over-drawer/slide-over-drawer';
@@ -24,7 +25,7 @@ const EMPTY_FORM: ServiceForm = { ad: '', tur: '', kategori: '', sureDk: 45, fiy
 @Component({
   selector: 'app-services-list',
   standalone: true,
-  imports: [FormsModule, MatIconModule, DecimalPipe, EmptyState, Pagination, SlideOverDrawer, StatusBadge],
+  imports: [KpiCard, FormsModule, MatIconModule, DecimalPipe, EmptyState, Pagination, SlideOverDrawer, StatusBadge],
   templateUrl: './services-list.html',
 })
 export class ServicesList extends SimpleCrudListBase<Service> {
@@ -32,6 +33,18 @@ export class ServicesList extends SimpleCrudListBase<Service> {
   private readonly confirmService = inject(ConfirmService);
 
   readonly items: Signal<WithId<Service>[]> = this.serviceService.watchAllSignal();
+
+  private readonly activeItems = computed(() => this.items().filter((s) => s.active));
+  readonly activeCount = computed(() => this.activeItems().length);
+  readonly categoryCount = computed(() => new Set(this.items().map((s) => s.kategori || s.tur)).size);
+  readonly averageDuration = computed(() => {
+    const list = this.activeItems();
+    return list.length ? Math.round(list.reduce((sum, s) => sum + s.sureDk, 0) / list.length) : 0;
+  });
+  readonly averagePrice = computed(() => {
+    const list = this.activeItems();
+    return list.length ? list.reduce((sum, s) => sum + s.fiyat, 0) / list.length : 0;
+  });
 
   readonly drawerOpen = signal(false);
   readonly isEditing = signal(false);
