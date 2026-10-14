@@ -14,13 +14,15 @@ export class ThemeService {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      this.mediaListener = (e: MediaQueryListEvent) => {
-        if (this.mode() === 'system') {
-          this.applyTheme(e.matches);
-        }
-      };
-      this.mediaQuery.addEventListener('change', this.mediaListener);
+      if (typeof window.matchMedia === 'function') {
+        this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        this.mediaListener = (e: MediaQueryListEvent) => {
+          if (this.mode() === 'system') {
+            this.applyTheme(e.matches);
+          }
+        };
+        this.mediaQuery.addEventListener?.('change', this.mediaListener);
+      }
 
       const savedMode = this.readStoredMode();
       this.setMode(savedMode);

@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/auth/auth.service';
 import { describeGoogleAuthError } from '../../../core/auth/google-auth-error';
 import { describeMembershipError } from '../../../core/auth/membership-error';
@@ -8,12 +9,17 @@ import { ApiService } from '../../../core/http/api.service';
 import { ApiError } from '../../../core/http/api-error';
 import { Logo } from '../../../core/ui/logo/logo';
 
-/** Creates the Firebase Auth user, then `POST /spa/onboarding` on Main API creates the spa
- *  tenant and makes the caller its owner (admin). */
+export interface RegistrationSuccessInfo {
+  email: string;
+  displayName: string;
+  tenantName: string;
+}
+
+/** Handles new business registration with email verification and Google onboarding. */
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [FormsModule, RouterLink, Logo],
+  imports: [FormsModule, RouterLink, Logo, MatIconModule],
   templateUrl: './onboarding.html',
   styleUrl: './onboarding.scss',
 })
@@ -27,11 +33,14 @@ export class Onboarding {
   readonly email = signal('');
   readonly password = signal('');
   readonly submitting = signal(false);
+  readonly resending = signal(false);
+  readonly resendSuccess = signal(false);
   readonly submitMethod = signal<'google' | 'form' | null>(null);
   readonly showPassword = signal(false);
   readonly errorMessage = signal('');
+  readonly registeredSuccess = signal<RegistrationSuccessInfo | null>(null);
 
-  /** Already signed in (e.g. with Google) but without a tenant yet — skip creating the Auth user. */
+  /** Already signed in (e.g. with Google) but without a tenant yet — skip email verification. */
   readonly signedInEmail = computed(() => this.auth.user()?.email ?? null);
 
   constructor() {
@@ -75,15 +84,27 @@ export class Onboarding {
     this.errorMessage.set('');
     this.submitting.set(true);
     this.submitMethod.set('form');
+
     try {
-      if (!this.signedInEmail()) {
-        await this.auth.registerAuthUser(this.email(), this.password());
+      if (this.signedInEmail()) {
+        // User already has an authenticated Google session; complete tenant creation directly.
+        await this.api.post<{ tenantId: string }>('/spa/onboarding', {
+          businessName: this.businessName(),
+          ownerName: this.ownerName(),
+        });
+        await this.auth.forceRefreshClaims();
+        await this.router.navigateByUrl('/panel');
+      } else {
+        // Standard email/password registration with email verification workflow
+        const result = await this.auth.register({
+          tenantName: this.businessName(),
+          displayName: this.ownerName(),
+          email: this.email(),
+          password: this.password(),
+        });
+
+        this.registeredSuccess.set(result);
       }
-
-      await this.api.post<{ tenantId: string }>('/spa/onboarding', { businessName: this.businessName(), ownerName: this.ownerName() });
-
-      await this.auth.forceRefreshClaims();
-      await this.router.navigateByUrl('/panel');
     } catch (err) {
       this.errorMessage.set(describeError(err));
       console.error(err);
@@ -92,23 +113,43 @@ export class Onboarding {
       this.submitMethod.set(null);
     }
   }
+
+  async resendVerificationMail(): Promise<void> {
+    const successInfo = this.registeredSuccess();
+    if (!successInfo?.email || this.resending()) return;
+
+    this.resending.set(true);
+    this.resendSuccess.set(false);
+    try {
+      await this.auth.resendVerification(successInfo.email);
+      this.resendSuccess.set(true);
+    } catch (err) {
+      console.error('Failed to resend verification link', err);
+      this.errorMessage.set('Doğrulama bağlantısı tekrar gönderilemedi. Lütfen bir süre sonra tekrar deneyin.');
+    } finally {
+      this.resending.set(false);
+    }
+  }
 }
 
 function describeError(err: unknown): string {
   if (err instanceof ApiError) {
+    if (err.message) {
+      return err.message;
+    }
     switch (err.code) {
       case 'unavailable':
-        return 'İşletme kaydı sunucusuna ulaşılamıyor. Lütfen daha sonra tekrar deneyin.';
+        return 'Kayıt sunucusuna şu anda ulaşılamıyor. Lütfen daha sonra tekrar deneyin.';
       case 'not-found':
-        return 'İşletme kaydı servisi bu adreste bulunamadı. Site yöneticisiyle iletişime geçin.';
+        return 'Kayıt servisi bulunamadı. Lütfen sistem yöneticisiyle iletişime geçin.';
       case 'internal':
-        return 'İşletme kaydı sunucusunda hata oluştu. Lütfen daha sonra tekrar deneyin.';
+        return 'Kayıt sunucusunda bir hata oluştu. Lütfen tekrar deneyin.';
       case 'unauthenticated':
-        return 'Oturumunuz doğrulanamadı. Yeniden giriş yapıp tekrar deneyin.';
+        return 'Oturumunuz doğrulanamadı. Lütfen yeniden deneyin.';
       case 'invalid-argument':
-        return err.message;
+        return err.message || 'Lütfen girdiğiniz bilgileri kontrol edin.';
       case 'failed-precondition':
-        return err.message || 'Bu kullanıcı zaten bir işletmeye bağlı. Giriş yapın.';
+        return err.message || 'Bu kullanıcı zaten bir işletmeye bağlı. Giriş yapmayı deneyin.';
       default:
         return 'Kayıt oluşturulamadı. Lütfen tekrar deneyin.';
     }
@@ -117,14 +158,15 @@ function describeError(err: unknown): string {
   const code = (err as { code?: string }).code ?? '';
   switch (code) {
     case 'auth/email-already-in-use':
-      return 'Bu e-posta zaten kayıtlı. Giriş yapın; işletmeniz yoksa buraya yönlendirilirsiniz.';
+    case 'auth/email-already-exists':
+      return 'Bu e-posta adresi zaten kayıtlı. Lütfen giriş yapmayı deneyin.';
     case 'auth/weak-password':
-      return 'Şifre en az 6 karakter olmalı.';
+      return 'Şifre en az 8 karakter uzunluğunda olmalıdır.';
     case 'auth/invalid-email':
-      return 'Geçerli bir e-posta girin.';
+      return 'Lütfen geçerli bir e-posta adresi girin.';
     case 'auth/network-request-failed':
-      return 'Bağlantı hatası. İnternetinizi kontrol edin.';
+      return 'Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.';
     default:
-      return 'Kayıt oluşturulamadı. Lütfen tekrar deneyin.';
+      return (err as { message?: string })?.message || 'Kayıt oluşturulamadı. Lütfen tekrar deneyin.';
   }
 }

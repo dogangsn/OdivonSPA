@@ -1,0 +1,197 @@
+<main class="verify-shell relative min-h-screen overflow-hidden bg-slate-50 dark:bg-[#0b1120] flex items-center justify-center p-4 sm:p-6 lg:p-8">
+  <!-- Ambient background glow orbs -->
+  <div class="pointer-events-none absolute -left-20 top-16 h-72 w-72 rounded-full bg-indigo-400/20 blur-3xl dark:bg-indigo-600/10"></div>
+  <div class="pointer-events-none absolute -right-20 bottom-12 h-80 w-80 rounded-full bg-emerald-400/15 blur-3xl dark:bg-emerald-600/10"></div>
+
+  <div class="relative z-10 w-full max-w-[500px]">
+    <!-- Brand Header -->
+    <div class="mb-8 flex items-center justify-center gap-3">
+      <app-logo [size]="44" class="overflow-hidden rounded-xl shadow-lg shadow-indigo-500/15"></app-logo>
+      <div>
+        <div class="text-xl font-black tracking-tight text-slate-900 dark:text-white">OdivonSPA</div>
+        <div class="text-[9px] font-bold uppercase tracking-[0.22em] text-slate-400">İşletme Yönetimi</div>
+      </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="rounded-3xl border border-slate-200/80 bg-white/90 p-6 sm:p-8 shadow-xl shadow-slate-200/50 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90 dark:shadow-none text-center">
+
+      <!-- STATE 1: LOADING -->
+      @if (state() === 'loading') {
+        <div class="py-6 space-y-5 animate-in fade-in duration-300">
+          <div class="relative mx-auto w-20 h-20 flex items-center justify-center">
+            <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+            <div class="w-20 h-20 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin"></div>
+            <svg class="h-8 w-8 text-indigo-600 dark:text-indigo-400 absolute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.24a2.25 2.25 0 0 1-1.07 1.91l-7.5 4.61a2.25 2.25 0 0 1-2.36 0L3.32 8.9a2.25 2.25 0 0 1-1.07-1.91v-.24" />
+            </svg>
+          </div>
+
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/80 mb-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+              Doğrulanıyor
+            </span>
+            <h2 class="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
+              E-posta Adresiniz Doğrulanıyor
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
+              Lütfen bekleyin, hesabınız doğrulanırken spa çalışma alanınız hazırlanıyor...
+            </p>
+          </div>
+        </div>
+      }
+
+      <!-- STATE 2: SUCCESS -->
+      @if (state() === 'success') {
+        <div class="py-4 space-y-6 animate-in fade-in zoom-in-95 duration-300">
+          <!-- Celebration Icon -->
+          <div class="relative mx-auto w-20 h-20 flex items-center justify-center">
+            <div class="absolute inset-0 rounded-3xl bg-emerald-500/25 blur-xl animate-pulse"></div>
+            <div class="relative w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 border border-white/20">
+              <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+            </div>
+          </div>
+
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/80 mb-3">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              E-POSTA DOĞRULANDI
+            </span>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
+              Hesabınız Başarıyla Doğrulandı!
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm mx-auto">
+              OdivonSPA ailesine hoş geldiniz. E-posta adresiniz onaylandı, artık işletme panelinize güvenle giriş yapabilirsiniz.
+            </p>
+
+            @if (verifiedEmail()) {
+              <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs">
+                <svg class="h-4 w-4 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.24a2.25 2.25 0 0 1-1.07 1.91l-7.5 4.61a2.25 2.25 0 0 1-2.36 0L3.32 8.9a2.25 2.25 0 0 1-1.07-1.91v-.24" />
+                </svg>
+                <span>{{ verifiedEmail() }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Action Button -->
+          <a
+            routerLink="/auth/login"
+            [queryParams]="{ verified: 'true' }"
+            class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-600 to-emerald-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer no-underline"
+          >
+            <span>Giriş Yap ve Başla</span>
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </a>
+        </div>
+      }
+
+      <!-- STATE 3: ERROR / IDLE -->
+      @if (state() === 'error' || state() === 'idle') {
+        <div class="py-2 space-y-6 animate-in fade-in duration-300">
+          <!-- Error Icon -->
+          <div class="relative mx-auto w-16 h-16 flex items-center justify-center">
+            <div class="absolute inset-0 rounded-2xl bg-rose-500/20 blur-lg"></div>
+            <div class="relative w-16 h-16 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-600 text-white flex items-center justify-center shadow-lg shadow-rose-500/25 border border-white/20">
+              <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9.3 3.38c.87 1.5-.22 3.37-1.94 3.37H4.64c-1.73 0-2.81-1.87-1.95-3.37L10.06 3.38c.87-1.5 3.01-1.5 3.88 0l7.36 12.75ZM12 16.5h.01v.01H12v-.01Z" />
+              </svg>
+            </div>
+          </div>
+
+          <div>
+            <h2 class="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
+              Doğrulama Tamamlanamadı
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm mx-auto">
+              {{ errorMessage() || 'Doğrulama bağlantısı geçersiz, süresi dolmuş veya daha önce kullanılmış olabilir.' }}
+            </p>
+          </div>
+
+          <!-- Resend Form Card -->
+          <div class="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-5 text-left space-y-3.5">
+            <div>
+              <p class="text-xs font-bold text-slate-800 dark:text-slate-200 m-0">
+                Yeni bir doğrulama bağlantısı ister misiniz?
+              </p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 m-0">
+                Kayıtlı e-posta adresinizi girin, size yeni bir doğrulama bağlantısı gönderelim.
+              </p>
+            </div>
+
+            @if (resendSuccess()) {
+              <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 flex items-start gap-2.5 text-xs text-emerald-800 dark:text-emerald-200">
+                <svg class="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                <div>
+                  <strong>Bağlantı Gönderildi!</strong> Yeni doğrulama bağlantısı e-posta adresinize iletildi. Lütfen gelen kutunuzu kontrol edin.
+                </div>
+              </div>
+            }
+
+            @if (resendError()) {
+              <div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/70 text-xs text-rose-700 dark:text-rose-300">
+                {{ resendError() }}
+              </div>
+            }
+
+            <form (ngSubmit)="sendNewVerificationLink()" class="space-y-3">
+              <div class="relative flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus-within:ring-2 focus-within:ring-indigo-500/30 focus-within:border-indigo-500 transition-all">
+                <svg class="absolute left-3.5 h-4 w-4 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.24a2.25 2.25 0 0 1-1.07 1.91l-7.5 4.61a2.25 2.25 0 0 1-2.36 0L3.32 8.9a2.25 2.25 0 0 1-1.07-1.91v-.24" />
+                </svg>
+                <input
+                  type="email"
+                  required
+                  [ngModel]="resendEmail()"
+                  (ngModelChange)="resendEmail.set($event)"
+                  name="email"
+                  autocomplete="email"
+                  placeholder="ornek@isletme.com"
+                  class="w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm bg-transparent text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                [disabled]="resending() || !resendEmail()"
+                class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-indigo-600/20"
+              >
+                @if (resending()) {
+                  <span class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  <span>Gönderiliyor...</span>
+                } @else {
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                  </svg>
+                  <span>Doğrulama Bağlantısı Gönder</span>
+                }
+              </button>
+            </form>
+          </div>
+
+          <div class="pt-2">
+            <a routerLink="/auth/login" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1.5">
+              <span>Giriş ekranına dön</span>
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      }
+
+    </div>
+
+    <!-- Footer Copyright -->
+    <div class="text-center mt-6 text-xs text-slate-400 font-medium">
+      © {{ currentYear }} OdivonSPA · Güvenli E-Posta Doğrulama Altyapısı
+    </div>
+  </div>
+</main>

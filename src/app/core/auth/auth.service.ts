@@ -103,8 +103,59 @@ export class AuthService {
   /** Resolves after the membership is loaded, so callers can navigate without racing the auth guard. */
   async login(email: string, password: string): Promise<boolean> {
     const credential = await signInWithEmailAndPassword(this.auth, email, password);
+
+    // E-posta doğrulama kontrolü: Doğrulanmamış hesaplar için oturum sonlandırılır.
+    if (!credential.user.emailVerified) {
+      await credential.user.reload();
+      if (!this.auth.currentUser?.emailVerified) {
+        await signOut(this.auth);
+        this._user.set(null);
+        this._claims.set(null);
+        const err = new Error('auth/email-not-verified');
+        (err as { code?: string; email?: string }).code = 'auth/email-not-verified';
+        (err as { code?: string; email?: string }).email = email;
+        throw err;
+      }
+    }
+
     this._user.set(credential.user);
     return this.loadMembership(credential.user);
+  }
+
+  /** Registers a new spa tenant and owner profile via Main API, triggering the email verification flow. */
+  async register(input: {
+    tenantName: string;
+    displayName?: string;
+    email: string;
+    password: string;
+    phone?: string;
+  }): Promise<{ email: string; displayName: string; tenantName: string }> {
+    await this.api.post('/identity/register', {
+      email: input.email.trim().toLowerCase(),
+      password: input.password,
+      tenantName: input.tenantName.trim(),
+      module: 'spa',
+      displayName: input.displayName?.trim() || undefined,
+      phone: input.phone?.trim() || undefined,
+    });
+
+    return {
+      email: input.email.trim().toLowerCase(),
+      displayName: input.displayName?.trim() || input.tenantName.trim(),
+      tenantName: input.tenantName.trim(),
+    };
+  }
+
+  /** Verifies email address with the token sent to the user's inbox. */
+  async verifyEmail(token: string): Promise<{ success: boolean; email?: string }> {
+    return this.api.post<{ success: boolean; email?: string }>('/identity/verify-email', { token });
+  }
+
+  /** Re-sends the verification link to the given email address. */
+  async resendVerification(email: string): Promise<{ success: boolean }> {
+    return this.api.post<{ success: boolean }>('/identity/resend-verification', {
+      email: email.trim().toLowerCase(),
+    });
   }
 
   /** Returns `true` when the account already belongs to a tenant, `false` when it still needs onboarding. */

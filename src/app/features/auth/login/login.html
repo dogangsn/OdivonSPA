@@ -78,6 +78,74 @@
           <p class="mt-3 text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">İşletme panelinize güvenli şekilde devam edin.</p>
         </div>
 
+        @if (verified()) {
+          <div class="mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 flex items-start gap-3 text-xs animate-in fade-in duration-200">
+            <svg class="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+            <div>
+              <div class="font-bold text-emerald-900 dark:text-emerald-200">E-Posta Adresiniz Doğrulandı! 🎉</div>
+              <div class="text-[11px] text-emerald-700 dark:text-emerald-300/90 mt-0.5">
+                Hesabınız başarıyla onaylandı. Spa panelinize erişmek için şimdi giriş yapabilirsiniz.
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (unverifiedEmail(); as unverified) {
+          <div class="mb-6 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 space-y-3 text-xs animate-in fade-in duration-200">
+            <div class="flex items-start gap-3">
+              <svg class="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9.3 3.38c.87 1.5-.22 3.37-1.94 3.37H4.64c-1.73 0-2.81-1.87-1.95-3.37L10.06 3.38c.87-1.5 3.01-1.5 3.88 0l7.36 12.75ZM12 16.5h.01v.01H12v-.01Z" />
+              </svg>
+              <div>
+                <div class="font-bold text-amber-900 dark:text-amber-200">E-Posta Doğrulaması Gerekli</div>
+                <div class="text-[11px] text-amber-800 dark:text-amber-300/90 mt-0.5">
+                  Hesabınıza giriş yapabilmek için <strong>{{ unverified }}</strong> adresine gönderilen bağlantıya tıklamalısınız.
+                </div>
+              </div>
+            </div>
+
+            @if (resendSuccess()) {
+              <div class="p-2.5 rounded-xl bg-emerald-100/80 dark:bg-emerald-900/40 border border-emerald-300 dark:border-emerald-700/60 text-[11px] font-semibold text-emerald-800 dark:text-emerald-200 flex items-center gap-2">
+                <svg class="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                <span>Yeni doğrulama bağlantısı e-posta adresinize tekrar gönderildi!</span>
+              </div>
+            }
+
+            <button
+              type="button"
+              (click)="resendVerificationMail()"
+              [disabled]="resending()"
+              class="w-full py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            >
+              @if (resending()) {
+                <span class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span>Gönderiliyor...</span>
+              } @else {
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                <span>Doğrulama E-postasını Tekrar Gönder</span>
+              }
+            </button>
+          </div>
+        }
+
+        @if (updated()) {
+          <div class="mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 flex items-start gap-3 text-xs animate-in fade-in duration-200">
+            <mat-icon class="icon-size-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" [svgIcon]="'heroicons_solid:check-circle'"></mat-icon>
+            <div>
+              <div class="font-bold text-emerald-900 dark:text-emerald-200">Sistem Yeni Sürüme Güncellendi!</div>
+              <div class="text-[11px] text-emerald-700 dark:text-emerald-300/90 mt-0.5">
+                Tarayıcı önbelleği ve çerezler güvenle temizlendi. Yeni sürümü kullanmak için lütfen tekrar giriş yapın.
+              </div>
+            </div>
+          </div>
+        }
+
         <button
           type="button"
           (click)="signInWithGoogle()"

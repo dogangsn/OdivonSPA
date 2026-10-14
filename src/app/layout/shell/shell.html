@@ -82,7 +82,16 @@
           <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,.75)]"></span>
           Bulut Sistemi Aktif
         </span>
-        <span class="text-slate-500">v2.1</span>
+        <button
+          type="button"
+          (click)="$event.stopPropagation(); version.openModal()"
+          [matTooltip]="'Sürüm Bilgisi: v' + version.current.version + ' (Tıklayın)'"
+          matTooltipPosition="above"
+          class="text-slate-400 hover:text-indigo-400 transition-colors font-mono cursor-pointer bg-transparent border-none p-0 flex items-center gap-1"
+        >
+          <span>v{{ version.current.version }}</span>
+          <span class="text-[9px] px-1 py-0.2 rounded font-bold bg-white/10 text-slate-300">#{{ version.current.commit }}</span>
+        </button>
       </div>
       <button
         type="button"

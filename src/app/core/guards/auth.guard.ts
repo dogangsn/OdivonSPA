@@ -25,7 +25,12 @@ export const authGuard: CanActivateFn = async () => {
   return true;
 };
 
-export const guestGuard: CanActivateFn = async () => {
+export const guestGuard: CanActivateFn = async (_route, state) => {
+  // Allow email verification page to be accessed even if user has an active session
+  if (state?.url?.includes('/verify-email')) {
+    return true;
+  }
+
   const auth = inject(AuthService);
   const router = inject(Router);
 

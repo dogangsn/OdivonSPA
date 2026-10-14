@@ -6,6 +6,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { VersionService } from '../../core/version/version.service';
 import { Logo } from '../../core/ui/logo/logo';
 import { NAV_GROUPS } from './nav-items';
 import { STAFF_ROLE_LABELS } from '../../core/models';
@@ -39,6 +40,7 @@ export class Shell {
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   readonly theme = inject(ThemeService);
+  readonly version = inject(VersionService);
 
   readonly sidebarOpen = signal(false);
   readonly loggingOut = signal(false);
