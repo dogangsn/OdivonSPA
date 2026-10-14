@@ -73,7 +73,7 @@
     <select
       [ngModel]="filterStaffId()"
       (ngModelChange)="filterStaffId.set($event)"
-      class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+      class="odv-select-sm"
     >
       <option value="">Tüm Terapistler</option>
       @for (s of staff(); track s.id) {
@@ -83,7 +83,7 @@
     <select
       [ngModel]="filterRoomId()"
       (ngModelChange)="filterRoomId.set($event)"
-      class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+      class="odv-select-sm"
     >
       <option value="">Tüm Odalar</option>
       @for (r of rooms(); track r.id) {
@@ -93,7 +93,7 @@
     <select
       [ngModel]="filterServiceId()"
       (ngModelChange)="filterServiceId.set($event)"
-      class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+      class="odv-select-sm"
     >
       <option value="">Tüm Hizmetler</option>
       @for (s of services(); track s.id) {
@@ -103,7 +103,7 @@
     <select
       [ngModel]="filterStatus()"
       (ngModelChange)="filterStatus.set($event)"
-      class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+      class="odv-select-sm"
     >
       <option value="">Tüm Durumlar</option>
       <option value="Bekliyor">Bekliyor</option>

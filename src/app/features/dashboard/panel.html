@@ -1,18 +1,83 @@
 <div class="space-y-6">
-  <div>
-    <h1 class="odv-page-title">Panel</h1>
-    <p class="odv-page-subtitle">İşletmenizin genel durumuna hoş geldiniz.</p>
+  <!-- 1. Executive Greeting & Action Toolbar -->
+  <section class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <p class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 m-0">
+        {{ greeting() }}, {{ userName() }} 👋
+      </p>
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1 mb-0">
+        Spa Yönetim Paneli
+      </h1>
+    </div>
+
+    <!-- Quick Action Buttons -->
+    <div class="flex flex-wrap items-center gap-2.5">
+      <a
+        routerLink="/randevular"
+        class="odv-btn-primary no-underline text-xs"
+      >
+        <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:plus'"></mat-icon>
+        <span>Yeni Randevu</span>
+      </a>
+
+      <a
+        routerLink="/seanslar/yeni"
+        class="px-4 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors inline-flex items-center gap-2 no-underline cursor-pointer"
+      >
+        <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:shopping-bag'"></mat-icon>
+        <span>Hızlı POS (Seans)</span>
+      </a>
+
+      <a
+        routerLink="/musteriler"
+        class="odv-btn-secondary no-underline text-xs"
+      >
+        <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:user-plus'"></mat-icon>
+        <span>Müşteri Ekle</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 2. Live Salon Operations Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+    <div class="flex items-center gap-3">
+      <span class="flex h-3 w-3 relative">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+      </span>
+      <div>
+        <h2 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white m-0">
+          Canlı Spa & Salon Operasyonları
+        </h2>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 m-0">
+          Gerçek zamanlı randevu akışı ve aktif salon doluluğu
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+        <strong>{{ activeStaffCount() }}</strong> Görevli Terapist
+      </span>
+      <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/40">
+        <strong>{{ activeRoomsCount() }}</strong> Aktif Oda
+      </span>
+      <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40">
+        <strong>{{ completedAppointmentCount() }} / {{ appointmentCount() }}</strong> Tamamlanan
+      </span>
+    </div>
   </div>
 
+  <!-- 3. Executive KPI Cards (4-Column Blueprint) -->
   <div class="odv-kpi-grid">
     <app-kpi-card
       label="Toplam Müşteri"
       [value]="customers().length"
       icon="heroicons_solid:user-group"
       accent="emerald"
-      subLabel="Kayıtlı Müşteri"
+      subLabel="Kayıtlı ve Aktif Müşteri"
       size="md"
-      [footerLeft]="activeCustomerCount() + ' aktif'"
+      [footerLeft]="activeCustomerCount() + ' aktif müşteri'"
       footerRight="Canlı Veri"
       [live]="true"
     ></app-kpi-card>
@@ -22,7 +87,7 @@
       [value]="appointmentCount()"
       icon="heroicons_solid:calendar-days"
       accent="sky"
-      subLabel="Planlanan Randevu"
+      subLabel="Planlanan Seans"
       size="md"
       [footerLeft]="completedAppointmentCount() + ' tamamlandı'"
       footerRight="Bugün"
@@ -33,24 +98,240 @@
       [value]="'₺' + (revenueToday() | number: '1.2-2')"
       icon="heroicons_solid:banknotes"
       accent="indigo"
-      subLabel="Seans + Diğer Ödemeler"
+      subLabel="Seans ve Ürün Satışı"
       size="md"
-      [footerLeft]="sessionCount() + ' seans'"
+      [footerLeft]="sessionCount() + ' tamamlanan işlem'"
       footerRight="Canlı"
       [live]="true"
     ></app-kpi-card>
 
-    @if (auth.isAdmin()) {
-      <app-kpi-card
-        label="Bekleyen Prim"
-        [value]="'₺' + (pendingCommission() | number: '1.2-2')"
-        icon="heroicons_solid:percent-badge"
-        accent="amber"
-        subLabel="Ödenmemiş Tahakkuk"
-        size="md"
-        [footerLeft]="pendingAccrualCount() + ' kayıt'"
-        footerRight="Ödeme bekliyor"
-      ></app-kpi-card>
-    }
+    <app-kpi-card
+      label="Bekleyen Prim"
+      [value]="'₺' + (pendingCommission() | number: '1.2-2')"
+      icon="heroicons_solid:percent-badge"
+      accent="amber"
+      subLabel="Ödenmemiş Tahakkuk"
+      size="md"
+      [footerLeft]="pendingAccrualCount() + ' bekleyen kayıt'"
+      footerRight="Ödeme Durumu"
+    ></app-kpi-card>
+  </div>
+
+  <!-- 4. Deep Cockpit Content (2 Columns) -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Left Column: Appointments & Weekly Trend (7 Cols) -->
+    <div class="lg:col-span-7 space-y-6">
+      <!-- Widget: Today's Appointments -->
+      <div class="odv-panel p-6 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white m-0">
+              Bugünkü Randevu Akışı
+            </h3>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+              {{ todayAppointmentsList().length }} Randevu
+            </span>
+          </div>
+
+          <a
+            routerLink="/randevular"
+            class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline no-underline inline-flex items-center gap-1"
+          >
+            <span>Takvime Git</span>
+            <mat-icon class="icon-size-3.5" [svgIcon]="'heroicons_outline:chevron-right'"></mat-icon>
+          </a>
+        </div>
+
+        <div class="divide-y divide-slate-100 dark:divide-slate-800/80 max-h-[360px] overflow-y-auto custom-scroll pr-1">
+          @for (appt of todayAppointmentsList(); track appt.id) {
+            <div class="py-3 flex items-center justify-between gap-3 text-xs hover:bg-slate-50/50 dark:hover:bg-slate-800/30 px-2 rounded-xl transition-colors">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
+                  {{ appt.timeStr }}
+                </span>
+                <div class="min-w-0">
+                  <div class="font-bold text-slate-900 dark:text-white truncate">
+                    {{ appt.customerName }}
+                  </div>
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
+                    <span>{{ appt.serviceName }}</span>
+                    <span>•</span>
+                    <span class="font-semibold text-slate-600 dark:text-slate-300">{{ appt.staffName }}</span>
+                    <span>•</span>
+                    <span>{{ appt.roomName }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="shrink-0">
+                <app-status-badge
+                  [label]="appt.status"
+                  [variant]="appt.badgeVariant"
+                  [dot]="true"
+                ></app-status-badge>
+              </div>
+            </div>
+          } @empty {
+            <div class="py-10 text-center text-xs text-slate-400">
+              <mat-icon class="icon-size-8 text-slate-300 dark:text-slate-600 mb-2" [svgIcon]="'heroicons_outline:calendar-days'"></mat-icon>
+              <p class="m-0 font-medium">Bugün için henüz planlanmış randevu bulunmuyor.</p>
+              <a routerLink="/randevular" class="text-indigo-600 dark:text-indigo-400 font-bold mt-2 inline-block">
+                + İlk Randevuyu Oluştur
+              </a>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Widget: Weekly Revenue Trend Chart -->
+      <div class="odv-panel p-6 space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white m-0">
+              Haftalık Ciro Trendi
+            </h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 m-0 mt-0.5">
+              Son 7 günlük satış hacmi ve seans cirosu
+            </p>
+          </div>
+
+          <a routerLink="/raporlar" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline no-underline inline-flex items-center gap-1">
+            <span>Raporlar</span>
+            <mat-icon class="icon-size-3.5" [svgIcon]="'heroicons_outline:chevron-right'"></mat-icon>
+          </a>
+        </div>
+
+        <app-line-chart
+          [series]="weeklyChart().series"
+          [categories]="weeklyChart().categories"
+          [colors]="['#6366f1']"
+          [height]="240"
+        ></app-line-chart>
+      </div>
+    </div>
+
+    <!-- Right Column: Recent POS Sessions & Quick Controls (5 Cols) -->
+    <div class="lg:col-span-5 space-y-6">
+      <!-- Widget: Completed Sessions Feed -->
+      <div class="odv-panel p-6 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white m-0">
+              Bugünkü Seans Satışları
+            </h3>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+              {{ todaySessionsList().length }} İşlem
+            </span>
+          </div>
+
+          <a
+            routerLink="/seanslar"
+            class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline no-underline inline-flex items-center gap-1"
+          >
+            <span>Tümü</span>
+            <mat-icon class="icon-size-3.5" [svgIcon]="'heroicons_outline:chevron-right'"></mat-icon>
+          </a>
+        </div>
+
+        <div class="divide-y divide-slate-100 dark:divide-slate-800/80 max-h-[360px] overflow-y-auto custom-scroll pr-1">
+          @for (session of todaySessionsList(); track session.id) {
+            <div class="py-3 flex items-center justify-between text-xs hover:bg-slate-50/50 dark:hover:bg-slate-800/30 px-2 rounded-xl transition-colors">
+              <div class="min-w-0 pr-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="font-mono text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 rounded">
+                    #{{ session.receiptNo }}
+                  </span>
+                  <span class="font-bold text-slate-900 dark:text-white truncate">
+                    {{ session.customerName }}
+                  </span>
+                </div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                  <span>{{ session.timeStr }}</span>
+                  <span>•</span>
+                  <span>{{ session.methodLabel }}</span>
+                  <span>•</span>
+                  <span>{{ session.staffName }}</span>
+                </div>
+              </div>
+
+              <div class="text-right shrink-0">
+                <span class="font-black text-slate-900 dark:text-white text-sm">
+                  ₺{{ session.totalAmount | number: '1.2-2' }}
+                </span>
+              </div>
+            </div>
+          } @empty {
+            <div class="py-10 text-center text-xs text-slate-400">
+              <mat-icon class="icon-size-8 text-slate-300 dark:text-slate-600 mb-2" [svgIcon]="'heroicons_outline:shopping-bag'"></mat-icon>
+              <p class="m-0 font-medium">Bugün henüz tamamlanan seans satışı kaydedilmedi.</p>
+              <a routerLink="/seanslar/yeni" class="text-indigo-600 dark:text-indigo-400 font-bold mt-2 inline-block">
+                + İlk Satışı Tamamla
+              </a>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Widget: Quick Access Management Links -->
+      <div class="odv-panel p-6 space-y-4">
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white m-0 pb-2 border-b border-slate-100 dark:border-slate-800">
+          Hızlı Kısayollar
+        </h3>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <a
+            routerLink="/finans/kasa"
+            class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-900 transition-all flex items-center gap-2.5 no-underline group"
+          >
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:banknotes'"></mat-icon>
+            </div>
+            <div>
+              <div class="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Günlük Kasa</div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400">Gelir & Gider</div>
+            </div>
+          </a>
+
+          <a
+            routerLink="/paketler"
+            class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-900 transition-all flex items-center gap-2.5 no-underline group"
+          >
+            <div class="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+              <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:cube'"></mat-icon>
+            </div>
+            <div>
+              <div class="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Paketler</div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400">Satış & Hak Takibi</div>
+            </div>
+          </a>
+
+          <a
+            routerLink="/katalog/hizmetler"
+            class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-900 transition-all flex items-center gap-2.5 no-underline group"
+          >
+            <div class="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+              <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:sparkles'"></mat-icon>
+            </div>
+            <div>
+              <div class="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Hizmet Kataloğu</div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400">Fiyat & Süreler</div>
+            </div>
+          </a>
+
+          <a
+            routerLink="/finans/primler"
+            class="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-900 transition-all flex items-center gap-2.5 no-underline group"
+          >
+            <div class="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:percent-badge'"></mat-icon>
+            </div>
+            <div>
+              <div class="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Prim Yönetimi</div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400">Hak Edişler</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

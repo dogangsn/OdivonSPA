@@ -1,7 +1,7 @@
 <div class="flex h-screen bg-slate-50 dark:bg-[#0b1120] overflow-hidden">
   <!-- Mobile backdrop -->
   @if (sidebarOpen()) {
-    <div class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden" (click)="closeSidebar()"></div>
+    <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden" (click)="closeSidebar()"></div>
   }
 
   <!-- Sidebar -->
@@ -10,28 +10,27 @@
     [class.translate-x-0]="sidebarOpen()"
   >
     <div class="h-[70px] flex items-center gap-3 px-4 shrink-0">
-      <app-logo [size]="42" class="rounded-2xl shadow-lg shadow-violet-500/25 shrink-0"></app-logo>
+      <app-logo [size]="40" class="rounded-2xl shadow-lg shadow-violet-500/25 shrink-0"></app-logo>
       <div class="min-w-0">
-        <div class="text-lg font-black text-white tracking-tight">
+        <div class="text-lg font-black text-white tracking-tight flex items-center gap-1">
           Odivon<span class="text-sky-400">SPA</span>
         </div>
         <div class="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
-          İşletme Yönetimi
+          Spa & Güzellik Yönetimi
         </div>
       </div>
       <button
         type="button"
         (click)="toggleSidebar()"
         aria-label="Menüyü kapat"
-        class="ml-auto flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-white/5 hover:text-white lg:hidden"
+        class="ml-auto flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-white/5 hover:text-white lg:hidden cursor-pointer"
       >
         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
       </button>
     </div>
 
-    <div
-      class="mx-3 mb-3 flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.045] p-3"
-    >
+    <!-- User Profile Card in Sidebar -->
+    <div class="mx-3 mb-3 flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.045] p-3">
       <div
         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-black text-white shadow-lg shadow-indigo-950/40"
       >
@@ -39,14 +38,16 @@
       </div>
       <div class="min-w-0 flex-1">
         <div class="truncate text-xs font-bold text-white">{{ userName() }}</div>
-        <div class="truncate text-[10px] font-medium text-slate-500">{{ userEmail() }}</div>
+        <div class="truncate text-[10px] font-medium text-slate-400">{{ userEmail() }}</div>
       </div>
       <span
-        class="rounded-lg border border-indigo-400/25 bg-indigo-500/10 px-2 py-1 text-[9px] font-bold text-indigo-300"
-        >{{ userRoleLabel() }}</span
+        class="rounded-lg border border-indigo-400/25 bg-indigo-500/10 px-2 py-1 text-[9px] font-bold text-indigo-300 shrink-0"
       >
+        {{ userRoleLabel() }}
+      </span>
     </div>
 
+    <!-- Navigation Menu -->
     <nav class="flex-1 overflow-y-auto custom-scroll px-3 py-2 space-y-4">
       @for (group of visibleGroups(); track group.title) {
         <div>
@@ -54,10 +55,7 @@
             class="mb-1.5 flex items-center justify-between px-2.5 text-[10px] font-bold uppercase tracking-[0.13em] text-slate-500"
           >
             <span>{{ group.title }}</span>
-            <mat-icon
-              class="icon-size-3.5 text-slate-600"
-              [svgIcon]="'heroicons_outline:chevron-down'"
-            ></mat-icon>
+            <mat-icon class="icon-size-3.5 text-slate-600" [svgIcon]="'heroicons_outline:chevron-down'"></mat-icon>
           </div>
           <div class="space-y-0.5">
             @for (item of group.items; track item.route) {
@@ -66,7 +64,7 @@
                 routerLinkActive="nav-item-active"
                 #rla="routerLinkActive"
                 (click)="closeSidebar()"
-                class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all"
+                class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
               >
                 <mat-icon class="icon-size-5" [svgIcon]="item.icon"></mat-icon>
                 <span>{{ item.label }}</span>
@@ -77,139 +75,273 @@
       }
     </nav>
 
+    <!-- Sidebar Footer -->
     <div class="mt-auto border-t border-white/[0.07] px-3 py-3">
-      <div
-        class="mb-2 flex items-center justify-between px-2 text-[10px] font-semibold text-slate-400"
-      >
-        <span class="inline-flex items-center gap-2"
-          ><span
-            class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,.75)]"
-          ></span
-          >Sistem Çevrimiçi</span
-        >
-        <span>v2.0</span>
+      <div class="mb-2 flex items-center justify-between px-2 text-[10px] font-semibold text-slate-400">
+        <span class="inline-flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,.75)]"></span>
+          Bulut Sistemi Aktif
+        </span>
+        <span class="text-slate-500">v2.1</span>
       </div>
       <button
         type="button"
         (click)="$event.stopPropagation(); logout()"
         aria-label="Oturumu kapat"
         [disabled]="loggingOut()"
-        [attr.aria-busy]="loggingOut()"
-        class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-rose-300 disabled:cursor-wait disabled:opacity-60"
+        class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-rose-300 disabled:cursor-wait disabled:opacity-60 cursor-pointer"
       >
-        <mat-icon
-          class="icon-size-4.5"
-          [svgIcon]="'heroicons_outline:arrow-right-start-on-rectangle'"
-        ></mat-icon>
+        <mat-icon class="icon-size-4.5" [svgIcon]="'heroicons_outline:arrow-right-start-on-rectangle'"></mat-icon>
         <span>{{ loggingOut() ? 'Çıkış yapılıyor...' : 'Oturumu kapat' }}</span>
       </button>
     </div>
   </aside>
 
-  <!-- Main column -->
+  <!-- Main Content Column -->
   <div class="flex-1 flex flex-col min-w-0">
     <!-- Topbar -->
     <header
       class="shell-topbar h-16 shrink-0 flex items-center gap-3 px-4 sm:px-6 border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90"
     >
+      <!-- Mobile sidebar toggle -->
       <button
         type="button"
         (click)="toggleSidebar()"
         aria-label="Menüyü aç"
-        class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center cursor-pointer"
+        class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center cursor-pointer lg:hidden"
       >
         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:bars-3'"></mat-icon>
       </button>
 
-      <div class="relative flex-1 max-w-xl">
+      <!-- Interactive Omnisearch -->
+      <div class="relative flex-1 max-w-md">
         <mat-icon
           class="odv-search-icon icon-size-4.5"
           [svgIcon]="'heroicons_solid:magnifying-glass'"
         ></mat-icon>
-        <input type="text" placeholder="Sayfa veya işlem ara..." class="odv-search" />
+        <input
+          type="text"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          (focus)="onSearchFocus()"
+          (blur)="onSearchBlur()"
+          (keydown.enter)="searchResults().length && navigateToRoute(searchResults()[0].route)"
+          placeholder="Sayfa veya işlem ara (örn. Randevu, POS, Müşteri)..."
+          class="odv-search"
+        />
+        @if (searchQuery()) {
+          <button
+            type="button"
+            (click)="searchQuery.set('')"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer flex items-center justify-center p-0.5"
+          >
+            <mat-icon class="icon-size-3.5" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+          </button>
+        }
+
+        <!-- Omnisearch Dropdown Results -->
+        @if (searchFocused() && searchResults().length > 0) {
+          <div
+            class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 p-2 space-y-1 animate-in fade-in duration-150"
+          >
+            <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Arama Sonuçları
+            </div>
+            @for (res of searchResults(); track res.route) {
+              <div
+                (mousedown)="navigateToRoute(res.route)"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-950/60 cursor-pointer transition-colors group"
+              >
+                <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                  <mat-icon class="icon-size-4" [svgIcon]="res.icon"></mat-icon>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                    {{ res.label }}
+                  </div>
+                  <div class="text-[10px] text-slate-400">
+                    {{ res.group }}
+                  </div>
+                </div>
+                <mat-icon class="icon-size-3.5 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" [svgIcon]="'heroicons_outline:chevron-right'"></mat-icon>
+              </div>
+            }
+          </div>
+        }
       </div>
 
       <div class="flex-1"></div>
 
+      <!-- Topbar Action Pills & Menus -->
       <div class="flex shrink-0 items-center gap-2">
-        <button
-          type="button"
-          class="topbar-pill topbar-pill-primary hidden 2xl:flex"
-          aria-label="Odivon QR"
-        >
-          <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:qr-code'"></mat-icon>
-          <span>Odivon QR</span>
-        </button>
-
-        <button
-          type="button"
-          class="topbar-pill topbar-pill-soft hidden xl:flex"
-          aria-label="Paket bilgisi"
-        >
-          <span
-            class="flex h-6 w-6 items-center justify-center rounded-full bg-white text-indigo-600 shadow-sm dark:bg-slate-900"
-          >
-            <mat-icon class="icon-size-3.5" [svgIcon]="'heroicons_solid:star'"></mat-icon>
-          </span>
-          <span>Profesyonel</span>
-          <span class="rounded-full bg-amber-400 px-1.5 py-0.5 text-[8px] font-black text-white"
-            >PRO</span
-          >
-          <mat-icon
-            class="icon-size-3.5 text-indigo-400"
-            [svgIcon]="'heroicons_outline:chevron-down'"
-          ></mat-icon>
-        </button>
-
-        <button
-          type="button"
-          class="topbar-pill topbar-pill-ai hidden xl:flex"
-          aria-label="AI Asistan"
-        >
-          <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:sparkles'"></mat-icon>
-          <span>Asistan (AI)</span>
-        </button>
-
+        <!-- Live Online Pill -->
         <div class="topbar-pill topbar-pill-online hidden lg:flex">
-          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
           <span>Çevrimiçi</span>
         </div>
 
-        <button type="button" aria-label="Dil seçimi" class="topbar-icon-button hidden md:flex">
-          <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:globe-alt'"></mat-icon>
+        <!-- SaaS Plan Pill -->
+        <div class="topbar-pill topbar-pill-soft hidden xl:flex">
+          <span class="flex h-5 w-5 items-center justify-center rounded-full bg-white dark:bg-slate-900 text-indigo-600 shadow-xs">
+            <mat-icon class="icon-size-3" [svgIcon]="'heroicons_solid:star'"></mat-icon>
+          </span>
+          <span>Kurumsal</span>
+          <span class="rounded-full bg-indigo-600 px-1.5 py-0.2 text-[8px] font-black text-white">PRO</span>
+        </div>
+
+        <!-- Theme Toggle Button (Light / Dark) -->
+        <button
+          type="button"
+          (click)="theme.toggle()"
+          [matTooltip]="theme.isDark() ? 'Açık Moda Geç' : 'Koyu Moda Geç'"
+          matTooltipPosition="below"
+          aria-label="Tema değiştir"
+          class="topbar-icon-button cursor-pointer transition-transform active:scale-90"
+        >
+          @if (theme.isDark()) {
+            <mat-icon class="icon-size-5 text-amber-400" [svgIcon]="'heroicons_outline:sun'"></mat-icon>
+          } @else {
+            <mat-icon class="icon-size-5 text-indigo-600" [svgIcon]="'heroicons_outline:moon'"></mat-icon>
+          }
         </button>
 
-        <button type="button" aria-label="Bildirimler" class="topbar-icon-button relative">
+        <!-- Notification Bell & Dropdown -->
+        <button
+          type="button"
+          [matMenuTriggerFor]="notifMenu"
+          aria-label="Bildirimler"
+          [matTooltip]="'Bildirimler'"
+          matTooltipPosition="below"
+          class="topbar-icon-button relative cursor-pointer"
+        >
           <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:bell'"></mat-icon>
-          <span
-            class="absolute right-1.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-white bg-rose-400 px-0.5 text-[8px] font-black text-white dark:border-slate-900"
-            >3</span
-          >
+          @if (unreadCount() > 0) {
+            <span
+              class="absolute right-1.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-white dark:border-slate-900 bg-rose-500 px-0.5 text-[8px] font-black text-white animate-pulse"
+            >
+              {{ unreadCount() }}
+            </span>
+          }
         </button>
 
-        <button type="button" aria-label="Profil menüsü" class="profile-pill">
+        <mat-menu #notifMenu="matMenu" xPosition="before" class="!max-w-[340px] !w-[340px]">
+          <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Bildirimler</span>
+              @if (unreadCount() > 0) {
+                <span class="px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-[10px] font-bold">
+                  {{ unreadCount() }} yeni
+                </span>
+              }
+            </div>
+            @if (unreadCount() > 0) {
+              <button
+                type="button"
+                (click)="$event.stopPropagation(); markAllNotificationsAsRead()"
+                class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+              >
+                Tümünü Okundu Say
+              </button>
+            }
+          </div>
+
+          <div class="max-h-[300px] overflow-y-auto custom-scroll divide-y divide-slate-100 dark:divide-slate-800">
+            @for (item of notifications(); track item.id) {
+              <div
+                (click)="markNotificationAsRead(item.id)"
+                class="px-4 py-3 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                [class.bg-indigo-50/30]="!item.read"
+              >
+                <div
+                  class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                  [class]="
+                    item.type === 'success'
+                      ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
+                      : item.type === 'warning'
+                        ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400'
+                        : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
+                  "
+                >
+                  <mat-icon class="icon-size-4" [svgIcon]="item.type === 'success' ? 'heroicons_outline:check' : 'heroicons_outline:bell'"></mat-icon>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-1 mb-0.5">
+                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate m-0">
+                      {{ item.title }}
+                    </p>
+                    <span class="text-[10px] text-slate-400 shrink-0">{{ item.time }}</span>
+                  </div>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 m-0 line-clamp-2 leading-relaxed">
+                    {{ item.message }}
+                  </p>
+                </div>
+              </div>
+            }
+          </div>
+        </mat-menu>
+
+        <!-- User Profile Menu -->
+        <button
+          type="button"
+          [matMenuTriggerFor]="profileMenu"
+          aria-label="Profil menüsü"
+          class="profile-pill cursor-pointer"
+        >
           <span
             class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-[10px] font-black text-white shadow-md shadow-indigo-500/20"
-            >{{ userInitials() }}</span
           >
-          <span class="hidden min-w-0 text-left sm:block">
-            <span
-              class="block max-w-28 truncate text-[11px] font-bold text-slate-900 dark:text-white"
-              >{{ userName() }}</span
-            >
-            <span class="block text-[9px] font-bold uppercase tracking-wider text-indigo-500">{{
-              userRoleLabel()
-            }}</span>
+            {{ userInitials() }}
           </span>
-          <mat-icon
-            class="icon-size-4 hidden text-slate-400 sm:block"
-            [svgIcon]="'heroicons_outline:chevron-down'"
-          ></mat-icon>
+          <span class="hidden min-w-0 text-left sm:block">
+            <span class="block max-w-28 truncate text-[11px] font-bold text-slate-900 dark:text-white">
+              {{ userName() }}
+            </span>
+            <span class="block text-[9px] font-bold uppercase tracking-wider text-indigo-500">
+              {{ userRoleLabel() }}
+            </span>
+          </span>
+          <mat-icon class="icon-size-4 hidden text-slate-400 sm:block" [svgIcon]="'heroicons_outline:chevron-down'"></mat-icon>
         </button>
+
+        <mat-menu #profileMenu="matMenu" xPosition="before" class="!min-w-[240px]">
+          <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+            <div class="font-bold text-xs text-slate-900 dark:text-white truncate">
+              {{ userName() }}
+            </div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+              {{ userEmail() }}
+            </div>
+            <div class="mt-2">
+              <span class="inline-block px-2 py-0.5 rounded-lg text-[9px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/40 uppercase">
+                {{ userRoleLabel() }}
+              </span>
+            </div>
+          </div>
+
+          <button mat-menu-item routerLink="/yonetim/ayarlar">
+            <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:cog-6-tooth'"></mat-icon>
+            <span>İşletme Ayarları</span>
+          </button>
+          <button mat-menu-item routerLink="/yonetim/kullanicilar">
+            <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:shield-check'"></mat-icon>
+            <span>Kullanıcılar & Roller</span>
+          </button>
+          <button mat-menu-item routerLink="/yonetim/denetim">
+            <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:document-magnifying-glass'"></mat-icon>
+            <span>Denetim Kayıtları</span>
+          </button>
+
+          <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+
+          <button mat-menu-item (click)="logout()" class="!text-rose-600 dark:!text-rose-400 hover:!bg-rose-50 dark:hover:!bg-rose-950/50">
+            <mat-icon class="icon-size-4 text-rose-500" [svgIcon]="'heroicons_outline:arrow-right-start-on-rectangle'"></mat-icon>
+            <span>Oturumu Kapat</span>
+          </button>
+        </mat-menu>
       </div>
     </header>
 
-    <!-- Page content -->
+    <!-- Page Content Router Outlet -->
     <main class="shell-content flex-1 overflow-y-auto custom-scroll p-4 sm:p-6 lg:p-8">
       <router-outlet></router-outlet>
     </main>

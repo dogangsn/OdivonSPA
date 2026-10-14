@@ -49,11 +49,17 @@
   .odv-panel {
     @apply bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm;
   }
+  .odv-card {
+    @apply bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all hover:shadow-md;
+  }
   .odv-toolbar {
     @apply flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs;
   }
   .odv-kpi-grid {
     @apply grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5;
+  }
+  .kpi-card {
+    @apply p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all hover:shadow-md;
   }
 
   /* Form controls */
@@ -80,6 +86,9 @@
   .odv-btn-secondary {
     @apply px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer;
   }
+  .odv-btn-ghost {
+    @apply px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer transition-all;
+  }
   .odv-btn-soft {
     @apply px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer;
   }
@@ -89,6 +98,9 @@
   .odv-icon-btn-danger {
     @apply inline-flex w-8 h-8 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/60 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 items-center justify-center transition-colors cursor-pointer shrink-0;
   }
+  .odv-badge {
+    @apply px-2.5 py-1 rounded-lg text-xs font-semibold border inline-block;
+  }
 
   /* Tables */
   .odv-table {
@@ -97,11 +109,37 @@
   .odv-thead-row {
     @apply border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400;
   }
+  .odv-th {
+    @apply py-3.5 px-6 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400;
+  }
+  .odv-td {
+    @apply py-3.5 px-6 text-xs sm:text-sm;
+  }
   .odv-tbody {
     @apply divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm;
   }
   .odv-tr {
     @apply hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors;
+  }
+
+  /* Semantic Badges */
+  .badge-emerald {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/40;
+  }
+  .badge-amber {
+    @apply bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/40;
+  }
+  .badge-rose {
+    @apply bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800/40;
+  }
+  .badge-sky {
+    @apply bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800/40;
+  }
+  .badge-purple {
+    @apply bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800/40;
+  }
+  .badge-slate {
+    @apply bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700;
   }
 }
 
@@ -193,24 +231,189 @@ body {
   }
 }
 
-/* SweetAlert2 restyle to match design tokens */
-.swal2-popup.odivon-swal {
-  border-radius: 1rem;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+/* ==========================================================================
+   SweetAlert2 - Odivon SaaS Theme
+   ========================================================================== */
+
+// Prevent SweetAlert2 from collapsing body/html height and breaking 100vh SPA layout
+html.swal2-shown,
+html.swal2-height-auto,
+body.swal2-shown,
+body.swal2-height-auto {
+  height: 100% !important;
+  min-height: 100% !important;
 }
 
-.swal2-popup.odivon-toast {
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 0.875rem;
-  box-shadow: 0 18px 40px -18px rgba(15, 23, 42, 0.35);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+// Toast specific: ensure body and html keep full layout without any backdrop interference
+body.swal2-toast-shown {
+  div.swal2-container {
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    pointer-events: none !important;
+  }
 }
 
-.dark .swal2-popup.odivon-toast {
-  border-color: rgba(51, 65, 85, 0.9);
-  background: #1e293b;
-  color: #f8fafc;
+div.swal2-container {
+  z-index: 10000 !important;
+
+  // Backdrop with glassmorphic blur (ONLY for modal dialogs, NEVER for toasts)
+  &.swal2-backdrop-show:not(.swal2-top):not(.swal2-top-end):not(.swal2-top-start):not(.swal2-bottom):not(.swal2-bottom-end):not(.swal2-bottom-start) {
+    background: rgba(15, 23, 42, 0.5) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  // Toast Container Override: Never show background, blur, or block the screen
+  &:has(.swal2-toast),
+  &.swal2-top,
+  &.swal2-top-end,
+  &.swal2-top-start,
+  &.swal2-bottom,
+  &.swal2-bottom-end,
+  &.swal2-bottom-start {
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    pointer-events: none !important;
+  }
+
+  .swal2-toast {
+    pointer-events: auto !important;
+    background: var(--odivon-bg-card) !important;
+    color: var(--odivon-text-default) !important;
+    border: 1px solid var(--odivon-border) !important;
+    border-radius: 0.875rem !important;
+    box-shadow: 0 18px 40px -18px rgba(15, 23, 42, 0.35) !important;
+    font-family: inherit !important;
+  }
+
+  // Popup Modal
+  .swal2-popup {
+    background: var(--odivon-bg-card) !important;
+    color: var(--odivon-text-default) !important;
+    border: 1px solid var(--odivon-border) !important;
+    border-radius: 1.5rem !important;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35) !important;
+    padding: 1.75rem !important;
+    font-family: inherit !important;
+
+    // Title
+    .swal2-title {
+      font-size: 1.25rem !important;
+      font-weight: 800 !important;
+      color: var(--odivon-text-default) !important;
+      letter-spacing: -0.02em !important;
+      padding: 0.5rem 1rem 0 !important;
+    }
+
+    // HTML / Text content
+    .swal2-html-container {
+      font-size: 0.875rem !important;
+      line-height: 1.5 !important;
+      color: var(--odivon-text-secondary) !important;
+      margin: 0.75rem 1rem 1.25rem !important;
+    }
+
+    // Actions container
+    .swal2-actions {
+      margin-top: 1.25rem !important;
+      gap: 0.75rem !important;
+      width: 100% !important;
+      justify-content: flex-end !important;
+      padding: 0 0.5rem !important;
+
+      button {
+        font-family: inherit !important;
+        font-size: 0.8125rem !important;
+        font-weight: 700 !important;
+        padding: 0.625rem 1.25rem !important;
+        border-radius: 0.75rem !important;
+        margin: 0 !important;
+        cursor: pointer !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+
+        &:focus {
+          box-shadow: none !important;
+        }
+      }
+
+      // Default Confirm button (Odivon Gradient)
+      .swal2-confirm {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25) !important;
+
+        &:hover {
+          transform: translateY(-1px) !important;
+          box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35) !important;
+        }
+      }
+
+      // Cancel button
+      .swal2-cancel {
+        background: transparent !important;
+        color: var(--odivon-text-secondary) !important;
+        border: 1px solid var(--odivon-border) !important;
+
+        &:hover {
+          background: var(--odivon-bg-hover) !important;
+          color: var(--odivon-text-default) !important;
+        }
+      }
+    }
+  }
 }
+
+/* Angular Material Menu & Tooltip Design Tokens */
+.mat-mdc-menu-panel {
+  border-radius: 1rem !important;
+  background-color: var(--odivon-bg-card) !important;
+  border: 1px solid var(--odivon-border) !important;
+  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.25) !important;
+  backdrop-filter: blur(16px) !important;
+  padding: 6px !important;
+
+  .mat-mdc-menu-item {
+    border-radius: 0.75rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    color: var(--odivon-text-default) !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    transition: all 0.15s ease !important;
+
+    &:hover {
+      background-color: var(--odivon-bg-hover) !important;
+      color: var(--odivon-primary) !important;
+    }
+
+    mat-icon {
+      color: inherit !important;
+      margin-right: 8px !important;
+    }
+  }
+}
+
+.mat-mdc-tooltip .mdc-tooltip__surface {
+  font-family: inherit !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  border-radius: 0.5rem !important;
+  padding: 4px 8px !important;
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .mat-mdc-tooltip .mdc-tooltip__surface {
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+}
+
 
 /* Receipt printing: only `.receipt-print` is visible, on an 80mm page. */
 @media print {
