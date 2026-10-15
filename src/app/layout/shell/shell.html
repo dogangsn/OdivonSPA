@@ -6,8 +6,9 @@
 
   <!-- Sidebar -->
   <aside
-    class="shell-sidebar fixed lg:static inset-y-0 left-0 z-50 w-[272px] flex flex-col transition-transform duration-200 -translate-x-full lg:translate-x-0"
+    class="shell-sidebar fixed lg:static inset-y-0 left-0 z-50 w-[272px] shrink-0 flex flex-col transition-all duration-200 -translate-x-full lg:translate-x-0"
     [class.translate-x-0]="sidebarOpen()"
+    [class.lg:-ml-\[272px\]]="!desktopSidebarVisible()"
   >
     <div class="h-[70px] flex items-center gap-3 px-4 shrink-0">
       <app-logo [size]="40" class="rounded-2xl shadow-lg shadow-violet-500/25 shrink-0"></app-logo>
@@ -23,7 +24,8 @@
         type="button"
         (click)="toggleSidebar()"
         aria-label="Menüyü kapat"
-        class="ml-auto flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-white/5 hover:text-white lg:hidden cursor-pointer"
+        [matTooltip]="'Menüyü gizle'"
+        class="ml-auto flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-white/5 hover:text-white cursor-pointer"
       >
         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
       </button>
@@ -48,29 +50,52 @@
     </div>
 
     <!-- Navigation Menu -->
-    <nav class="flex-1 overflow-y-auto custom-scroll px-3 py-2 space-y-4">
+    <nav class="flex-1 overflow-y-auto custom-scroll px-3 py-2 space-y-3">
+      <div class="px-2.5 pb-0.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
+        <span>Bölümler</span>
+        <button
+          type="button"
+          (click)="allGroupsExpanded() ? collapseAllGroups() : expandAllGroups()"
+          class="text-[10px] lowercase font-semibold text-slate-400 hover:text-indigo-400 transition-colors cursor-pointer bg-transparent border-none p-0 flex items-center gap-1"
+          [matTooltip]="allGroupsExpanded() ? 'Tüm bölümleri daralt' : 'Tüm bölümleri genişlet'"
+        >
+          <mat-icon class="icon-size-3" [svgIcon]="allGroupsExpanded() ? 'heroicons_outline:arrows-pointing-in' : 'heroicons_outline:arrows-pointing-out'"></mat-icon>
+          <span>{{ allGroupsExpanded() ? 'tümünü daralt' : 'tümünü aç' }}</span>
+        </button>
+      </div>
+
       @for (group of visibleGroups(); track group.title) {
         <div>
-          <div
-            class="mb-1.5 flex items-center justify-between px-2.5 text-[10px] font-bold uppercase tracking-[0.13em] text-slate-500"
+          <button
+            type="button"
+            (click)="toggleGroup(group.title)"
+            [attr.aria-expanded]="isGroupExpanded(group.title)"
+            [attr.aria-controls]="'group-' + group.title"
+            class="w-full mb-1 flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.13em] text-slate-400 hover:text-slate-200 hover:bg-white/[0.05] transition-all cursor-pointer group select-none text-left"
           >
-            <span>{{ group.title }}</span>
-            <mat-icon class="icon-size-3.5 text-slate-600" [svgIcon]="'heroicons_outline:chevron-down'"></mat-icon>
-          </div>
-          <div class="space-y-0.5">
-            @for (item of group.items; track item.route) {
-              <a
-                [routerLink]="item.route"
-                routerLinkActive="nav-item-active"
-                #rla="routerLinkActive"
-                (click)="closeSidebar()"
-                class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
-              >
-                <mat-icon class="icon-size-5" [svgIcon]="item.icon"></mat-icon>
-                <span>{{ item.label }}</span>
-              </a>
-            }
-          </div>
+            <span class="group-hover:translate-x-0.5 transition-transform duration-150">{{ group.title }}</span>
+            <mat-icon
+              class="icon-size-3.5 text-slate-500 group-hover:text-slate-300 transition-transform duration-200"
+              [class.-rotate-90]="!isGroupExpanded(group.title)"
+              [svgIcon]="'heroicons_outline:chevron-down'"
+            ></mat-icon>
+          </button>
+          @if (isGroupExpanded(group.title)) {
+            <div [id]="'group-' + group.title" class="space-y-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
+              @for (item of group.items; track item.route) {
+                <a
+                  [routerLink]="item.route"
+                  routerLinkActive="nav-item-active"
+                  #rla="routerLinkActive"
+                  (click)="closeSidebar()"
+                  class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                >
+                  <mat-icon class="icon-size-5" [svgIcon]="item.icon"></mat-icon>
+                  <span>{{ item.label }}</span>
+                </a>
+              }
+            </div>
+          }
         </div>
       }
     </nav>
@@ -112,12 +137,14 @@
     <header
       class="shell-topbar h-16 shrink-0 flex items-center gap-3 px-4 sm:px-6 border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90"
     >
-      <!-- Mobile sidebar toggle -->
+      <!-- Sidebar toggle button (Mobile & Desktop) -->
       <button
         type="button"
         (click)="toggleSidebar()"
-        aria-label="Menüyü aç"
-        class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center cursor-pointer lg:hidden"
+        aria-label="Menüyü aç/kapat"
+        [matTooltip]="desktopSidebarVisible() ? 'Menüyü gizle' : 'Menüyü göster'"
+        matTooltipPosition="below"
+        class="w-10 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
       >
         <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:bars-3'"></mat-icon>
       </button>

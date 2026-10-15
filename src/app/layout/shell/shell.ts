@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -37,12 +39,18 @@ export interface AppNotification {
   styleUrl: './shell.scss',
 })
 export class Shell {
+  private readonly STORAGE_KEY_COLLAPSED = 'odivon_collapsed_menu_groups';
+  private readonly STORAGE_KEY_SIDEBAR = 'odivon_desktop_sidebar_visible';
+
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   readonly theme = inject(ThemeService);
   readonly version = inject(VersionService);
 
   readonly sidebarOpen = signal(false);
+  readonly desktopSidebarVisible = signal<boolean>(this.loadDesktopSidebarState());
+  readonly collapsedGroups = signal<string[]>(this.loadCollapsedGroups());
+
   readonly loggingOut = signal(false);
   readonly roleLabels = STAFF_ROLE_LABELS;
 
@@ -124,12 +132,124 @@ export class Shell {
     return role ? this.roleLabels[role] : 'Personel';
   });
 
+  readonly allGroupsExpanded = computed(() => this.collapsedGroups().length === 0);
+
+  constructor() {
+    this.router.events
+      .pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe((e) => {
+        this.expandGroupForRoute(e.urlAfterRedirects || e.url);
+      });
+
+    // Expand the active group on initial load
+    this.expandGroupForRoute(this.router.url);
+  }
+
+  private getStorage(): Storage | null {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage;
+      }
+      if (typeof localStorage !== 'undefined' && localStorage) {
+        return localStorage;
+      }
+    } catch {}
+    return null;
+  }
+
+  private loadCollapsedGroups(): string[] {
+    try {
+      const storage = this.getStorage();
+      if (!storage) return [];
+      const stored = storage.getItem(this.STORAGE_KEY_COLLAPSED);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private loadDesktopSidebarState(): boolean {
+    try {
+      const storage = this.getStorage();
+      if (!storage) return true;
+      const stored = storage.getItem(this.STORAGE_KEY_SIDEBAR);
+      return stored !== null ? JSON.parse(stored) : true;
+    } catch {
+      return true;
+    }
+  }
+
+  private saveCollapsedGroups(groups: string[]): void {
+    try {
+      this.getStorage()?.setItem(this.STORAGE_KEY_COLLAPSED, JSON.stringify(groups));
+    } catch {}
+  }
+
+  isGroupExpanded(title: string): boolean {
+    return !this.collapsedGroups().includes(title);
+  }
+
+  toggleGroup(title: string): void {
+    this.collapsedGroups.update((collapsed) => {
+      const next = collapsed.includes(title)
+        ? collapsed.filter((t) => t !== title)
+        : [...collapsed, title];
+      this.saveCollapsedGroups(next);
+      return next;
+    });
+  }
+
+  collapseAllGroups(): void {
+    const allTitles = this.visibleGroups().map((g) => g.title);
+    this.collapsedGroups.set(allTitles);
+    this.saveCollapsedGroups(allTitles);
+  }
+
+  expandAllGroups(): void {
+    this.collapsedGroups.set([]);
+    this.saveCollapsedGroups([]);
+  }
+
+  private isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth < 1024;
+  }
+
   toggleSidebar(): void {
-    this.sidebarOpen.set(!this.sidebarOpen());
+    if (this.isMobile()) {
+      this.sidebarOpen.set(!this.sidebarOpen());
+    } else {
+      this.desktopSidebarVisible.update((visible) => {
+        const next = !visible;
+        try {
+          this.getStorage()?.setItem(this.STORAGE_KEY_SIDEBAR, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    }
   }
 
   closeSidebar(): void {
     this.sidebarOpen.set(false);
+  }
+
+  private expandGroupForRoute(url: string): void {
+    if (!url) return;
+    const cleanUrl = url.split('?')[0].split('#')[0];
+    for (const group of NAV_GROUPS) {
+      if (group.items.some((item) => cleanUrl.startsWith(item.route))) {
+        if (this.collapsedGroups().includes(group.title)) {
+          this.collapsedGroups.update((collapsed) => {
+            const next = collapsed.filter((t) => t !== group.title);
+            this.saveCollapsedGroups(next);
+            return next;
+          });
+        }
+        break;
+      }
+    }
   }
 
   onSearchFocus(): void {
