@@ -139,49 +139,95 @@
 
 <app-slide-over-drawer
   [open]="drawerOpen()"
-  title="Yeni Ödeme"
-  widthClass="max-w-md"
+  title="Yeni Ödeme Tahsilatı"
+  subtitle="Nakit, kredi kartı veya havale ile kasa tahsilat kaydı oluşturun."
+  [icon]="'heroicons_outline:banknotes'"
+  badge="KASA / TAHSİLAT"
+  widthClass="max-w-xl"
   (closed)="closeDrawer()"
 >
-  <div>
-    <label class="odv-label">Müşteri</label>
-    <select [(ngModel)]="form.customerId" name="customerId" class="odv-input">
-      <option value="">Bağımsız (müşterisiz)</option>
-      @for (c of customers(); track c.id) {
-        <option [value]="c.id">{{ c.ad }}</option>
-      }
-    </select>
-  </div>
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="odv-label">Yöntem</label>
-      <select [(ngModel)]="form.method" name="method" class="odv-input">
-        @for (m of paymentMethods; track m) {
-          <option [value]="m">{{ paymentMethodLabels[m] }}</option>
-        }
-      </select>
+  <div class="space-y-4">
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:user'"></mat-icon>
+        <span>Müşteri Bilgisi</span>
+      </div>
+
+      <div class="space-y-3.5">
+        <div>
+          <label class="odv-label">İlgili Müşteri</label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
+            <select [(ngModel)]="form.customerId" name="customerId" class="odv-input odv-input-with-icon font-medium">
+              <option value="">Bağımsız (Müşteri Kayıtsız Tahsilat)</option>
+              @for (c of customers(); track c.id) {
+                <option [value]="c.id">{{ c.ad }} ({{ c.telefon || 'Numarasız' }})</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
     </div>
-    <div>
-      <label class="odv-label">Tutar (₺)</label>
-      <input
-        type="number"
-        min="0"
-        step="0.01"
-        [(ngModel)]="form.amount"
-        name="amount"
-        class="odv-input"
-      />
+
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:currency-dollar'"></mat-icon>
+        <span>Tutar & Ödeme Yöntemi</span>
+      </div>
+
+      <div class="space-y-3.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="odv-label">Ödeme Yöntemi <span class="text-rose-500">*</span></label>
+            <div class="odv-input-wrap">
+              <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:credit-card'"></mat-icon>
+              <select [(ngModel)]="form.method" name="method" class="odv-input odv-input-with-icon font-medium">
+                @for (m of paymentMethods; track m) {
+                  <option [value]="m">{{ paymentMethodLabels[m] }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="odv-label">Tahsil Edilen Tutar (₺) <span class="text-rose-500">*</span></label>
+            <div class="odv-input-wrap">
+              <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:currency-dollar'"></mat-icon>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                [(ngModel)]="form.amount"
+                name="amount"
+                placeholder="0.00"
+                class="odv-input odv-input-with-icon font-bold text-slate-900 dark:text-white"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="odv-label">Açıklama / Fiş & Dekont No</label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:chat-bubble-bottom-center-text'"></mat-icon>
+            <input
+              type="text"
+              [(ngModel)]="form.note"
+              name="note"
+              placeholder="Örn: POS slip no: 49201 veya seans peşinatı"
+              class="odv-input odv-input-with-icon"
+            />
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div>
-    <label class="odv-label">Not</label>
-    <input type="text" [(ngModel)]="form.note" name="note" class="odv-input" />
   </div>
 
   <div drawerFooter class="flex items-center justify-end gap-3 w-full">
     <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="save()" [disabled]="saving()" class="odv-btn-primary">
-      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    <button type="button" (click)="save()" [disabled]="saving() || !form.amount || form.amount <= 0" class="odv-btn-primary shadow-sm hover:shadow-indigo-500/20">
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+      <span>{{ saving() ? 'Kaydediliyor...' : 'Ödemeyi Kaydet' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>

@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, HostListener, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 
 /** Generic slide-over drawer shell per `references/slideover-drawer.md`. Body/footer via content projection. */
@@ -13,11 +13,20 @@ export class SlideOverDrawer {
   readonly open = input.required<boolean>();
   readonly title = input.required<string>();
   readonly subtitle = input<string>('');
-  readonly widthClass = input<string>('max-w-lg');
+  readonly icon = input<string>('');
+  readonly badge = input<string>('');
+  readonly widthClass = input<string>('max-w-xl');
 
   readonly closed = output<void>();
 
   onBackdropClick(): void {
     this.closed.emit();
+  }
+
+  @HostListener('window:keydown.escape')
+  onEscape(): void {
+    if (this.open()) {
+      this.closed.emit();
+    }
   }
 }

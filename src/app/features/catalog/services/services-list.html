@@ -132,56 +132,131 @@
 <app-slide-over-drawer
   [open]="drawerOpen()"
   [title]="isEditing() ? 'Hizmeti Düzenle' : 'Yeni Hizmet Ekle'"
+  [subtitle]="isEditing() ? 'Hizmet parametrelerini ve fiyatlandırmayı güncelleyin.' : 'SPA merkeziniz için yeni bir bakım veya seans hizmeti tanımlayın.'"
+  [icon]="'heroicons_outline:sparkles'"
+  [badge]="isEditing() ? 'DÜZENLEME' : 'YENİ HİZMET'"
   (closed)="closeDrawer()"
 >
-  <div>
-    <label class="odv-label">Hizmet Adı <span class="text-rose-500">*</span></label>
-    <input type="text" [(ngModel)]="form.ad" name="ad" class="odv-input" />
-  </div>
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="odv-label">Kategori</label>
-      <input
-        type="text"
-        [(ngModel)]="form.kategori"
-        name="kategori"
-        placeholder="Masaj, Cilt Bakımı..."
-        class="odv-input"
-      />
+  <div class="space-y-4">
+    <!-- Form Card 1: Temel Bilgiler -->
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
+        <span>Temel Tanımlar</span>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Hizmet Adı</span>
+          <span class="text-rose-500 font-bold">*</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:sparkles'"></mat-icon>
+          <input
+            type="text"
+            [(ngModel)]="form.ad"
+            name="ad"
+            placeholder="Örn. Geleneksel Bali Masajı, Cilt Bakımı..."
+            class="odv-input"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div>
+          <label class="odv-label">
+            <span>Kategori</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:tag'"></mat-icon>
+            <input
+              type="text"
+              [(ngModel)]="form.kategori"
+              name="kategori"
+              placeholder="Masaj, Cilt Bakımı..."
+              class="odv-input"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="odv-label">
+            <span>Tür (Prim Eşleşmesi)</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:percent-badge'"></mat-icon>
+            <input
+              type="text"
+              [(ngModel)]="form.tur"
+              name="tur"
+              placeholder="Boş ise kategori kullanılır"
+              class="odv-input"
+            />
+          </div>
+        </div>
+      </div>
     </div>
-    <div>
-      <label class="odv-label">Tür (prim eşleşmesi)</label>
-      <input
-        type="text"
-        [(ngModel)]="form.tur"
-        name="tur"
-        placeholder="Boş ise kategori kullanılır"
-        class="odv-input"
-      />
-    </div>
-  </div>
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="odv-label">Süre (dk)</label>
-      <input type="number" min="1" [(ngModel)]="form.sureDk" name="sureDk" class="odv-input" />
-    </div>
-    <div>
-      <label class="odv-label">Fiyat (₺)</label>
-      <input
-        type="number"
-        min="0"
-        step="0.01"
-        [(ngModel)]="form.fiyat"
-        name="fiyat"
-        class="odv-input"
-      />
+
+    <!-- Form Card 2: Süre & Fiyatlandırma -->
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:banknotes'"></mat-icon>
+        <span>Süre & Fiyatlandırma</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div>
+          <label class="odv-label">
+            <span>Seans Süresi (dk)</span>
+            <span class="text-xs text-indigo-600 dark:text-indigo-400 font-bold">{{ form.sureDk || 0 }} dk</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:clock'"></mat-icon>
+            <input
+              type="number"
+              min="5"
+              step="5"
+              [(ngModel)]="form.sureDk"
+              name="sureDk"
+              placeholder="45"
+              class="odv-input"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="odv-label">
+            <span>Hizmet Ücreti (₺)</span>
+            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">₺{{ form.fiyat || 0 | number: '1.2-2' }}</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:currency-dollar'"></mat-icon>
+            <input
+              type="number"
+              min="0"
+              step="10"
+              [(ngModel)]="form.fiyat"
+              name="fiyat"
+              placeholder="0.00"
+              class="odv-input"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
-    <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="save()" [disabled]="saving()" class="odv-btn-primary">
-      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+  <div drawerFooter class="flex items-center gap-2.5">
+    <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">
+      Vazgeç
+    </button>
+    <button
+      type="button"
+      (click)="save()"
+      [disabled]="saving() || !form.ad.trim()"
+      class="odv-btn-primary min-w-[130px]"
+    >
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:check'"></mat-icon>
+      <span>{{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>

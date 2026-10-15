@@ -155,81 +155,177 @@
 <app-slide-over-drawer
   [open]="drawerOpen()"
   [title]="isEditing() ? 'Müşteriyi Düzenle' : 'Yeni Müşteri Ekle'"
-  subtitle="Bilgileri eksiksiz doldurarak kaydedin."
+  [subtitle]="isEditing() ? 'Müşteri profilini, iletişim ve sağlık notlarını güncelleyin.' : 'Merkeziniz için 360° müşteri kartı oluşturun.'"
+  [icon]="'heroicons_outline:user-plus'"
+  [badge]="isEditing() ? 'DÜZENLEME' : 'YENİ MÜŞTERİ'"
   (closed)="closeDrawer()"
 >
-  <div>
-    <label class="odv-label"> Ad Soyad <span class="text-rose-500">*</span> </label>
-    <input type="text" [(ngModel)]="form.ad" name="ad" class="odv-input" />
-  </div>
-  <div>
-    <label class="odv-label"> Telefon <span class="text-rose-500">*</span> </label>
-    <input
-      type="text"
-      [(ngModel)]="form.telefon"
-      name="telefon"
-      placeholder="0 5XX XXX XX XX"
-      class="odv-input"
-    />
-  </div>
-  <div>
-    <label class="odv-label">E-posta</label>
-    <input type="email" [(ngModel)]="form.email" name="email" class="odv-input" />
-  </div>
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="odv-label">Cinsiyet</label>
-      <select [(ngModel)]="form.cinsiyet" name="cinsiyet" class="odv-input">
-        <option value="belirtilmedi">Belirtilmedi</option>
-        <option value="kadin">Kadın</option>
-        <option value="erkek">Erkek</option>
-      </select>
-    </div>
-    <div>
-      <label class="odv-label">Kaynak</label>
-      <input
-        type="text"
-        [(ngModel)]="form.kaynak"
-        name="kaynak"
-        placeholder="Instagram, Referans..."
-        class="odv-input"
-      />
-    </div>
-  </div>
-  <div>
-    <label class="odv-label">Etiketler</label>
-    <input
-      type="text"
-      [(ngModel)]="form.etiketlerText"
-      name="etiketler"
-      placeholder="VIP, Alerjik (virgülle ayırın)"
-      class="odv-input"
-    />
-  </div>
-  <div>
-    <label class="odv-label">Sağlık Notu</label>
-    <textarea
-      [(ngModel)]="form.saglikNotu"
-      name="saglikNotu"
-      rows="3"
-      class="odv-input custom-scroll"
-    ></textarea>
-  </div>
-  <label class="flex items-center gap-2.5 cursor-pointer">
-    <input
-      type="checkbox"
-      [(ngModel)]="form.kvkkOnay"
-      name="kvkkOnay"
-      class="w-4 h-4 rounded accent-indigo-600"
-    />
-    <span class="text-xs font-semibold text-slate-600 dark:text-slate-300"
-      >KVKK aydınlatma metni onayı alındı</span
-    >
-  </label>
+  <div class="space-y-4">
+    <!-- Card 1: Kişisel & İletişim -->
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
+        <span>Kişisel & İletişim Bilgileri</span>
+      </div>
 
-  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
-    <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="save()" [disabled]="saving()" class="odv-btn-primary">
+      <div>
+        <label class="odv-label">
+          <span>Ad Soyad</span>
+          <span class="text-rose-500 font-bold">*</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:user'"></mat-icon>
+          <input
+            type="text"
+            [(ngModel)]="form.ad"
+            name="ad"
+            placeholder="Örn. Ayşe Yılmaz"
+            class="odv-input"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div>
+          <label class="odv-label">
+            <span>Telefon Numarası</span>
+            <span class="text-rose-500 font-bold">*</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:phone'"></mat-icon>
+            <input
+              type="tel"
+              [(ngModel)]="form.telefon"
+              name="telefon"
+              placeholder="0 5XX XXX XX XX"
+              class="odv-input"
+              required
+            />
+          </div>
+        </div>
+        <div>
+          <label class="odv-label">
+            <span>E-posta Adresi</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:envelope'"></mat-icon>
+            <input
+              type="email"
+              [(ngModel)]="form.email"
+              name="email"
+              placeholder="ornek@alanadi.com"
+              class="odv-input"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Demografi & Kaynak -->
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:adjustments-horizontal'"></mat-icon>
+        <span>Müşteri Profili & Segment</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div>
+          <label class="odv-label">
+            <span>Cinsiyet</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
+            <select [(ngModel)]="form.cinsiyet" name="cinsiyet" class="odv-input cursor-pointer">
+              <option value="belirtilmedi">Belirtilmedi</option>
+              <option value="kadin">Kadın</option>
+              <option value="erkek">Erkek</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="odv-label">
+            <span>Geliş Kaynağı</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:globe-alt'"></mat-icon>
+            <input
+              type="text"
+              [(ngModel)]="form.kaynak"
+              name="kaynak"
+              placeholder="Instagram, Referans, Google..."
+              class="odv-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Etiketler</span>
+          <span class="text-[10px] text-slate-400 font-normal">Virgülle ayırarak girin</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:tag'"></mat-icon>
+          <input
+            type="text"
+            [(ngModel)]="form.etiketlerText"
+            name="etiketler"
+            placeholder="VIP, Alerjik, Hamile, Düzenli..."
+            class="odv-input"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Sağlık & Yasal Onay -->
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:heart'"></mat-icon>
+        <span>Sağlık Notu & Yasal Onay</span>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Özel Sağlık veya Alerji Notu</span>
+        </label>
+        <textarea
+          [(ngModel)]="form.saglikNotu"
+          name="saglikNotu"
+          rows="2"
+          placeholder="Alerjiler, hassas cilt, ameliyat geçmişi vb..."
+          class="odv-input custom-scroll resize-none"
+        ></textarea>
+      </div>
+
+      <label class="odv-checkbox-card">
+        <input
+          type="checkbox"
+          [(ngModel)]="form.kvkkOnay"
+          name="kvkkOnay"
+          class="mt-0.5 w-4.5 h-4.5 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+        />
+        <div class="text-xs">
+          <span class="font-bold text-slate-900 dark:text-white">KVKK Aydınlatma ve Açık Rıza Metni Onayı</span>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 m-0 leading-relaxed">
+            Müşterinin kişisel verilerinin işlenmesine ve randevu bilgilendirme mesajları gönderilmesine dair sözlü/yazılı onay alındı.
+          </p>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div drawerFooter class="flex items-center gap-2.5">
+    <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">
+      Vazgeç
+    </button>
+    <button
+      type="button"
+      (click)="save()"
+      [disabled]="saving() || !form.ad.trim() || !form.telefon.trim()"
+      class="odv-btn-primary min-w-[130px]"
+    >
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:check'"></mat-icon>
       <span>{{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}</span>
     </button>
   </div>

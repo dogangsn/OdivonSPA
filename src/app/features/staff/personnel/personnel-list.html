@@ -144,56 +144,137 @@
   </div>
 </div>
 
-<app-slide-over-drawer [open]="drawerOpen()" title="Personeli Düzenle" (closed)="closeDrawer()">
-  <div>
-    <label class="odv-label">Uzmanlıklar</label>
-    <input
-      type="text"
-      [(ngModel)]="form.uzmanliklarText"
-      name="uzmanliklar"
-      placeholder="Klasik Masaj, Aromaterapi (virgülle ayırın)"
-      class="odv-input"
-    />
-  </div>
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="odv-label">Varsayılan Prim (%)</label>
-      <input
-        type="number"
-        min="0"
-        max="100"
-        [(ngModel)]="form.primOraniVarsayilan"
-        name="primOrani"
-        class="odv-input"
-      />
+<app-slide-over-drawer
+  [open]="drawerOpen()"
+  title="Personeli Düzenle"
+  subtitle="Terapist ve uzman personel detaylarını, prim oranlarını ve iletişim bilgilerini güncelleyin."
+  [icon]="'heroicons_outline:user-group'"
+  badge="PERSONEL DETAYI"
+  widthClass="max-w-xl"
+  (closed)="closeDrawer()"
+>
+  <div class="space-y-4">
+    <!-- Card 1: Mesleki & Prim -->
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:sparkles'"></mat-icon>
+        <span>Mesleki Tanımlar & Prim</span>
+      </div>
+
+      <div class="space-y-3.5">
+        <div>
+          <label class="odv-label">Uzmanlık Alanları</label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:tag'"></mat-icon>
+            <input
+              type="text"
+              [(ngModel)]="form.uzmanliklarText"
+              name="uzmanliklar"
+              placeholder="Klasik Masaj, Aromaterapi, Cilt Bakımı (virgülle ayırın)"
+              class="odv-input odv-input-with-icon"
+            />
+          </div>
+          <span class="text-[11px] text-slate-400 mt-1 block">Terapistin verebileceği hizmet türlerini virgülle ayırarak yazın</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="odv-label">Varsayılan Prim Oranı (%)</label>
+            <div class="odv-input-wrap">
+              <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:percent-badge'"></mat-icon>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                [(ngModel)]="form.primOraniVarsayilan"
+                name="primOrani"
+                placeholder="15"
+                class="odv-input odv-input-with-icon font-semibold"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="odv-label">Takvim & Etiket Rengi</label>
+            <div class="flex items-center gap-2">
+              <input
+                type="color"
+                [(ngModel)]="form.renk"
+                name="renk"
+                class="w-12 h-[42px] p-1 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 cursor-pointer"
+              />
+              <input
+                type="text"
+                [(ngModel)]="form.renk"
+                name="renkHex"
+                placeholder="#6366f1"
+                class="odv-input font-mono text-xs flex-1 uppercase"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div>
-      <label class="odv-label">Renk</label>
-      <input
-        type="color"
-        [(ngModel)]="form.renk"
-        name="renk"
-        class="w-full h-[42px] px-2 py-1 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700"
-      />
+
+    <!-- Card 2: İletişim & Finansal -->
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
+        <span>İletişim & Bordro Bilgileri</span>
+      </div>
+
+      <div class="space-y-3.5">
+        <div>
+          <label class="odv-label">Telefon Numarası</label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:phone'"></mat-icon>
+            <input
+              type="tel"
+              [(ngModel)]="form.telefon"
+              name="telefon"
+              placeholder="0532 000 00 00"
+              class="odv-input odv-input-with-icon"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="odv-label">Banka IBAN (Hakediş & Prim İçin)</label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:credit-card'"></mat-icon>
+            <input
+              type="text"
+              [(ngModel)]="form.iban"
+              name="iban"
+              placeholder="TR00 0000 0000 0000 0000 0000 00"
+              class="odv-input odv-input-with-icon font-mono uppercase"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="odv-label">İşe Giriş Tarihi</label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+            <input
+              type="date"
+              [(ngModel)]="form.iseGirisTarihi"
+              name="iseGirisTarihi"
+              class="odv-input odv-input-with-icon"
+            />
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div>
-    <label class="odv-label">Telefon</label>
-    <input type="text" [(ngModel)]="form.telefon" name="telefon" class="odv-input" />
-  </div>
-  <div>
-    <label class="odv-label">IBAN</label>
-    <input type="text" [(ngModel)]="form.iban" name="iban" class="odv-input" />
-  </div>
-  <div>
-    <label class="odv-label">İşe Giriş Tarihi</label>
-    <input type="date" [(ngModel)]="form.iseGirisTarihi" name="iseGirisTarihi" class="odv-input" />
   </div>
 
   <div drawerFooter class="flex items-center justify-end gap-3 w-full">
-    <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="save()" [disabled]="saving()" class="odv-btn-primary">
-      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">
+      Vazgeç
+    </button>
+    <button type="button" (click)="save()" [disabled]="saving()" class="odv-btn-primary shadow-sm hover:shadow-indigo-500/20">
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+      <span>{{ saving() ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>

@@ -1,9 +1,8 @@
 export const environment = {
   production: false,
   useEmulators: false,
-  // Odivon Main API running locally (`npm run start:dev` in OdivonMainApi).
-  apiBaseUrl: 'http://localhost:3000/api/v1',
-  // Shared Firebase project of Odivon Main API (Auth only — data goes through the API).
+  // Odivon Main API on Cloudflare Workers (or local: http://localhost:3000/api/v1).
+  apiBaseUrl: 'https://mainapi.odivon.com/api/v1',
   firebase: {
     apiKey: 'AIzaSyAu1u-wKeR9RQBhp6lqUvo64ZbQ5fNDIGg',
     authDomain: 'odivon-main-api-a2095.firebaseapp.com',

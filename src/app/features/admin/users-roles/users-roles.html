@@ -81,35 +81,84 @@
 
 <app-slide-over-drawer
   [open]="inviteDrawerOpen()"
-  title="Kullanıcı Aç"
-  widthClass="max-w-md"
+  title="Yeni Kullanıcı Tanımla"
+  subtitle="Sisteme erişim sağlayacak yönetici, resepsiyon veya terapist hesabı oluşturun."
+  [icon]="'heroicons_outline:user-plus'"
+  badge="KULLANICI ERİŞİMİ"
+  widthClass="max-w-xl"
   (closed)="closeInviteDrawer()"
 >
-  <div>
-    <label class="odv-label">Ad Soyad</label>
-    <input type="text" [(ngModel)]="inviteForm.ad" name="ad" class="odv-input" />
+  <div class="space-y-4">
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
+        <span>Kullanıcı Bilgileri</span>
+      </div>
+
+      <div class="space-y-3.5">
+        <div>
+          <label class="odv-label">Ad Soyad <span class="text-rose-500">*</span></label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:user'"></mat-icon>
+            <input
+              type="text"
+              [(ngModel)]="inviteForm.ad"
+              name="ad"
+              placeholder="Örn: Selin Demir"
+              class="odv-input odv-input-with-icon font-medium"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="odv-label">E-posta Adresi <span class="text-rose-500">*</span></label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:envelope'"></mat-icon>
+            <input
+              type="email"
+              [(ngModel)]="inviteForm.email"
+              name="email"
+              placeholder="ornek@odivon.com"
+              class="odv-input odv-input-with-icon"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="odv-label">Sistem Yetki Rolü <span class="text-rose-500">*</span></label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:shield-check'"></mat-icon>
+            <select [(ngModel)]="inviteForm.role" name="role" class="odv-input odv-input-with-icon font-semibold">
+              @for (r of roles; track r) {
+                <option [value]="r">{{ roleLabels[r] }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800/60 text-indigo-900 dark:text-indigo-300 text-xs flex items-start gap-3">
+      <mat-icon class="icon-size-5 text-indigo-500 shrink-0 mt-0.5" [svgIcon]="'heroicons_outline:key'"></mat-icon>
+      <div class="space-y-1">
+        <p class="font-bold text-slate-800 dark:text-slate-100">Güvenli Şifre Belirleme</p>
+        <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+          Kullanıcı oluşturulduktan sonra ekranda tek seferlik şifre belirleme bağlantısı üretilecek. Bu bağlantıyı kullanıcıyla paylaşabilirsiniz.
+        </p>
+      </div>
+    </div>
   </div>
-  <div>
-    <label class="odv-label">E-posta</label>
-    <input type="email" [(ngModel)]="inviteForm.email" name="email" class="odv-input" />
-  </div>
-  <div>
-    <label class="odv-label">Rol</label>
-    <select [(ngModel)]="inviteForm.role" name="role" class="odv-input">
-      @for (r of roles; track r) {
-        <option [value]="r">{{ roleLabels[r] }}</option>
-      }
-    </select>
-  </div>
-  <p class="text-[11px] text-slate-500 dark:text-slate-400">
-    Kaydettikten sonra size bir şifre belirleme bağlantısı gösterilecek — bunu kullanıcıyla
-    paylaşın.
-  </p>
 
   <div drawerFooter class="flex items-center justify-end gap-3 w-full">
     <button type="button" (click)="closeInviteDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="invite()" [disabled]="inviting()" class="odv-btn-primary">
-      {{ inviting() ? 'Oluşturuluyor...' : 'Kullanıcı Oluştur' }}
+    <button
+      type="button"
+      (click)="invite()"
+      [disabled]="inviting() || !inviteForm.ad.trim() || !inviteForm.email.trim()"
+      class="odv-btn-primary shadow-sm hover:shadow-indigo-500/20"
+    >
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+      <span>{{ inviting() ? 'Oluşturuluyor...' : 'Kullanıcıyı Kaydet' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>

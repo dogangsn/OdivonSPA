@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -40,7 +40,7 @@ const EMPTY_BOOKING: BookingForm = { customerId: '', staffId: '', roomId: '', se
 @Component({
   selector: 'app-appointments-calendar',
   standalone: true,
-  imports: [FormsModule, DatePipe, MatIconModule, SlideOverDrawer, StatusBadge],
+  imports: [FormsModule, DatePipe, DecimalPipe, MatIconModule, SlideOverDrawer, StatusBadge],
   templateUrl: './appointments-calendar.html',
 })
 export class AppointmentsCalendar {

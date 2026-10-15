@@ -119,51 +119,103 @@
 
 <app-slide-over-drawer
   [open]="drawerOpen()"
-  title="Yeni Görev"
-  widthClass="max-w-md"
+  title="Yeni Görev Oluştur"
+  subtitle="Ekip personeline atamak üzere görev, öncelik ve son teslim tarihi belirleyin."
+  [icon]="'heroicons_outline:clipboard-document-check'"
+  badge="OPERASYON / GÖREV"
+  widthClass="max-w-xl"
   (closed)="closeDrawer()"
 >
-  <div>
-    <label class="odv-label">Başlık</label>
-    <input type="text" [(ngModel)]="form.baslik" name="baslik" class="odv-input" />
-  </div>
-  <div>
-    <label class="odv-label">Açıklama</label>
-    <textarea
-      [(ngModel)]="form.aciklama"
-      name="aciklama"
-      rows="2"
-      class="odv-input custom-scroll"
-    ></textarea>
-  </div>
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="odv-label">Atanan</label>
-      <select [(ngModel)]="form.staffId" name="staffId" class="odv-input">
-        <option value="">—</option>
-        @for (s of staff(); track s.id) {
-          <option [value]="s.id">{{ s.ad }}</option>
-        }
-      </select>
+  <div class="space-y-4">
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:pencil-square'"></mat-icon>
+        <span>Görev Tanımı</span>
+      </div>
+
+      <div class="space-y-3.5">
+        <div>
+          <label class="odv-label">Görev Başlığı <span class="text-rose-500">*</span></label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:clipboard-document-list'"></mat-icon>
+            <input
+              type="text"
+              [(ngModel)]="form.baslik"
+              name="baslik"
+              placeholder="Örn: Masaj odaları stok sayımı ve havlu değişimi"
+              class="odv-input odv-input-with-icon font-medium"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="odv-label">Açıklama / Notlar</label>
+          <textarea
+            [(ngModel)]="form.aciklama"
+            name="aciklama"
+            rows="3"
+            placeholder="Görev kapsamı, dikkat edilecek noktalar..."
+            class="odv-input custom-scroll leading-relaxed"
+          ></textarea>
+        </div>
+      </div>
     </div>
-    <div>
-      <label class="odv-label">Öncelik</label>
-      <select [(ngModel)]="form.priority" name="priority" class="odv-input">
-        @for (p of priorities; track p) {
-          <option [value]="p">{{ priorityLabels[p] }}</option>
-        }
-      </select>
+
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:user'"></mat-icon>
+        <span>Atama & Zamanlama</span>
+      </div>
+
+      <div class="space-y-3.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="odv-label">Atanan Personel</label>
+            <div class="odv-input-wrap">
+              <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
+              <select [(ngModel)]="form.staffId" name="staffId" class="odv-input odv-input-with-icon">
+                <option value="">Atanmamış (Genel Havuz)</option>
+                @for (s of staff(); track s.id) {
+                  <option [value]="s.id">{{ s.ad }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="odv-label">Öncelik Derecesi</label>
+            <div class="odv-input-wrap">
+              <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:flag'"></mat-icon>
+              <select [(ngModel)]="form.priority" name="priority" class="odv-input odv-input-with-icon font-medium">
+                @for (p of priorities; track p) {
+                  <option [value]="p">{{ priorityLabels[p] }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="odv-label">Son Teslim Tarihi</label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+            <input
+              type="date"
+              [(ngModel)]="form.dueDate"
+              name="dueDate"
+              class="odv-input odv-input-with-icon"
+            />
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div>
-    <label class="odv-label">Son Tarih</label>
-    <input type="date" [(ngModel)]="form.dueDate" name="dueDate" class="odv-input" />
   </div>
 
   <div drawerFooter class="flex items-center justify-end gap-3 w-full">
     <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="save()" [disabled]="saving()" class="odv-btn-primary">
-      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    <button type="button" (click)="save()" [disabled]="saving() || !form.baslik.trim()" class="odv-btn-primary shadow-sm hover:shadow-indigo-500/20">
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+      <span>{{ saving() ? 'Kaydediliyor...' : 'Görevi Oluştur' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>

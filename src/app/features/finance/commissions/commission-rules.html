@@ -91,75 +91,119 @@
 
 <app-slide-over-drawer
   [open]="drawerOpen()"
-  [title]="editingId() ? 'Kuralı Düzenle' : 'Yeni Prim Kuralı'"
-  widthClass="max-w-md"
+  [title]="editingId() ? 'Prim Kuralını Düzenle' : 'Yeni Prim Kuralı Tanımla'"
+  subtitle="Hizmet, personel veya kategori bazlı hakediş hesaplama katsayısı belirleyin."
+  [icon]="'heroicons_outline:adjustments-horizontal'"
+  [badge]="editingId() ? 'KURAL DÜZENLE' : 'YENİ KURAL'"
+  widthClass="max-w-xl"
   (closed)="closeDrawer()"
 >
-  <div>
-    <label class="odv-label">Kapsam</label>
-    <select
-      [ngModel]="form.scope"
-      (ngModelChange)="onScopeChange($event)"
-      name="scope"
-      class="odv-input"
-    >
-      @for (s of scopes; track s) {
-        <option [value]="s">{{ scopeLabels[s] }}</option>
-      }
-    </select>
-  </div>
-  <div>
-    <label class="odv-label">Hedef <span class="text-rose-500">*</span></label>
-    <select [(ngModel)]="form.refId" name="refId" class="odv-input">
-      <option value="">Seçiniz</option>
-      @switch (form.scope) {
-        @case ('service') {
-          @for (s of services(); track s.id) {
-            <option [value]="s.id">{{ s.ad }}</option>
-          }
-        }
-        @case ('serviceType') {
-          @for (t of serviceTypes(); track t) {
-            <option [value]="t">{{ t }}</option>
-          }
-        }
-        @case ('staff') {
-          @for (s of staff(); track s.id) {
-            <option [value]="s.id">{{ s.ad }}</option>
-          }
-        }
-      }
-    </select>
-  </div>
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="odv-label">Tür</label>
-      <select [(ngModel)]="form.type" name="type" class="odv-input">
-        <option value="percent">Yüzde (%)</option>
-        <option value="fixed">Sabit (₺)</option>
-      </select>
+  <div class="space-y-4">
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:squares-2x2'"></mat-icon>
+        <span>Kapsam & Hedef</span>
+      </div>
+
+      <div class="space-y-3.5">
+        <div>
+          <label class="odv-label">Kural Kapsamı</label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:squares-2x2'"></mat-icon>
+            <select
+              [ngModel]="form.scope"
+              (ngModelChange)="onScopeChange($event)"
+              name="scope"
+              class="odv-input odv-input-with-icon font-semibold"
+            >
+              @for (s of scopes; track s) {
+                <option [value]="s">{{ scopeLabels[s] }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="odv-label">Hedef Seçimi <span class="text-rose-500">*</span></label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:tag'"></mat-icon>
+            <select [(ngModel)]="form.refId" name="refId" class="odv-input odv-input-with-icon font-medium">
+              <option value="">Hedef Seçiniz</option>
+              @switch (form.scope) {
+                @case ('service') {
+                  @for (s of services(); track s.id) {
+                    <option [value]="s.id">{{ s.ad }}</option>
+                  }
+                }
+                @case ('serviceType') {
+                  @for (t of serviceTypes(); track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                }
+                @case ('staff') {
+                  @for (s of staff(); track s.id) {
+                    <option [value]="s.id">{{ s.ad }}</option>
+                  }
+                }
+              }
+            </select>
+          </div>
+        </div>
+      </div>
     </div>
-    <div>
-      <label class="odv-label">Değer</label>
-      <input
-        type="number"
-        min="0"
-        step="0.01"
-        [(ngModel)]="form.value"
-        name="value"
-        class="odv-input"
-      />
+
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:calculator'"></mat-icon>
+        <span>Prim Değeri & Öncelik</span>
+      </div>
+
+      <div class="space-y-3.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="odv-label">Prim Türü</label>
+            <div class="odv-input-wrap">
+              <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:adjustments-vertical'"></mat-icon>
+              <select [(ngModel)]="form.type" name="type" class="odv-input odv-input-with-icon font-medium">
+                <option value="percent">Yüzdesel (%)</option>
+                <option value="fixed">Sabit Tutar (₺)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="odv-label">Hesaplama Değeri <span class="text-rose-500">*</span></label>
+            <div class="odv-input-wrap">
+              <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:percent-badge'"></mat-icon>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                [(ngModel)]="form.value"
+                name="value"
+                placeholder="Örn: 20"
+                class="odv-input odv-input-with-icon font-bold text-slate-900 dark:text-white"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="odv-label">Kural Önceliği (küçük sayı = önce uygulanır)</label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:bars-arrow-down'"></mat-icon>
+            <input type="number" min="0" [(ngModel)]="form.priority" name="priority" class="odv-input odv-input-with-icon" />
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div>
-    <label class="odv-label">Öncelik (küçük = önce)</label>
-    <input type="number" min="0" [(ngModel)]="form.priority" name="priority" class="odv-input" />
   </div>
 
   <div drawerFooter class="flex items-center justify-end gap-3 w-full">
     <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="save()" [disabled]="saving()" class="odv-btn-primary">
-      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    <button type="button" (click)="save()" [disabled]="saving() || !form.refId || form.value <= 0" class="odv-btn-primary shadow-sm hover:shadow-indigo-500/20">
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+      <span>{{ saving() ? 'Kaydediliyor...' : 'Kuralı Kaydet' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>

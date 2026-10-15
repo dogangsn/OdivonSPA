@@ -109,22 +109,70 @@
 <app-slide-over-drawer
   [open]="drawerOpen()"
   [title]="isEditing() ? 'Odayı Düzenle' : 'Yeni Oda Ekle'"
-  widthClass="max-w-md"
+  [subtitle]="isEditing() ? 'Oda bilgilerini ve kapasiteyi güncelleyin.' : 'Merkezinize masaj, bakım veya terapi odası tanımlayın.'"
+  [icon]="'heroicons_outline:home-modern'"
+  [badge]="isEditing() ? 'DÜZENLEME' : 'YENİ ODA'"
+  widthClass="max-w-lg"
   (closed)="closeDrawer()"
 >
-  <div>
-    <label class="odv-label">Oda Adı <span class="text-rose-500">*</span></label>
-    <input type="text" [(ngModel)]="form.ad" name="ad" class="odv-input" />
-  </div>
-  <div>
-    <label class="odv-label">Kapasite</label>
-    <input type="number" min="1" [(ngModel)]="form.kapasite" name="kapasite" class="odv-input" />
+  <div class="space-y-4">
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
+        <span>Oda Tanımı & Kapasite</span>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Oda Adı</span>
+          <span class="text-rose-500 font-bold">*</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:home-modern'"></mat-icon>
+          <input
+            type="text"
+            [(ngModel)]="form.ad"
+            name="ad"
+            placeholder="Örn. VIP Masaj Odası 1, Cilt Bakım Odası A"
+            class="odv-input"
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Kişi Kapasitesi</span>
+          <span class="text-xs text-indigo-600 dark:text-indigo-400 font-bold">{{ form.kapasite || 1 }} Kişilik</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:users'"></mat-icon>
+          <input
+            type="number"
+            min="1"
+            max="10"
+            [(ngModel)]="form.kapasite"
+            name="kapasite"
+            placeholder="1"
+            class="odv-input"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
-    <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="save()" [disabled]="saving()" class="odv-btn-primary">
-      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+  <div drawerFooter class="flex items-center gap-2.5">
+    <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">
+      Vazgeç
+    </button>
+    <button
+      type="button"
+      (click)="save()"
+      [disabled]="saving() || !form.ad.trim()"
+      class="odv-btn-primary min-w-[130px]"
+    >
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:check'"></mat-icon>
+      <span>{{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>

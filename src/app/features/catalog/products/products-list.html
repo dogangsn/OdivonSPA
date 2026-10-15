@@ -168,63 +168,145 @@
 <app-slide-over-drawer
   [open]="drawerOpen()"
   [title]="isEditing() ? 'Ürünü Düzenle' : 'Yeni Ürün Ekle'"
+  [subtitle]="isEditing() ? 'Ürün detaylarını, fiyat ve kritik stok seviyesini güncelleyin.' : 'Merkezinizin perakende veya sarf malzeme stoğuna yeni bir ürün tanımlayın.'"
+  [icon]="'heroicons_outline:cube-transparent'"
+  [badge]="isEditing() ? 'DÜZENLEME' : 'YENİ ÜRÜN'"
+  widthClass="max-w-xl"
   (closed)="closeDrawer()"
 >
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="odv-label">SKU <span class="text-rose-500">*</span></label>
-      <input type="text" [(ngModel)]="form.sku" name="sku" class="odv-input" />
-    </div>
-    <div>
-      <label class="odv-label">Fiyat (₺)</label>
-      <input
-        type="number"
-        min="0"
-        step="0.01"
-        [(ngModel)]="form.fiyat"
-        name="fiyat"
-        class="odv-input"
-      />
-    </div>
-  </div>
-  <div>
-    <label class="odv-label">Ürün Adı <span class="text-rose-500">*</span></label>
-    <input type="text" [(ngModel)]="form.ad" name="ad" class="odv-input" />
-  </div>
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="odv-label">Kritik Stok Seviyesi</label>
-      <input
-        type="number"
-        min="0"
-        [(ngModel)]="form.kritikStokSeviyesi"
-        name="kritikStokSeviyesi"
-        class="odv-input"
-      />
-    </div>
-    @if (!isEditing()) {
-      <div>
-        <label class="odv-label">Başlangıç Stoğu</label>
-        <input
-          type="number"
-          min="0"
-          [(ngModel)]="form.mevcutStok"
-          name="mevcutStok"
-          class="odv-input"
-        />
+  <div class="space-y-4">
+    <!-- Card 1: Ürün Kimliği -->
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
+        <span>Ürün Tanımı & Kod</span>
       </div>
-    }
-  </div>
-  @if (isEditing()) {
-    <p class="text-xs text-slate-500 dark:text-slate-400">
-      Stok miktarını değiştirmek için tablodaki "Stok Hareketi" butonunu kullanın.
-    </p>
-  }
 
-  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
-    <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="save()" [disabled]="saving()" class="odv-btn-primary">
-      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+      <div>
+        <label class="odv-label">
+          <span>Ürün Adı</span>
+          <span class="text-rose-500 font-bold">*</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:cube'"></mat-icon>
+          <input
+            type="text"
+            [(ngModel)]="form.ad"
+            name="ad"
+            placeholder="Örn. Organik Masaj Yağı 500ml, Nemlendirici Serum"
+            class="odv-input"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div>
+          <label class="odv-label">
+            <span>Barkod / SKU</span>
+            <span class="text-rose-500 font-bold">*</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:qr-code'"></mat-icon>
+            <input
+              type="text"
+              [(ngModel)]="form.sku"
+              name="sku"
+              placeholder="Örn. URN-001, 869..."
+              class="odv-input font-mono"
+              required
+            />
+          </div>
+        </div>
+        <div>
+          <label class="odv-label">
+            <span>Satış Fiyatı (₺)</span>
+            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">₺{{ form.fiyat || 0 | number: '1.2-2' }}</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:currency-dollar'"></mat-icon>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              [(ngModel)]="form.fiyat"
+              name="fiyat"
+              placeholder="0.00"
+              class="odv-input"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Stok Seviyeleri -->
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:archive-box'"></mat-icon>
+        <span>Stok Parametreleri</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div>
+          <label class="odv-label">
+            <span>Kritik Stok Uyarısı</span>
+            <span class="text-xs text-amber-600 dark:text-amber-400 font-bold">{{ form.kritikStokSeviyesi || 0 }} adet</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:bell-alert'"></mat-icon>
+            <input
+              type="number"
+              min="0"
+              [(ngModel)]="form.kritikStokSeviyesi"
+              name="kritikStokSeviyesi"
+              placeholder="5"
+              class="odv-input"
+            />
+          </div>
+        </div>
+
+        @if (!isEditing()) {
+          <div>
+            <label class="odv-label">
+              <span>Başlangıç Stoğu</span>
+              <span class="text-xs text-indigo-600 dark:text-indigo-400 font-bold">{{ form.mevcutStok || 0 }} adet</span>
+            </label>
+            <div class="odv-input-wrap">
+              <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:inbox-stack'"></mat-icon>
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="form.mevcutStok"
+                name="mevcutStok"
+                placeholder="0"
+                class="odv-input"
+              />
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (isEditing()) {
+        <div class="flex items-center gap-2 p-3 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800/40 text-xs text-indigo-700 dark:text-indigo-300">
+          <mat-icon class="icon-size-4 shrink-0" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
+          <span>Stok miktarını değiştirmek veya sayım yapmak için tablodaki <strong>Stok Hareketi</strong> butonunu kullanabilirsiniz.</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div drawerFooter class="flex items-center gap-2.5">
+    <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">
+      Vazgeç
+    </button>
+    <button
+      type="button"
+      (click)="save()"
+      [disabled]="saving() || !form.ad.trim() || !form.sku.trim()"
+      class="odv-btn-primary min-w-[130px]"
+    >
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:check'"></mat-icon>
+      <span>{{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>
@@ -232,57 +314,89 @@
 <app-slide-over-drawer
   [open]="movementDrawerOpen()"
   title="Stok Hareketi Ekle"
-  [subtitle]="movementTarget()?.ad ?? ''"
-  widthClass="max-w-md"
+  [subtitle]="movementTarget()?.ad ?? 'Seçilen ürün için stok girişi, fire veya sayım kaydedin.'"
+  [icon]="'heroicons_outline:arrow-path'"
+  badge="STOK İŞLEMİ"
+  widthClass="max-w-lg"
   (closed)="closeMovementDrawer()"
 >
-  <div>
-    <label class="odv-label">Hareket Türü</label>
-    <select
-      [ngModel]="movementType()"
-      (ngModelChange)="movementType.set($event)"
-      name="movementType"
-      class="odv-input"
-    >
-      <option value="giris">Giriş</option>
-      <option value="fire">Fire</option>
-      <option value="sayim">Sayım (fiili miktar)</option>
-      <option value="iade">İade</option>
-    </select>
-  </div>
-  <div>
-    <label class="odv-label">
-      {{ movementType() === 'sayim' ? 'Sayılan Miktar' : 'Miktar' }}
-    </label>
-    <input
-      type="number"
-      min="0"
-      [ngModel]="movementQty()"
-      (ngModelChange)="movementQty.set($event)"
-      name="movementQty"
-      class="odv-input"
-    />
-  </div>
-  <div>
-    <label class="odv-label">Not</label>
-    <input
-      type="text"
-      [ngModel]="movementNote()"
-      (ngModelChange)="movementNote.set($event)"
-      name="movementNote"
-      class="odv-input"
-    />
+  <div class="space-y-4">
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:arrows-right-left'"></mat-icon>
+        <span>İşlem Detayları</span>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Hareket Türü</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:tag'"></mat-icon>
+          <select
+            [ngModel]="movementType()"
+            (ngModelChange)="movementType.set($event)"
+            name="movementType"
+            class="odv-input cursor-pointer"
+          >
+            <option value="giris">Stok Girişi (+)</option>
+            <option value="fire">Fire / Zayi (-)</option>
+            <option value="sayim">Dönem Sonu Sayım (Fiili Miktar)</option>
+            <option value="iade">Müşteri / Tedarikçi İadesi</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>{{ movementType() === 'sayim' ? 'Sayılan Fiili Miktar' : 'İşlem Miktarı (Adet)' }}</span>
+          <span class="text-rose-500 font-bold">*</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:variable'"></mat-icon>
+          <input
+            type="number"
+            min="0"
+            [ngModel]="movementQty()"
+            (ngModelChange)="movementQty.set($event)"
+            name="movementQty"
+            placeholder="1"
+            class="odv-input"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Açıklama / İrsaliye Notu</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:chat-bubble-bottom-center-text'"></mat-icon>
+          <input
+            type="text"
+            [ngModel]="movementNote()"
+            (ngModelChange)="movementNote.set($event)"
+            name="movementNote"
+            placeholder="Örn. Haftalık sevkiyat faturası #410..."
+            class="odv-input"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
-    <button type="button" (click)="closeMovementDrawer()" class="odv-btn-secondary">Vazgeç</button>
+  <div drawerFooter class="flex items-center gap-2.5">
+    <button type="button" (click)="closeMovementDrawer()" class="odv-btn-secondary">
+      Vazgeç
+    </button>
     <button
       type="button"
       (click)="saveMovement()"
-      [disabled]="movementSaving()"
-      class="odv-btn-primary"
+      [disabled]="movementSaving() || movementQty() < 0"
+      class="odv-btn-primary min-w-[130px]"
     >
-      {{ movementSaving() ? 'Kaydediliyor...' : 'Kaydet' }}
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:check'"></mat-icon>
+      <span>{{ movementSaving() ? 'Kaydediliyor...' : 'Kaydet' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>

@@ -239,118 +239,225 @@
 <app-slide-over-drawer
   [open]="planDrawerOpen()"
   [title]="isEditingPlan() ? 'Planı Düzenle' : 'Yeni Paket Planı'"
+  [subtitle]="isEditingPlan() ? 'Paket seans adedini, fiyat ve süresini güncelleyin.' : 'Müşterilere sunulacak seans paketi planı tanımlayın.'"
+  [icon]="'heroicons_outline:cube'"
+  [badge]="isEditingPlan() ? 'DÜZENLEME' : 'YENİ PAKET PLANI'"
+  widthClass="max-w-xl"
   (closed)="closePlanDrawer()"
 >
-  <div>
-    <label class="odv-label">Plan Adı <span class="text-rose-500">*</span></label>
-    <input type="text" [(ngModel)]="planForm.ad" name="planAd" class="odv-input" />
-  </div>
-  <div>
-    <label class="odv-label">Bağlı Hizmet <span class="text-rose-500">*</span></label>
-    <select [(ngModel)]="planForm.serviceId" name="planServiceId" class="odv-input">
-      <option value="">Seçiniz</option>
-      @for (s of services(); track s.id) {
-        <option [value]="s.id">{{ s.ad }}</option>
-      }
-    </select>
-  </div>
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="odv-label">Seans Adedi</label>
-      <input
-        type="number"
-        min="1"
-        [(ngModel)]="planForm.seansAdedi"
-        name="planSeansAdedi"
-        class="odv-input"
-      />
+  <div class="space-y-4">
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
+        <span>Paket Tanımı & Hizmet</span>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Paket Adı</span>
+          <span class="text-rose-500 font-bold">*</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:cube'"></mat-icon>
+          <input
+            type="text"
+            [(ngModel)]="planForm.ad"
+            name="planAd"
+            placeholder="Örn. 10 Seans Masaj Paketi, Gelin Bakım Paketi"
+            class="odv-input"
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Bağlı Hizmet</span>
+          <span class="text-rose-500 font-bold">*</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:sparkles'"></mat-icon>
+          <select [(ngModel)]="planForm.serviceId" name="planServiceId" class="odv-input cursor-pointer" required>
+            <option value="">Hizmet Seçiniz...</option>
+            @for (s of services(); track s.id) {
+              <option [value]="s.id">{{ s.ad }} (₺{{ s.fiyat | number: '1.2-2' }})</option>
+            }
+          </select>
+        </div>
+      </div>
     </div>
-    <div>
-      <label class="odv-label">Fiyat (₺)</label>
-      <input
-        type="number"
-        min="0"
-        step="0.01"
-        [(ngModel)]="planForm.fiyat"
-        name="planFiyat"
-        class="odv-input"
-      />
+
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:banknotes'"></mat-icon>
+        <span>Seans Adedi, Fiyat & Geçerlilik</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div>
+          <label class="odv-label">
+            <span>Toplam Seans Adedi</span>
+            <span class="text-xs text-indigo-600 dark:text-indigo-400 font-bold">{{ planForm.seansAdedi || 1 }} Seans</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:numbered-list'"></mat-icon>
+            <input
+              type="number"
+              min="1"
+              [(ngModel)]="planForm.seansAdedi"
+              name="planSeansAdedi"
+              placeholder="10"
+              class="odv-input"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="odv-label">
+            <span>Paket Fiyatı (₺)</span>
+            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">₺{{ planForm.fiyat || 0 | number: '1.2-2' }}</span>
+          </label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:currency-dollar'"></mat-icon>
+            <input
+              type="number"
+              min="0"
+              step="10"
+              [(ngModel)]="planForm.fiyat"
+              name="planFiyat"
+              placeholder="0.00"
+              class="odv-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Geçerlilik Süresi (Gün)</span>
+          <span class="text-xs text-slate-500 font-medium">{{ planForm.gecerlilikGunu || 365 }} Gün geçerli</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+          <input
+            type="number"
+            min="1"
+            [(ngModel)]="planForm.gecerlilikGunu"
+            name="planGecerlilik"
+            placeholder="365"
+            class="odv-input"
+          />
+        </div>
+      </div>
     </div>
-  </div>
-  <div>
-    <label class="odv-label">Geçerlilik Süresi (gün)</label>
-    <input
-      type="number"
-      min="1"
-      [(ngModel)]="planForm.gecerlilikGunu"
-      name="planGecerlilik"
-      class="odv-input"
-    />
   </div>
 
-  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
+  <div drawerFooter class="flex items-center gap-2.5">
     <button type="button" (click)="closePlanDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="savePlan()" [disabled]="planSaving()" class="odv-btn-primary">
-      {{ planSaving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    <button
+      type="button"
+      (click)="savePlan()"
+      [disabled]="planSaving() || !planForm.ad.trim() || !planForm.serviceId"
+      class="odv-btn-primary min-w-[130px]"
+    >
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:check'"></mat-icon>
+      <span>{{ planSaving() ? 'Kaydediliyor...' : 'Kaydet' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>
 
 <app-slide-over-drawer
   [open]="sellDrawerOpen()"
-  title="Paket Sat"
-  widthClass="max-w-md"
+  title="Paket Satışı"
+  subtitle="Müşteriye tanımlı bir seans paketini doğrudan satın."
+  [icon]="'heroicons_outline:shopping-cart'"
+  badge="SATIŞ İŞLEMİ"
+  widthClass="max-w-lg"
   (closed)="closeSellDrawer()"
 >
-  <div>
-    <label class="odv-label">Müşteri <span class="text-rose-500">*</span></label>
-    <select
-      [ngModel]="sellCustomerId()"
-      (ngModelChange)="sellCustomerId.set($event)"
-      name="sellCustomerId"
-      class="odv-input"
-    >
-      <option value="">Seçiniz</option>
-      @for (c of customers(); track c.id) {
-        <option [value]="c.id">{{ c.ad }} — {{ c.telefon }}</option>
-      }
-    </select>
-  </div>
-  <div>
-    <label class="odv-label">Paket Planı <span class="text-rose-500">*</span></label>
-    <select
-      [ngModel]="sellPlanId()"
-      (ngModelChange)="sellPlanId.set($event)"
-      name="sellPlanId"
-      class="odv-input"
-    >
-      <option value="">Seçiniz</option>
-      @for (p of plans(); track p.id) {
-        <option [value]="p.id">
-          {{ p.ad }} — {{ p.seansAdedi }} seans — ₺{{ p.fiyat | number: '1.2-2' }}
-        </option>
-      }
-    </select>
+  <div class="space-y-4">
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:user'"></mat-icon>
+        <span>Müşteri & Plan Seçimi</span>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Müşteri</span>
+          <span class="text-rose-500 font-bold">*</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:user'"></mat-icon>
+          <select
+            [ngModel]="sellCustomerId()"
+            (ngModelChange)="sellCustomerId.set($event)"
+            name="sellCustomerId"
+            class="odv-input cursor-pointer"
+            required
+          >
+            <option value="">Müşteri Seçiniz...</option>
+            @for (c of customers(); track c.id) {
+              <option [value]="c.id">{{ c.ad }} ({{ c.telefon }})</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Paket Planı</span>
+          <span class="text-rose-500 font-bold">*</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:cube'"></mat-icon>
+          <select
+            [ngModel]="sellPlanId()"
+            (ngModelChange)="sellPlanId.set($event)"
+            name="sellPlanId"
+            class="odv-input cursor-pointer"
+            required
+          >
+            <option value="">Plan Seçiniz...</option>
+            @for (p of plans(); track p.id) {
+              <option [value]="p.id">
+                {{ p.ad }} — {{ p.seansAdedi }} seans (₺{{ p.fiyat | number: '1.2-2' }})
+              </option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="odv-label">
+          <span>Tahsilat / Ödeme Yöntemi</span>
+        </label>
+        <div class="odv-input-wrap">
+          <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:credit-card'"></mat-icon>
+          <select
+            [ngModel]="sellMethod()"
+            (ngModelChange)="sellMethod.set($event)"
+            name="sellMethod"
+            class="odv-input cursor-pointer"
+          >
+            @for (m of paymentMethods; track m) {
+              <option [value]="m">{{ paymentMethodLabels[m] }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div>
-    <label class="odv-label">Ödeme Yöntemi</label>
-    <select
-      [ngModel]="sellMethod()"
-      (ngModelChange)="sellMethod.set($event)"
-      name="sellMethod"
-      class="odv-input"
-    >
-      @for (m of paymentMethods; track m) {
-        <option [value]="m">{{ paymentMethodLabels[m] }}</option>
-      }
-    </select>
-  </div>
-
-  <div drawerFooter class="flex items-center justify-end gap-3 w-full">
+  <div drawerFooter class="flex items-center gap-2.5">
     <button type="button" (click)="closeSellDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="sellPackage()" [disabled]="sellSaving()" class="odv-btn-primary">
-      {{ sellSaving() ? 'Kaydediliyor...' : 'Paketi Sat' }}
+    <button
+      type="button"
+      (click)="sellPackage()"
+      [disabled]="sellSaving() || !sellCustomerId() || !sellPlanId()"
+      class="odv-btn-primary min-w-[130px]"
+    >
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_solid:check'"></mat-icon>
+      <span>{{ sellSaving() ? 'Kaydediliyor...' : 'Paketi Sat' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>

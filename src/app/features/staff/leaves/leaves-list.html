@@ -153,52 +153,102 @@
 
 <app-slide-over-drawer
   [open]="drawerOpen()"
-  title="Yeni İzin"
-  widthClass="max-w-md"
+  title="Yeni İzin Talebi"
+  subtitle="Personel için yıllık, hastalık veya mazeret izni kaydı oluşturun."
+  [icon]="'heroicons_outline:calendar-days'"
+  badge="İZİN YÖNETİMİ"
+  widthClass="max-w-xl"
   (closed)="closeDrawer()"
 >
-  <div>
-    <label class="odv-label">Personel</label>
-    <select [(ngModel)]="form.staffId" name="staffId" [disabled]="!canManage()" class="odv-input">
-      <option value="">Seçiniz</option>
-      @for (s of staff(); track s.id) {
-        <option [value]="s.id">{{ s.ad }}</option>
-      }
-    </select>
-  </div>
-  <div>
-    <label class="odv-label">İzin Türü</label>
-    <select [(ngModel)]="form.type" name="type" class="odv-input">
-      @for (t of leaveTypes; track t) {
-        <option [value]="t">{{ leaveTypeLabels[t] }}</option>
-      }
-    </select>
-  </div>
-  <div class="grid grid-cols-2 gap-3">
-    <div>
-      <label class="odv-label">Başlangıç</label>
-      <input type="date" [(ngModel)]="form.startDate" name="startDate" class="odv-input" />
-    </div>
-    <div>
-      <label class="odv-label">Bitiş</label>
-      <input type="date" [(ngModel)]="form.endDate" name="endDate" class="odv-input" />
-    </div>
-  </div>
-  <div>
-    <label class="odv-label">Not</label>
-    <input type="text" [(ngModel)]="form.note" name="note" class="odv-input" />
-  </div>
+  <div class="space-y-4">
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:user'"></mat-icon>
+        <span>Personel & İzin Türü</span>
+      </div>
 
-  @if (!canManage()) {
-    <p class="text-xs text-slate-500 dark:text-slate-400">
-      İzin talebiniz yönetici onayladığında randevu planlamasına yansır.
-    </p>
-  }
+      <div class="space-y-3.5">
+        <div>
+          <label class="odv-label">Personel <span class="text-rose-500">*</span></label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
+            <select [(ngModel)]="form.staffId" name="staffId" [disabled]="!canManage()" class="odv-input odv-input-with-icon font-medium">
+              <option value="">Personel Seçiniz</option>
+              @for (s of staff(); track s.id) {
+                <option [value]="s.id">{{ s.ad }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="odv-label">İzin Türü <span class="text-rose-500">*</span></label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:tag'"></mat-icon>
+            <select [(ngModel)]="form.type" name="type" class="odv-input odv-input-with-icon font-medium">
+              @for (t of leaveTypes; track t) {
+                <option [value]="t">{{ leaveTypeLabels[t] }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="odv-form-card">
+      <div class="odv-form-card-title">
+        <mat-icon class="icon-size-4 text-indigo-500" [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+        <span>Tarih Aralığı & Not</span>
+      </div>
+
+      <div class="space-y-3.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="odv-label">Başlangıç Tarihi <span class="text-rose-500">*</span></label>
+            <div class="odv-input-wrap">
+              <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+              <input type="date" [(ngModel)]="form.startDate" name="startDate" class="odv-input odv-input-with-icon font-medium" />
+            </div>
+          </div>
+
+          <div>
+            <label class="odv-label">Bitiş Tarihi <span class="text-rose-500">*</span></label>
+            <div class="odv-input-wrap">
+              <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+              <input type="date" [(ngModel)]="form.endDate" name="endDate" class="odv-input odv-input-with-icon font-medium" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="odv-label">Açıklama / Mazeret Notu</label>
+          <div class="odv-input-wrap">
+            <mat-icon class="odv-input-icon" [svgIcon]="'heroicons_outline:chat-bubble-bottom-center-text'"></mat-icon>
+            <input
+              type="text"
+              [(ngModel)]="form.note"
+              name="note"
+              placeholder="Örn: Yıllık iznin 1. haftası veya doktor randevusu"
+              class="odv-input odv-input-with-icon"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    @if (!canManage()) {
+      <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-xs flex items-center gap-2.5">
+        <mat-icon class="icon-size-4 shrink-0" [svgIcon]="'heroicons_outline:information-circle'"></mat-icon>
+        <span>İzin talebiniz yönetici onayladığında randevu takvimine ve vardiya planına otomatik yansır.</span>
+      </div>
+    }
+  </div>
 
   <div drawerFooter class="flex items-center justify-end gap-3 w-full">
     <button type="button" (click)="closeDrawer()" class="odv-btn-secondary">Vazgeç</button>
-    <button type="button" (click)="save()" [disabled]="saving()" class="odv-btn-primary">
-      {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+    <button type="button" (click)="save()" [disabled]="saving() || !form.staffId || !form.startDate || !form.endDate" class="odv-btn-primary shadow-sm hover:shadow-indigo-500/20">
+      <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:check'"></mat-icon>
+      <span>{{ saving() ? 'Kaydediliyor...' : 'İzin Talebi Oluştur' }}</span>
     </button>
   </div>
 </app-slide-over-drawer>
