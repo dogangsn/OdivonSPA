@@ -83,12 +83,17 @@
           @for (item of paged(); track item.id) {
             <tr class="odv-tr">
               <td class="py-4 px-6 font-bold text-slate-900 dark:text-white">
-                <a
-                  [routerLink]="['/musteriler', item.id]"
-                  class="hover:text-indigo-600 dark:hover:text-indigo-400"
+                <button
+                  type="button"
+                  (click)="openDetailModal(item)"
+                  class="text-left font-bold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer group inline-flex items-center gap-1.5"
                 >
-                  {{ item.ad }}
-                </a>
+                  <span>{{ item.ad }}</span>
+                  <mat-icon
+                    class="icon-size-3.5 opacity-0 group-hover:opacity-100 text-indigo-500 transition-opacity"
+                    [svgIcon]="'heroicons_outline:identification'"
+                  ></mat-icon>
+                </button>
               </td>
               <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ item.telefon }}</td>
               <td class="py-4 px-6 text-slate-600 dark:text-slate-300">{{ item.kaynak || '—' }}</td>
@@ -112,10 +117,23 @@
               </td>
               <td class="py-4 px-6 text-right">
                 <div class="flex items-center justify-end gap-1">
-                  <button type="button" (click)="openEditDrawer(item)" class="odv-icon-btn">
+                  <button
+                    type="button"
+                    (click)="openDetailModal(item)"
+                    title="Müşteri Detayı"
+                    class="odv-icon-btn"
+                  >
+                    <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:eye'"></mat-icon>
+                  </button>
+                  <button type="button" (click)="openEditDrawer(item)" title="Düzenle" class="odv-icon-btn">
                     <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
                   </button>
-                  <button type="button" (click)="togglePassive(item)" class="odv-icon-btn-danger">
+                  <button
+                    type="button"
+                    (click)="togglePassive(item)"
+                    [title]="item.active ? 'Pasifleştir' : 'Aktifleştir'"
+                    class="odv-icon-btn-danger"
+                  >
                     <mat-icon
                       class="icon-size-4"
                       [svgIcon]="
@@ -330,3 +348,11 @@
     </button>
   </div>
 </app-slide-over-drawer>
+
+<!-- Detailed Customer Modal -->
+<app-customer-detail-modal
+  [customer]="selectedCustomer()"
+  [isOpen]="detailModalOpen()"
+  (close)="closeDetailModal()"
+  (edit)="onEditFromModal($event)"
+></app-customer-detail-modal>

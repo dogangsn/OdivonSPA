@@ -1,8 +1,26 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-const STORAGE_KEY = 'odivon-spa-theme';
+export const THEME_COOKIE_NAME = 'odivon_theme';
+export const THEME_STORAGE_KEY = 'odivon-spa-theme';
+
+export function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(?:^|; )' + encodeURIComponent(name) + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+export function setCookie(name: string, value: string, days = 365): void {
+  if (typeof document === 'undefined') return;
+  const maxAge = days * 24 * 60 * 60;
+  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)};path=/;max-age=${maxAge};SameSite=Lax`;
+}
+
+export function removeCookie(name: string): void {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${encodeURIComponent(name)}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
@@ -31,8 +49,9 @@ export class ThemeService {
 
   setMode(mode: ThemeMode): void {
     this.mode.set(mode);
+    setCookie(THEME_COOKIE_NAME, mode, 365);
     try {
-      localStorage.setItem(STORAGE_KEY, mode);
+      localStorage.setItem(THEME_STORAGE_KEY, mode);
     } catch {
       // Ignore quota or disabled localStorage
     }
@@ -54,10 +73,18 @@ export class ThemeService {
   }
 
   private readStoredMode(): ThemeMode {
+    // 1. Try reading from cookie first
+    const cookieVal = getCookie(THEME_COOKIE_NAME);
+    if (cookieVal === 'light' || cookieVal === 'dark' || cookieVal === 'system') {
+      return cookieVal;
+    }
+
+    // 2. Fallback to localStorage and migrate to cookie
     try {
-      const val = localStorage.getItem(STORAGE_KEY);
-      if (val === 'light' || val === 'dark' || val === 'system') {
-        return val;
+      const storageVal = localStorage.getItem(THEME_STORAGE_KEY);
+      if (storageVal === 'light' || storageVal === 'dark' || storageVal === 'system') {
+        setCookie(THEME_COOKIE_NAME, storageVal, 365);
+        return storageVal;
       }
     } catch {
       // Fallback

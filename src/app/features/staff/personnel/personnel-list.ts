@@ -62,7 +62,9 @@ export class PersonnelList extends SimpleCrudListBase<Staff> {
   );
 
   readonly activeCount = computed(() => this.items().filter((s) => s.active).length);
-  readonly therapistCount = computed(() => this.items().filter((s) => s.active && s.role === 'therapist').length);
+  readonly therapistCount = computed(
+    () => this.items().filter((s) => (s.active !== false && (s as any).aktif !== false) && s.role === 'therapist').length,
+  );
   readonly monthTotals = computed(() => {
     const sessions = this.monthSessions();
     return { seans: sessions.length, ciro: round2(sessions.reduce((sum, s) => sum + s.totalAmount, 0)) };

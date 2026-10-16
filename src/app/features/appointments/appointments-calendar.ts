@@ -68,9 +68,13 @@ export class AppointmentsCalendar {
   private readonly allServices = this.serviceService.watchAllSignal();
   readonly customers = this.customerService.watchAllSignal();
 
-  readonly staff = computed(() => this.allStaff().filter((s) => s.active && s.role === 'therapist'));
-  readonly rooms = computed(() => this.allRooms().filter((r) => r.active));
-  readonly services = computed(() => this.allServices().filter((s) => s.active));
+  readonly staff = computed(() =>
+    this.allStaff().filter(
+      (s) => (s.active !== false && (s as any).aktif !== false) && (s.role === 'therapist' || s.role === 'admin'),
+    ),
+  );
+  readonly rooms = computed(() => this.allRooms().filter((r) => r.active !== false && (r as any).aktif !== false));
+  readonly services = computed(() => this.allServices().filter((s) => s.active !== false && (s as any).aktif !== false));
 
   readonly appointmentsOfDay = toSignal(
     toObservable(this.selectedDate).pipe(

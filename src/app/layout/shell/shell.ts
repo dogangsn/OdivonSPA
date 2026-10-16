@@ -9,18 +9,12 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { VersionService } from '../../core/version/version.service';
+import { NotificationService, AppNotification } from '../../core/services/notification.service';
 import { Logo } from '../../core/ui/logo/logo';
 import { NAV_GROUPS } from './nav-items';
 import { STAFF_ROLE_LABELS } from '../../core/models';
 
-export interface AppNotification {
-  id: string;
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
-  type: 'info' | 'warning' | 'success';
-}
+export type { AppNotification };
 
 @Component({
   selector: 'app-shell',
@@ -46,6 +40,7 @@ export class Shell {
   private readonly router = inject(Router);
   readonly theme = inject(ThemeService);
   readonly version = inject(VersionService);
+  private readonly notifService = inject(NotificationService);
 
   readonly sidebarOpen = signal(false);
   readonly desktopSidebarVisible = signal<boolean>(this.loadDesktopSidebarState());
@@ -58,35 +53,9 @@ export class Shell {
   readonly searchQuery = signal('');
   readonly searchFocused = signal(false);
 
-  // Notifications state
-  readonly notifications = signal<AppNotification[]>([
-    {
-      id: '1',
-      title: 'Bugünkü Randevular',
-      message: 'Bugün için planlanan seanslar takvime işlendi.',
-      time: 'Az önce',
-      read: false,
-      type: 'info',
-    },
-    {
-      id: '2',
-      title: 'Kasa Güncellemesi',
-      message: 'Günlük kasa açılışı tamamlandı, işlemler kaydedilebilir.',
-      time: '1 saat önce',
-      read: false,
-      type: 'success',
-    },
-    {
-      id: '3',
-      title: 'Prim Tahakkuku',
-      message: 'Onay bekleyen prim hak edişleri mevcut.',
-      time: 'Dün',
-      read: true,
-      type: 'warning',
-    },
-  ]);
-
-  readonly unreadCount = computed(() => this.notifications().filter((n) => !n.read).length);
+  // Live notifications state
+  readonly notifications = this.notifService.notifications;
+  readonly unreadCount = this.notifService.unreadCount;
 
   readonly visibleGroups = computed(() => {
     const role = this.auth.role();
@@ -270,13 +239,18 @@ export class Shell {
   }
 
   markAllNotificationsAsRead(): void {
-    this.notifications.update((list) => list.map((n) => ({ ...n, read: true })));
+    this.notifService.markAllAsRead();
   }
 
   markNotificationAsRead(id: string): void {
-    this.notifications.update((list) =>
-      list.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
+    this.notifService.markAsRead(id);
+  }
+
+  onNotificationClick(item: AppNotification): void {
+    this.notifService.markAsRead(item.id);
+    if (item.route) {
+      this.router.navigateByUrl(item.route);
+    }
   }
 
   async logout(): Promise<void> {

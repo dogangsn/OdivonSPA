@@ -1,10 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { signal } from '@angular/core';
+import { computed, signal } from '@angular/core';
 import { Shell } from './shell';
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { VersionService } from '../../core/version/version.service';
+import { NotificationService, AppNotification } from '../../core/services/notification.service';
 
 describe('Shell Component', () => {
   let shell: Shell;
@@ -13,6 +14,19 @@ describe('Shell Component', () => {
 
   beforeEach(async () => {
     mockStorage = {};
+    const mockNotifs = signal<AppNotification[]>([
+      {
+        id: '1',
+        title: 'Bugünkü Randevular',
+        message: 'Test seans bildirim mesajı',
+        time: 'Bugün',
+        read: false,
+        type: 'info',
+        route: '/randevular',
+      },
+    ]);
+    const mockUnread = computed(() => mockNotifs().filter((n) => !n.read).length);
+
     const storageMock = {
       getItem: (key: string) => mockStorage[key] ?? null,
       setItem: (key: string, val: string) => {
@@ -60,6 +74,21 @@ describe('Shell Component', () => {
           useValue: {
             current: { version: '1.0.2', commit: 'fb43a7d' },
             openModal: () => {},
+          },
+        },
+        {
+          provide: NotificationService,
+          useValue: {
+            notifications: mockNotifs,
+            unreadCount: mockUnread,
+            markAllAsRead: () => {
+              mockNotifs.update((list) => list.map((n) => ({ ...n, read: true })));
+            },
+            markAsRead: (id: string) => {
+              mockNotifs.update((list) =>
+                list.map((n) => (n.id === id ? { ...n, read: true } : n)),
+              );
+            },
           },
         },
       ],
@@ -137,5 +166,12 @@ describe('Shell Component', () => {
     expect(shell.unreadCount()).toBeGreaterThan(0);
     shell.markAllNotificationsAsRead();
     expect(shell.unreadCount()).toBe(0);
+  });
+
+  it('should navigate and mark as read on onNotificationClick()', () => {
+    const spy = vi.spyOn(router, 'navigateByUrl');
+    const notif = shell.notifications()[0];
+    shell.onNotificationClick(notif);
+    expect(spy).toHaveBeenCalledWith('/randevular');
   });
 });

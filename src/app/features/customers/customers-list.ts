@@ -1,6 +1,5 @@
 import { Component, Signal, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { SimpleCrudListBase } from '../../core/base/simple-crud-list-base';
 import { KpiCard } from '../../core/ui/kpi-card/kpi-card';
@@ -11,6 +10,8 @@ import { StatusBadge } from '../../core/ui/status-badge/status-badge';
 import { ConfirmService } from '../../core/ui/confirm/confirm.service';
 import { Customer, CustomerGender, WithId } from '../../core/models';
 import { CustomerService } from './customer.service';
+
+import { CustomerDetailModal } from './customer-detail-modal/customer-detail-modal';
 
 interface CustomerForm {
   ad: string;
@@ -37,7 +38,16 @@ const EMPTY_FORM: CustomerForm = {
 @Component({
   selector: 'app-customers-list',
   standalone: true,
-  imports: [KpiCard, FormsModule, RouterLink, MatIconModule, EmptyState, Pagination, SlideOverDrawer, StatusBadge],
+  imports: [
+    KpiCard,
+    FormsModule,
+    MatIconModule,
+    EmptyState,
+    Pagination,
+    SlideOverDrawer,
+    StatusBadge,
+    CustomerDetailModal,
+  ],
   templateUrl: './customers-list.html',
 })
 export class CustomersList extends SimpleCrudListBase<Customer> {
@@ -59,6 +69,25 @@ export class CustomersList extends SimpleCrudListBase<Customer> {
   readonly editingId = signal<string | null>(null);
   readonly saving = signal(false);
   form: CustomerForm = { ...EMPTY_FORM };
+
+  // Detail Modal state
+  readonly detailModalOpen = signal(false);
+  readonly selectedCustomer = signal<WithId<Customer> | null>(null);
+
+  openDetailModal(item: WithId<Customer>): void {
+    this.selectedCustomer.set(item);
+    this.detailModalOpen.set(true);
+  }
+
+  closeDetailModal(): void {
+    this.detailModalOpen.set(false);
+    this.selectedCustomer.set(null);
+  }
+
+  onEditFromModal(item: WithId<Customer>): void {
+    this.closeDetailModal();
+    this.openEditDrawer(item);
+  }
 
   protected override matchesSearch(item: WithId<Customer>, query: string): boolean {
     return item.ad.toLowerCase().includes(query) || item.telefon.toLowerCase().includes(query);

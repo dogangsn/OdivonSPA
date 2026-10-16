@@ -1,0 +1,469 @@
+@if (isOpen() && customer(); as c) {
+  <div
+    class="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 dark:bg-black/85 backdrop-blur-md animate-in fade-in duration-200 select-none overflow-y-auto"
+    (click)="onBackdropClick($event)"
+  >
+    <div
+      class="relative w-full max-w-3xl max-h-[92vh] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col my-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Top Decorative Accent Glows -->
+      <div
+        class="absolute -top-20 -left-20 w-48 h-48 bg-indigo-500/15 dark:bg-indigo-500/25 rounded-full blur-3xl pointer-events-none"
+      ></div>
+      <div
+        class="absolute -bottom-20 -right-20 w-48 h-48 bg-purple-500/15 dark:bg-purple-500/20 rounded-full blur-3xl pointer-events-none"
+      ></div>
+
+      <!-- Modal Header -->
+      <div
+        class="relative p-5 sm:p-6 pb-4 flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 shrink-0"
+      >
+        <div class="flex items-center gap-3.5 min-w-0">
+          <div
+            class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-black text-lg sm:text-xl flex items-center justify-center shrink-0 shadow-lg shadow-indigo-600/20"
+          >
+            {{ (c.ad || 'M').slice(0, 2).toUpperCase() }}
+          </div>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2 mb-1">
+              <h2 class="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight truncate m-0">
+                {{ c.ad }}
+              </h2>
+              <app-status-badge
+                [label]="c.active ? 'Aktif' : 'Pasif'"
+                [variant]="c.active ? 'emerald' : 'slate'"
+                [dot]="true"
+              ></app-status-badge>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-500 dark:text-slate-400">
+              <a
+                [href]="'tel:' + c.telefon"
+                class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1 font-semibold"
+              >
+                <mat-icon class="icon-size-3.5 text-slate-400" [svgIcon]="'heroicons_outline:phone'"></mat-icon>
+                <span>{{ c.telefon }}</span>
+              </a>
+              @if (c.email) {
+                <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+                <a
+                  [href]="'mailto:' + c.email"
+                  class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1 truncate"
+                >
+                  <mat-icon class="icon-size-3.5 text-slate-400" [svgIcon]="'heroicons_outline:envelope'"></mat-icon>
+                  <span class="truncate">{{ c.email }}</span>
+                </a>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            (click)="onEdit()"
+            matTooltip="Bilgileri Düzenle"
+            matTooltipPosition="below"
+            class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          >
+            <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+            <span>Düzenle</span>
+          </button>
+          <button
+            type="button"
+            (click)="onClose()"
+            aria-label="Kapat"
+            class="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer transition-colors"
+          >
+            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick KPI Strip -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 p-4 sm:p-5 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+        <div class="bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl p-3 border border-slate-100 dark:border-slate-800">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Toplam Harcama</div>
+          <div class="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-0.5">
+            ₺{{ totalSpent() | number: '1.2-2' }}
+          </div>
+        </div>
+        <div class="bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl p-3 border border-slate-100 dark:border-slate-800">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Toplam Seans</div>
+          <div class="text-base sm:text-lg font-black text-indigo-600 dark:text-indigo-400 mt-0.5">
+            {{ sessions().length }}
+          </div>
+        </div>
+        <div class="bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl p-3 border border-slate-100 dark:border-slate-800">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Aktif Paket</div>
+          <div class="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+            {{ activePackageCount() }}
+          </div>
+        </div>
+        <div class="bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl p-3 border border-slate-100 dark:border-slate-800">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">KVKK Onayı</div>
+          <div class="mt-1">
+            <span
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold"
+              [class]="
+                c.kvkkOnay
+                  ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                  : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
+              "
+            >
+              <mat-icon
+                class="icon-size-3"
+                [svgIcon]="c.kvkkOnay ? 'heroicons_outline:check' : 'heroicons_outline:x-mark'"
+              ></mat-icon>
+              {{ c.kvkkOnay ? 'Alındı' : 'Alınmadı' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="px-4 sm:px-6 pt-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 overflow-x-auto custom-scroll shrink-0">
+        <button
+          type="button"
+          (click)="activeTab.set('overview')"
+          class="pb-2.5 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          [class]="
+            activeTab() === 'overview'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+          "
+        >
+          <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:identification'"></mat-icon>
+          <span>Genel Bilgiler</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="activeTab.set('sessions')"
+          class="pb-2.5 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          [class]="
+            activeTab() === 'sessions'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+          "
+        >
+          <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+          <span>Seanslar</span>
+          <span
+            class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+            [class]="
+              activeTab() === 'sessions'
+                ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+            "
+          >
+            {{ sessions().length }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          (click)="activeTab.set('packages')"
+          class="pb-2.5 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          [class]="
+            activeTab() === 'packages'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+          "
+        >
+          <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:tag'"></mat-icon>
+          <span>Paketler</span>
+          <span
+            class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+            [class]="
+              activeTab() === 'packages'
+                ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+            "
+          >
+            {{ packages().length }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          (click)="activeTab.set('payments')"
+          class="pb-2.5 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+          [class]="
+            activeTab() === 'payments'
+              ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+          "
+        >
+          <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:credit-card'"></mat-icon>
+          <span>Ödemeler</span>
+          <span
+            class="px-1.5 py-0.2 rounded-full text-[10px] font-bold"
+            [class]="
+              activeTab() === 'payments'
+                ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+            "
+          >
+            {{ payments().length }}
+          </span>
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="p-4 sm:p-6 overflow-y-auto custom-scroll flex-1 space-y-4">
+        <!-- 1. OVERVIEW TAB -->
+        @if (activeTab() === 'overview') {
+          <div class="space-y-4">
+            <!-- Health Note Alert -->
+            @if (c.saglikNotu) {
+              <div
+                class="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start gap-3.5"
+              >
+                <div
+                  class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0 shadow-xs"
+                >
+                  <mat-icon class="icon-size-5" [svgIcon]="'heroicons_outline:exclamation-triangle'"></mat-icon>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-200 m-0">
+                    Özel Sağlık ve Hassasiyet Notu
+                  </h4>
+                  <p class="text-xs sm:text-sm text-amber-800 dark:text-amber-300 mt-1 m-0 leading-relaxed font-semibold">
+                    {{ c.saglikNotu }}
+                  </p>
+                </div>
+              </div>
+            } @else {
+              <div
+                class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex items-center gap-3"
+              >
+                <mat-icon class="icon-size-4.5 text-emerald-500" [svgIcon]="'heroicons_outline:check-circle'"></mat-icon>
+                <span class="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                  Kayıtlı herhangi bir özel medikal engel, hassasiyet veya alerji uyarısı bulunmuyor.
+                </span>
+              </div>
+            }
+
+            <!-- Details Key-Value Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-500 dark:text-slate-400">Telefon</span>
+                  <a [href]="'tel:' + c.telefon" class="font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                    {{ c.telefon }}
+                  </a>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-500 dark:text-slate-400">E-posta</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-200">{{ c.email || '—' }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-500 dark:text-slate-400">Cinsiyet</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-200 capitalize">
+                    {{ genderLabels[c.cinsiyet] || 'Belirtilmedi' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-500 dark:text-slate-400">Müşteri Kaynağı</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-200">{{ c.kaynak || 'Walk-in / Doğrudan' }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-500 dark:text-slate-400">Kayıt Tarihi</span>
+                  <span class="font-semibold text-slate-800 dark:text-slate-200">
+                    {{ c.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}
+                  </span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-500 dark:text-slate-400">Durum</span>
+                  <span class="font-semibold" [class]="c.active ? 'text-emerald-600' : 'text-slate-500'">
+                    {{ c.active ? 'Aktif Portföy' : 'Pasif' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Customer Tags Section -->
+            <div class="p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                Müşteri Segmenti & Etiketler
+              </div>
+              @if (c.etiketler.length) {
+                <div class="flex flex-wrap gap-1.5">
+                  @for (tag of c.etiketler; track tag) {
+                    <span
+                      class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold"
+                    >
+                      #{{ tag }}
+                    </span>
+                  }
+                </div>
+              } @else {
+                <p class="text-xs text-slate-400 italic m-0">Henüz segment etiketi atanmamış.</p>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- 2. SESSIONS TAB -->
+        @if (activeTab() === 'sessions') {
+          <div class="space-y-3">
+            @for (s of sessions(); track s.id) {
+              <div
+                class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 hover:border-indigo-200 dark:hover:border-indigo-800/60 transition-colors"
+              >
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="font-mono text-xs font-bold text-slate-900 dark:text-white">
+                      {{ s.receiptNo }}
+                    </span>
+                    <span class="text-[10px] text-slate-400">•</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      {{ s.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}
+                    </span>
+                  </div>
+                  <div class="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                    <mat-icon class="icon-size-3.5 text-slate-400" [svgIcon]="'heroicons_outline:user'"></mat-icon>
+                    <span>Personel: {{ staffName().get(s.staffId) || 'Genel Terapist' }}</span>
+                  </div>
+                </div>
+
+                <div class="text-right shrink-0">
+                  <div class="text-sm font-black text-slate-900 dark:text-white">
+                    ₺{{ s.totalAmount | number: '1.2-2' }}
+                  </div>
+                  <span class="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                    Tamamlandı
+                  </span>
+                </div>
+              </div>
+            } @empty {
+              <div class="py-12 text-center text-slate-400">
+                <mat-icon class="icon-size-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" [svgIcon]="'heroicons_outline:calendar'"></mat-icon>
+                <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Henüz Tamamlanan Seans Bulunmuyor</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Müşteri için POS satışından seans açıldığında burada listelenecektir.</p>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- 3. PACKAGES TAB -->
+        @if (activeTab() === 'packages') {
+          <div class="space-y-3">
+            @for (p of packages(); track p.id) {
+              <div
+                class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4"
+              >
+                <div>
+                  <div class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mb-0.5">
+                    {{ planName().get(p.packagePlanId) || 'Özel Seans Paketi' }}
+                  </div>
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                    Bitiş Tarihi: {{ p.bitisTarihi | fsDate: 'dd.MM.yyyy' }}
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3 shrink-0">
+                  <div class="text-right">
+                    <div class="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      {{ p.kalanSeans }} / {{ p.toplamSeans }} Hak
+                    </div>
+                    <span class="text-[10px] text-slate-400">Kalan Kullanım</span>
+                  </div>
+                  <app-status-badge
+                    [label]="
+                      p.status === 'active'
+                        ? 'Aktif'
+                        : p.status === 'expired'
+                          ? 'Süresi Doldu'
+                          : 'Tamamlandı'
+                    "
+                    [variant]="
+                      p.status === 'active'
+                        ? 'emerald'
+                        : p.status === 'expired'
+                          ? 'rose'
+                          : 'slate'
+                    "
+                  ></app-status-badge>
+                </div>
+              </div>
+            } @empty {
+              <div class="py-12 text-center text-slate-400">
+                <mat-icon class="icon-size-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" [svgIcon]="'heroicons_outline:tag'"></mat-icon>
+                <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Tanımlı Paket Bulunmuyor</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Müşteri henüz aktif bir seans paketi satın almadı.</p>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- 4. PAYMENTS TAB -->
+        @if (activeTab() === 'payments') {
+          <div class="space-y-3">
+            @for (p of payments(); track p.id) {
+              <div
+                class="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4"
+              >
+                <div>
+                  <div class="font-bold text-xs text-slate-900 dark:text-white mb-0.5">
+                    {{ paymentMethodLabels[p.method] || 'Ödeme' }}
+                    @if (p.note) {
+                      <span class="text-slate-400 font-normal"> — {{ p.note }}</span>
+                    }
+                  </div>
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                    {{ p.createdAt | fsDate: 'dd.MM.yyyy HH:mm' }}
+                  </div>
+                </div>
+
+                <div
+                  class="text-sm font-black text-right shrink-0"
+                  [class]="p.amount < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'"
+                >
+                  ₺{{ p.amount | number: '1.2-2' }}
+                </div>
+              </div>
+            } @empty {
+              <div class="py-12 text-center text-slate-400">
+                <mat-icon class="icon-size-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" [svgIcon]="'heroicons_outline:credit-card'"></mat-icon>
+                <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Ekstra Ödeme Kaydı Yok</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Seans harici münferit ödeme veya bakiye yüklemesi bulunmuyor.</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div
+        class="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between gap-3 shrink-0"
+      >
+        <span class="text-[11px] text-slate-400 hidden sm:inline">
+          ID: {{ c.id }}
+        </span>
+
+        <div class="flex items-center gap-2.5 ml-auto">
+          <button
+            type="button"
+            (click)="onEdit()"
+            class="px-4 py-2 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800/60 transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <mat-icon class="icon-size-4" [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+            <span>Müşteriyi Düzenle</span>
+          </button>
+          <button
+            type="button"
+            (click)="onClose()"
+            class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            Kapat
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
