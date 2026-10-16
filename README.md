@@ -1,6 +1,6 @@
 # OdivonSPA
 
-Spa / masaj işletmeleri için çok kiracılı (multi-tenant) yönetim paneli. Angular 22 (standalone, signals, zoneless) + Tailwind + Firebase Auth + Hosting. Tüm veri **Odivon Main API** üzerinden gelir (`OdivonMainApi` deposu, `/api/v1/spa/*`, modül `spa`); istemci Firestore'a doğrudan erişmez.
+Spa / masaj işletmeleri için çok kiracılı (multi-tenant) yönetim paneli. Angular 22 (standalone, signals, zoneless) + Tailwind + Firebase Auth + Cloudflare Pages. Tüm veri **Odivon Main API** üzerinden gelir (`OdivonMainApi` deposu, `/api/v1/spa/*`, modül `spa`); istemci Firestore'a doğrudan erişmez.
 
 ## Geliştirme
 
@@ -31,8 +31,7 @@ npm test                  # Angular birim testleri
 ## Deploy
 
 ```bash
-npx ng build --configuration production
-firebase deploy --only hosting,firestore
+npm run deploy:cloudflare
 ```
 
-`master` dalına push yapılınca GitHub Actions üretim derlemesini alıp Firebase Hosting'i (`odivonspa` projesi) yayımlar. Bu projenin Firestore kuralları artık tüm erişimi kapatır; veri Main API'nin kendi projesindedir. Kimlik doğrulama GitHub OIDC ile `github-firebase-deploy@odivonspa.iam.gserviceaccount.com` servis hesabı üzerinden yapılır.
+`master` dalına push yapılınca GitHub Actions testleri ve üretim derlemesini çalıştırıp `odivonspa` Cloudflare Pages projesini yayımlar. İş akışı için GitHub Actions secrets altında `CLOUDFLARE_API_TOKEN` ve `CLOUDFLARE_ACCOUNT_ID` tanımlanmalıdır. Cloudflare Pages ve Firebase Authentication ücretsiz planlarla kullanılabilir; frontend dağıtımı Firebase Hosting'e gönderilmez.

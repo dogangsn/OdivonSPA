@@ -1,12 +1,14 @@
 {
   "name": "odivon-spa",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "scripts": {
     "ng": "ng",
     "prestart": "node scripts/write-version.mjs",
     "start": "ng serve",
     "prebuild": "node scripts/write-version.mjs",
     "build": "ng build",
+    "preview:cloudflare": "npm run build && wrangler pages dev . --cwd dist/odivon-spa/browser",
+    "deploy:cloudflare": "npm run build && wrangler pages deploy . --cwd dist/odivon-spa/browser --project-name odivonspa --branch master",
     "prewatch": "node scripts/write-version.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -45,6 +47,7 @@
     "prettier": "^3.8.1",
     "tailwindcss": "^3.4.19",
     "typescript": "~6.0.2",
-    "vitest": "^4.0.8"
+    "vitest": "^4.0.8",
+    "wrangler": "^4.151.1"
   }
 }
