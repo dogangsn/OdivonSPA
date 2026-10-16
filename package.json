@@ -1,6 +1,6 @@
 {
   "name": "odivon-spa",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "scripts": {
     "ng": "ng",
     "prestart": "node scripts/write-version.mjs",
@@ -10,7 +10,7 @@
     "prewatch": "node scripts/write-version.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "postinstall": "node scripts/build-icons.mjs && node scripts/write-version.mjs",
+    "postinstall": "node scripts/build-icons.mjs && node scripts/write-version.mjs && node scripts/setup-git-hooks.mjs",
     "version:bump": "node scripts/bump-version.mjs"
   },
   "private": true,

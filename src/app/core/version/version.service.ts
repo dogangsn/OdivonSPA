@@ -110,15 +110,6 @@ export class VersionService {
   }
 
   private async checkRemote(): Promise<void> {
-    // Avoid blocking modal during local development unless opened manually
-    if (
-      typeof window !== 'undefined' &&
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
-      !this.manualOpen()
-    ) {
-      return;
-    }
-
     try {
       const response = await fetch(`/version.json?t=${Date.now()}`, {
         cache: 'no-store',
@@ -126,7 +117,17 @@ export class VersionService {
       });
       if (!response.ok) return;
       const remote = (await response.json()) as BuildInfo;
-      if (remote?.buildId && remote.buildId !== this.current.buildId) {
+      if (!remote?.version) return;
+
+      const isNewVersion =
+        compareVersions(remote.version, this.current.version) > 0 ||
+        (remote.version === this.current.version &&
+          remote.commit &&
+          remote.commit !== 'local' &&
+          this.current.commit !== 'local' &&
+          remote.commit !== this.current.commit);
+
+      if (isNewVersion) {
         this.available.set(remote);
       }
     } catch {

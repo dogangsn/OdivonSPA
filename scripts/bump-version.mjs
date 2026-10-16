@@ -35,6 +35,6 @@ if (semver.length === 3 && !semver.some(isNaN)) {
 
   // Stage changes if git is available
   try {
-    execSync('git add package.json package-lock.json', { cwd: root });
+    execSync('git add package.json package-lock.json public/version.json src/app/core/version/build-info.generated.ts', { cwd: root });
   } catch {}
 }
