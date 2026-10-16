@@ -3,86 +3,374 @@
   min-height: 100vh;
 }
 
+/* ==========================================================================
+   Sol Panel: Lüks Ambient & Canlı Animasyonlu Sahne
+   ========================================================================== */
 .login-visual {
+  position: relative;
+  background-color: #080d1a;
+  overflow: hidden;
+}
+
+/* Arka plan spa görseli ve koyu katman harmanı */
+.login-visual-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/login-spa-ambient.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.38;
+  filter: contrast(1.15) saturate(1.1);
+  transform: scale(1.03);
+  animation: slowZoom 24s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes slowZoom {
+  0% {
+    transform: scale(1.02) translate(0, 0);
+  }
+  100% {
+    transform: scale(1.08) translate(-1%, -1%);
+  }
+}
+
+/* Koyu degrade kaplama */
+.login-visual-overlay {
+  position: absolute;
+  inset: 0;
   background:
-    radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.35), transparent 36%),
-    radial-gradient(circle at 85% 72%, rgba(139, 92, 246, 0.22), transparent 34%),
-    linear-gradient(145deg, #0b1120 0%, #080d19 45%, #130f2e 100%);
-  margin: 0;
-  border-radius: 0;
+    radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.2) 0%, transparent 45%),
+    linear-gradient(180deg, rgba(8, 13, 26, 0.75) 0%, rgba(8, 13, 26, 0.88) 50%, rgba(8, 13, 26, 0.98) 100%);
+  pointer-events: none;
 }
 
-.login-grid {
+/* Modern Grid Çizgileri */
+.login-grid-pattern {
+  position: absolute;
+  inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: linear-gradient(to bottom, black, transparent 95%);
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.9) 0%, transparent 80%);
+  pointer-events: none;
 }
 
-.login-orb {
-  background: linear-gradient(145deg, rgba(99, 102, 241, 0.38), rgba(217, 70, 239, 0.1));
-  filter: blur(2px);
-  box-shadow: inset 0 0 80px rgba(255, 255, 255, 0.05), 0 0 100px rgba(99, 102, 241, 0.12);
+/* Dinamik Hareketli Ambient Orblar */
+.ambient-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  pointer-events: none;
+  opacity: 0.6;
 }
 
-.login-gradient-text {
-  background: linear-gradient(100deg, #c7d2fe 0%, #a5b4fc 40%, #e9d5ff 100%);
+.ambient-orb-1 {
+  width: 420px;
+  height: 420px;
+  top: 10%;
+  right: -80px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.65) 0%, rgba(139, 92, 246, 0.2) 70%, transparent 100%);
+  animation: floatOrb1 16s ease-in-out infinite alternate;
+}
+
+.ambient-orb-2 {
+  width: 380px;
+  height: 380px;
+  bottom: 8%;
+  left: -60px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.5) 0%, rgba(6, 182, 212, 0.2) 70%, transparent 100%);
+  animation: floatOrb2 20s ease-in-out infinite alternate;
+}
+
+.ambient-orb-3 {
+  width: 300px;
+  height: 300px;
+  top: 48%;
+  left: 30%;
+  background: radial-gradient(circle, rgba(217, 70, 239, 0.35) 0%, rgba(99, 102, 241, 0.1) 70%, transparent 100%);
+  animation: floatOrb3 18s ease-in-out infinite alternate;
+}
+
+@keyframes floatOrb1 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-40px, 30px) scale(1.1);
+  }
+  100% {
+    transform: translate(-80px, -20px) scale(0.95);
+  }
+}
+
+@keyframes floatOrb2 {
+  0% {
+    transform: translate(0, 0) scale(0.95);
+  }
+  50% {
+    transform: translate(50px, -40px) scale(1.08);
+  }
+  100% {
+    transform: translate(30px, 20px) scale(1);
+  }
+}
+
+@keyframes floatOrb3 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-30px, -50px) scale(1.15);
+  }
+  100% {
+    transform: translate(40px, -20px) scale(0.9);
+  }
+}
+
+/* Başlık Gradient Metni */
+.login-gradient-title {
+  background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 45%, #c084fc 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.feature-tile {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  min-width: 0;
-  padding: 0.875rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.875rem;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(241, 245, 249, 0.95);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  backdrop-filter: blur(12px);
+/* Cam Efektli Vitrin Kartları (Glassmorphism) */
+.glass-card-root {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 20px 40px -15px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border-radius: 1.5rem;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow:
+      0 28px 56px -15px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
 }
 
-.auth-input {
-  width: 100%;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 0.75rem;
+/* Yüzen Mikro Kart Animasyonları */
+.floating-card-1 {
+  animation: floatCardSlow 6s ease-in-out infinite alternate;
+}
+
+.floating-card-2 {
+  animation: floatCardSlower 7.5s ease-in-out infinite alternate;
+}
+
+@keyframes floatCardSlow {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-8px) rotate(-0.5deg);
+  }
+}
+
+@keyframes floatCardSlower {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  100% {
+    transform: translateY(8px) rotate(0.6deg);
+  }
+}
+
+/* Mini Grafik Çubukları */
+.stat-bar {
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #818cf8 0%, #4f46e5 100%);
+  transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: statPulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes statPulse {
+  0% {
+    filter: brightness(1);
+  }
+  100% {
+    filter: brightness(1.2);
+  }
+}
+
+/* Canlı Nabız Noktası */
+.live-pulse-dot {
+  position: relative;
+  display: inline-flex;
+  height: 8px;
+  width: 8px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 9999px;
+    background-color: inherit;
+    animation: livePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+}
+
+@keyframes livePing {
+  75%, 100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   Sağ Panel: Ultra Modern Giriş Formu & Tipografi
+   ========================================================================== */
+
+/* Sağ panel arka planı için süptil modern aydınlatma */
+.login-form-surface {
   background: #ffffff;
-  padding: 0.8125rem 1rem 0.8125rem 2.875rem;
-  color: #0f172a;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 380px;
+    height: 380px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+}
+
+:host-context(.dark) .login-form-surface {
+  background: #0b1120;
+
+  &::before {
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+  }
+}
+
+/* Modern Input Kontrolleri */
+.modern-input-field {
+  width: 100%;
+  font-family: inherit;
   font-size: 0.875rem;
   font-weight: 600;
+  color: #0f172a;
+  background-color: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 0.875rem 1rem 0.875rem 3rem;
   outline: none;
-  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 
   &::placeholder {
     color: #94a3b8;
-    font-weight: 400;
+    font-weight: 450;
   }
 
   &:hover {
+    background-color: #f1f5f9;
     border-color: #cbd5e1;
   }
 
   &:focus {
+    background-color: #ffffff;
     border-color: #6366f1;
-    background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.14), 0 2px 4px rgba(15, 23, 42, 0.04);
   }
 }
 
+:host-context(.dark) .modern-input-field {
+  color: #f8fafc;
+  background-color: rgba(30, 41, 59, 0.6);
+  border-color: #334155;
+
+  &::placeholder {
+    color: #64748b;
+  }
+
+  &:hover {
+    background-color: rgba(30, 41, 59, 0.85);
+    border-color: #475569;
+  }
+
+  &:focus {
+    background-color: #0f172a;
+    border-color: #818cf8;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25);
+  }
+}
+
+/* Modern Buton Shimmer & Hover Işıltısı */
+.modern-submit-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #8b5cf6 100%);
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 0.875rem;
+  box-shadow: 0 10px 24px -6px rgba(79, 70, 229, 0.4);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+    transition: left 0.6s ease;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px -6px rgba(79, 70, 229, 0.55);
+    filter: brightness(1.05);
+
+    &::after {
+      left: 100%;
+    }
+
+    .btn-arrow-icon {
+      transform: translateX(4px);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 6px 14px -4px rgba(79, 70, 229, 0.4);
+  }
+
+  .btn-arrow-icon {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.2s ease;
+  }
+}
+
+
+
+/* Spinner Animasyonu */
 .login-spinner {
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid rgba(99, 102, 241, 0.22);
-  border-top-color: #6366f1;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
   border-radius: 9999px;
-  animation: login-spin 700ms linear infinite;
+  animation: login-spin 0.65s linear infinite;
+}
+
+.login-spinner-dark {
+  border-color: rgba(99, 102, 241, 0.25);
+  border-top-color: #6366f1;
 }
 
 @keyframes login-spin {
@@ -92,7 +380,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .login-spinner {
-    animation-duration: 1.4s;
+  .login-visual-bg,
+  .ambient-orb-1,
+  .ambient-orb-2,
+  .ambient-orb-3,
+  .floating-card-1,
+  .floating-card-2,
+  .stat-bar {
+    animation: none !important;
   }
 }
