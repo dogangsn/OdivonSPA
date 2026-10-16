@@ -33,7 +33,7 @@ export type { AppNotification };
   styleUrl: './shell.scss',
 })
 export class Shell {
-  private readonly STORAGE_KEY_COLLAPSED = 'odivon_collapsed_menu_groups';
+  private readonly STORAGE_KEY_COLLAPSED = 'odivon_collapsed_menu_groups_v3';
   private readonly STORAGE_KEY_SIDEBAR = 'odivon_desktop_sidebar_visible';
 
   readonly auth = inject(AuthService);
@@ -129,14 +129,22 @@ export class Shell {
     return null;
   }
 
+  private getDefaultCollapsedGroups(): string[] {
+    return NAV_GROUPS.map((g) => g.title).filter((title) => title !== 'GENEL');
+  }
+
   private loadCollapsedGroups(): string[] {
     try {
       const storage = this.getStorage();
-      if (!storage) return [];
+      if (!storage) return this.getDefaultCollapsedGroups();
       const stored = storage.getItem(this.STORAGE_KEY_COLLAPSED);
-      return stored ? JSON.parse(stored) : [];
+      if (!stored) {
+        return this.getDefaultCollapsedGroups();
+      }
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed : this.getDefaultCollapsedGroups();
     } catch {
-      return [];
+      return this.getDefaultCollapsedGroups();
     }
   }
 

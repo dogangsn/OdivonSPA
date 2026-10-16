@@ -1,58 +1,96 @@
-<main class="min-h-screen w-full flex flex-col lg:flex-row bg-white relative overflow-hidden select-none">
-  <!-- Left Column: Edge-to-edge Visual Brand Showcase (Desktop only) -->
-  <section class="hidden lg:flex flex-col justify-between w-1/2 min-h-screen p-10 xl:p-16 text-white relative overflow-hidden onboarding-visual border-r border-slate-800/80">
+<main class="min-h-screen w-full flex flex-col lg:flex-row bg-slate-50 dark:bg-[#0b1120] relative overflow-hidden select-none font-sans">
+  
+  <!-- =========================================================================
+       SOL SÜTUN: Kurulum Adımları & Marka Vitrini
+       ========================================================================= -->
+  <section class="hidden lg:flex flex-col justify-between w-1/2 min-h-screen p-10 xl:p-14 text-white relative overflow-hidden onboarding-visual border-r border-slate-800/80">
     <div class="onboarding-grid pointer-events-none absolute inset-0 opacity-40"></div>
     <div class="onboarding-orb pointer-events-none absolute -right-32 top-1/3 h-96 w-96 rounded-full"></div>
 
-    <div class="relative z-10 flex items-center gap-3">
-      <app-logo [size]="48" class="overflow-hidden rounded-2xl shadow-xl shadow-indigo-950/40"></app-logo>
+    <!-- Üst Logo -->
+    <div class="relative z-10 flex items-center gap-3.5">
+      <app-logo [size]="48" class="overflow-hidden rounded-2xl shadow-xl shadow-indigo-950/40 ring-1 ring-white/20"></app-logo>
       <div>
-        <div class="text-xl font-black tracking-tight text-white">OdivonSPA</div>
-        <div class="text-[10px] font-bold uppercase tracking-[0.24em] text-indigo-200/80">İşletme Yönetimi</div>
+        <div class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+          <span>OdivonSPA</span>
+          <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-gradient-to-r from-indigo-500/40 to-purple-500/40 border border-white/20 text-indigo-200">ERP</span>
+        </div>
+        <div class="text-[11px] font-bold uppercase tracking-[0.24em] text-indigo-200/80">İşletme Yönetimi</div>
       </div>
     </div>
 
-    <div class="relative z-10 max-w-lg py-10">
-      <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-indigo-100 backdrop-blur-md">
-        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)]"></span>
-        Hızlı işletme kurulumu
-      </span>
-      <h1 class="mt-7 text-4xl font-black leading-[1.08] tracking-[-0.04em] text-white xl:text-5xl">
+    <!-- Orta Tanıtım & Kurulum Adımları -->
+    <div class="relative z-10 max-w-lg my-auto py-8 space-y-6">
+      <div class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-bold text-indigo-100 backdrop-blur-md">
+        <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]"></span>
+        <span>Hızlı ve Güvenli Kurulum</span>
+      </div>
+
+      <h1 class="text-4xl xl:text-5xl font-black leading-[1.12] tracking-tight text-white">
         İşletmenizi kurun,
         <span class="onboarding-gradient-text block">yönetmeye başlayın.</span>
       </h1>
-      <p class="mt-5 max-w-md text-sm font-medium leading-7 text-slate-300 xl:text-base">
-        İşletme bilgilerinizi tamamlayın. Yönetici hesabınız oluşturulduğunda çalışma alanınız kullanıma hazır olacak.
+      
+      <p class="text-sm xl:text-base font-normal leading-relaxed text-slate-300/90 max-w-md">
+        Temel işletme bilgilerinizi tamamlayın; randevular, personel ve finans operasyonlarınız dakikalar içinde kullanıma hazır olsun.
       </p>
 
-      <ol class="mt-10 space-y-5" aria-label="Kurulum adımları">
-        <li class="setup-step setup-step-active"><span class="setup-step-number">1</span><span><strong>İşletme bilgileri</strong><small>İşletmenizi ve sizi tanıyalım</small></span></li>
-        <li class="setup-step" [class.setup-step-active]="registeredSuccess()"><span class="setup-step-number">2</span><span><strong>E-posta doğrulama</strong><small>Hesabınızı güvenle onaylayın</small></span></li>
-        <li class="setup-step"><span class="setup-step-number">3</span><span><strong>Yönetim paneli</strong><small>Ekibinizle çalışmaya başlayın</small></span></li>
+      <!-- Adım Göstergesi -->
+      <ol class="mt-8 space-y-4" aria-label="Kurulum adımları">
+        <li class="setup-step setup-step-active">
+          <span class="setup-step-number">1</span>
+          <span>
+            <strong>İşletme Bilgileri</strong>
+            <small>İşletmenizi ve çalışma alanınızı belirleyin</small>
+          </span>
+        </li>
+        <li class="setup-step" [class.setup-step-active]="registeredSuccess()">
+          <span class="setup-step-number">2</span>
+          <span>
+            <strong>E-Posta Doğrulama</strong>
+            <small>Hesabınızı güvenle onaylayın</small>
+          </span>
+        </li>
+        <li class="setup-step">
+          <span class="setup-step-number">3</span>
+          <span>
+            <strong>Yönetim Paneli</strong>
+            <small>Ekibinizle çalışmaya başlayın</small>
+          </span>
+        </li>
       </ol>
     </div>
 
-    <div class="relative z-10 flex items-center justify-between border-t border-white/10 pt-6 text-[11px] font-semibold text-slate-400">
-      <span>Odivon teknoloji altyapısı</span>
-      <span class="inline-flex items-center gap-1.5">
-        <svg class="h-4 w-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6-3.75a12 12 0 0 1-9 3.75A12 12 0 0 1 3 6c0 5.59 3.82 10.29 9 11.62 5.18-1.33 9-6.03 9-11.62Z" /></svg>
-        Güvenli erişim
+    <!-- Alt Güvenlik İmzası -->
+    <div class="relative z-10 flex items-center justify-between border-t border-white/10 pt-5 text-xs font-semibold text-slate-400">
+      <span class="flex items-center gap-2">
+        <svg class="h-4 w-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6-3.75a12 12 0 0 1-9 3.75A12 12 0 0 1 3 6c0 5.59 3.82 10.29 9 11.62 5.18-1.33 9-6.03 9-11.62Z" />
+        </svg>
+        <span>256-Bit SSL Uçtan Uca Koruma</span>
       </span>
+      <span>© Odivon Teknoloji</span>
     </div>
   </section>
 
-  <!-- Right Column: Registration Form (Pure white background) -->
-  <section class="w-full lg:w-1/2 min-h-screen flex flex-col justify-center items-center p-6 sm:p-10 lg:p-16 bg-white overflow-y-auto relative z-10">
-    <div class="w-full max-w-[520px] my-auto py-6">
+  <!-- =========================================================================
+       SAĞ SÜTUN: Ultra-Modern Kayıt Formu
+       ========================================================================= -->
+  <section class="w-full lg:w-1/2 min-h-screen flex flex-col justify-center items-center p-6 sm:p-10 lg:p-16 onboarding-form-surface overflow-y-auto relative z-10">
+    <div class="w-full max-w-[500px] my-auto py-8">
+      
+      <!-- Mobil Logo -->
       <div class="mb-8 flex items-center gap-3 lg:hidden">
-        <app-logo [size]="44" class="overflow-hidden rounded-xl shadow-lg shadow-indigo-500/15"></app-logo>
-        <div><div class="text-xl font-black tracking-tight text-slate-900">OdivonSPA</div><div class="text-[9px] font-bold uppercase tracking-[0.22em] text-slate-400">İşletme Yönetimi</div></div>
+        <app-logo [size]="44" class="overflow-hidden rounded-xl shadow-lg shadow-indigo-500/20"></app-logo>
+        <div>
+          <div class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">OdivonSPA</div>
+          <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-400">İşletme Yönetimi</div>
+        </div>
       </div>
 
-      <!-- STATE A: REGISTRATION SUCCESS - VERIFICATION PENDING -->
+      <!-- DURUM A: KAYIT BAŞARILI - E-POSTA DOĞRULAMA BEKLENİYOR -->
       @if (registeredSuccess(); as success) {
-        <div class="rounded-3xl border border-slate-200/90 bg-white p-7 sm:p-9 shadow-xl shadow-slate-200/40 space-y-6 animate-in fade-in zoom-in-95 duration-300">
-          <!-- Icon -->
+        <div class="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-7 sm:p-9 shadow-xl shadow-slate-200/40 dark:shadow-none space-y-6 animate-in fade-in zoom-in-95 duration-300">
           <div class="relative mx-auto w-20 h-20 flex items-center justify-center">
             <div class="absolute inset-0 rounded-3xl bg-indigo-500/20 blur-xl animate-pulse"></div>
             <div class="relative w-20 h-20 rounded-3xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-xl shadow-indigo-500/30 border border-white/20">
@@ -63,65 +101,37 @@
           </div>
 
           <div class="text-center">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 mb-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 mb-3">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-              E-POSTA DOĞRULAMA GEREKLİ
+              Onay Bekleniyor
             </span>
-            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-2">
-              Doğrulama E-postası Gönderildi!
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-md mx-auto">
-              Sayın <strong class="text-slate-900">{{ success.displayName }}</strong>, 
-              <strong class="text-indigo-600">{{ success.tenantName }}</strong> işletmeniz için hesabınız oluşturuldu.
+            <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">Doğrulama E-Postası Gönderildi</h2>
+            <p class="mt-3 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              Sayın <strong class="text-slate-900 dark:text-white font-bold">{{ success.displayName }}</strong>, <strong class="text-indigo-600 dark:text-indigo-400 font-bold">{{ success.tenantName }}</strong> işletmeniz için kaydınız başarıyla alındı.
             </p>
-
-            <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 text-xs font-semibold">
-              <svg class="h-4 w-4 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.24a2.25 2.25 0 0 1-1.07 1.91l-7.5 4.61a2.25 2.25 0 0 1-2.36 0L3.32 8.9a2.25 2.25 0 0 1-1.07-1.91v-.24" />
-              </svg>
-              <span>{{ success.email }}</span>
-            </div>
           </div>
 
-          <!-- Steps Guide -->
-          <div class="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 space-y-2.5 text-xs text-slate-600">
-            <div class="flex items-start gap-2.5">
-              <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 font-bold text-[10px]">1</span>
-              <span>E-posta kutunuza gönderdiğimiz doğrulama mesajını açın.</span>
-            </div>
-            <div class="flex items-start gap-2.5">
-              <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 font-bold text-[10px]">2</span>
-              <span>İçerisindeki <strong>"E-Posta Adresimi Doğrula"</strong> butonuna tıklayın.</span>
-            </div>
-            <div class="flex items-start gap-2.5">
-              <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 font-bold text-[10px]">3</span>
-              <span>E-posta gelmediyse Spam/Gereksiz klasörünü kontrol edin.</span>
-            </div>
+          <div class="rounded-2xl border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/60 dark:bg-indigo-950/40 p-4 text-center">
+            <div class="text-xs font-semibold text-slate-500 dark:text-slate-400">Doğrulama bağlantısı şuraya iletildi:</div>
+            <div class="mt-1 text-sm font-black text-indigo-700 dark:text-indigo-300 tracking-wide font-mono">{{ success.email }}</div>
           </div>
 
           @if (resendSuccess()) {
-            <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs text-emerald-800 animate-in fade-in duration-200">
-              <svg class="h-4 w-4 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center justify-center gap-2">
+              <svg class="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
               </svg>
-              <span>Doğrulama bağlantısı e-posta adresinize tekrar gönderildi!</span>
+              <span>Yeni doğrulama bağlantısı başarıyla tekrar gönderildi!</span>
             </div>
           }
 
-          @if (errorMessage()) {
-            <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700">
-              {{ errorMessage() }}
-            </div>
-          }
-
-          <!-- Action Buttons -->
-          <div class="space-y-3 pt-2">
+          <div class="pt-2 space-y-3">
             <a
               routerLink="/auth/login"
-              class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer no-underline"
+              class="modern-submit-btn flex w-full items-center justify-center gap-2 px-6 py-3.5 text-sm font-bold text-white shadow-md shadow-indigo-600/25"
             >
-              <span>Giriş Ekranına Git</span>
-              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <span>Giriş Sayfasına Git</span>
+              <svg class="btn-arrow-icon shrink-0" style="width: 1.25rem; height: 1.25rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
               </svg>
             </a>
@@ -130,13 +140,13 @@
               type="button"
               (click)="resendVerificationMail()"
               [disabled]="resending()"
-              class="w-full py-3 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+              class="w-full py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               @if (resending()) {
                 <span class="inline-block w-3.5 h-3.5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></span>
                 <span>Gönderiliyor...</span>
               } @else {
-                <svg class="h-4 w-4 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <svg class="h-3.5 w-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                 </svg>
                 <span>Doğrulama E-postasını Tekrar Gönder</span>
@@ -145,70 +155,180 @@
           </div>
         </div>
       } @else {
-        <!-- STATE B: INITIAL REGISTRATION FORM -->
-        <div class="mb-7">
-          <span class="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Yeni çalışma alanı</span>
-          <h2 class="mt-2 text-3xl font-black tracking-[-0.035em] text-slate-900 sm:text-4xl">İşletme hesabınızı oluşturun</h2>
-          <p class="mt-3 text-sm font-medium leading-6 text-slate-500">Temel bilgileri girin; ekibiniz için güvenli çalışma alanınızı başlatalım.</p>
+        <!-- DURUM B: İŞLETME KAYIT FORMU -->
+        <div class="mb-8">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900/50 text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-3">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400"></span>
+            <span>Yeni Çalışma Alanı</span>
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+            İşletme Hesabınızı Oluşturun
+          </h2>
+          <p class="mt-2 text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400">
+            Temel bilgilerinizi girerek çalışma alanınızı hemen başlatın.
+          </p>
         </div>
 
-        @if (!signedInEmail()) {
-          <button type="button" (click)="signUpWithGoogle()" [disabled]="submitting()" [attr.aria-busy]="submitMethod() === 'google'" class="group flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-bold text-slate-700 shadow-xs transition-all hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer">
-            @if (submitMethod() === 'google') {
-              <span class="onboarding-spinner" aria-hidden="true"></span> Google hesabı açılıyor...
-            } @else {
-              <svg class="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z" /><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z" /><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.9-4.7l-7.8-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.8-6.1z" /><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z" /></svg>
-              Google ile hızlıca devam et
-            }
-          </button>
-          <div class="my-6 flex items-center gap-4" aria-hidden="true"><div class="h-px flex-1 bg-slate-200"></div><span class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">veya e-posta ile</span><div class="h-px flex-1 bg-slate-200"></div></div>
-        } @else {
-          <div class="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-sm shadow-emerald-500/20"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg></span>
-            <div class="min-w-0 flex-1"><p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Google hesabı bağlandı</p><p class="mt-1 truncate text-sm font-bold text-slate-800">{{ signedInEmail() }}</p><button type="button" (click)="switchAccount()" class="mt-2 text-xs font-bold text-indigo-600 transition-colors hover:text-indigo-700 cursor-pointer">Farklı hesap kullan</button></div>
-          </div>
-        }
-
-        <form #onboardingForm="ngForm" (ngSubmit)="submit()" class="space-y-5">
-          <div class="grid gap-5 sm:grid-cols-2">
+        <form #onboardingForm="ngForm" (ngSubmit)="submit()" class="space-y-4 sm:space-y-5">
+          
+          <!-- İşletme Adı & Yetkili Adı -->
+          <div class="grid gap-4 sm:grid-cols-2">
             <div>
-              <label for="business-name" class="mb-2 block text-xs font-bold text-slate-700">İşletme adı</label>
-              <div class="group relative"><svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15l-.75 4.5H5.25L4.5 3Zm.75 4.5v11.25h13.5V7.5M9 21v-6.75h6V21" /></svg><input id="business-name" type="text" required minlength="2" autocomplete="organization" [ngModel]="businessName()" (ngModelChange)="businessName.set($event)" name="businessName" placeholder="Örn. Lotus Spa & Wellness" class="onboarding-input" /></div>
-            </div>
-            <div>
-              <label for="owner-name" class="mb-2 block text-xs font-bold text-slate-700">Adınız soyadınız</label>
-              <div class="group relative"><svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.12a7.5 7.5 0 0 1 15 0A17.93 17.93 0 0 1 12 21.75a17.93 17.93 0 0 1-7.5-1.63Z" /></svg><input id="owner-name" type="text" required autocomplete="name" [ngModel]="ownerName()" (ngModelChange)="ownerName.set($event)" name="ownerName" placeholder="Ad Soyad" class="onboarding-input" /></div>
-            </div>
-          </div>
-
-          @if (!signedInEmail()) {
-            <div>
-              <label for="onboarding-email" class="mb-2 block text-xs font-bold text-slate-700">E-posta adresi</label>
-              <div class="group relative"><svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.24a2.25 2.25 0 0 1-1.07 1.91l-7.5 4.61a2.25 2.25 0 0 1-2.36 0L3.32 8.9a2.25 2.25 0 0 1-1.07-1.91v-.24" /></svg><input id="onboarding-email" type="email" required autocomplete="email" [ngModel]="email()" (ngModelChange)="email.set($event)" name="email" placeholder="ornek@isletme.com" class="onboarding-input" /></div>
-            </div>
-            <div>
-              <div class="mb-2 flex items-center justify-between gap-4"><label for="onboarding-password" class="text-xs font-bold text-slate-700">Şifre</label><span class="text-[11px] font-semibold text-slate-400">En az 8 karakter</span></div>
+              <label for="business-name" class="mb-2 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span>İşletme Adı</span>
+              </label>
               <div class="group relative">
-                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 0 0-9 0v3.75m-.75 10.5h10.5a2.25 2.25 0 0 0 2.25-2.25v-6A2.25 2.25 0 0 0 17.25 10.5H6.75a2.25 2.25 0 0 0-2.25 2.25v6A2.25 2.25 0 0 0 6.75 21Z" /></svg>
-                <input id="onboarding-password" [type]="showPassword() ? 'text' : 'password'" required minlength="8" autocomplete="new-password" [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" placeholder="En az 8 karakterli güçlü şifre" class="onboarding-input pr-12" />
-                <button type="button" (click)="showPassword.set(!showPassword())" [attr.aria-label]="showPassword() ? 'Şifreyi gizle' : 'Şifreyi göster'" class="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 cursor-pointer">
-                  @if (showPassword()) { <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.22A10.48 10.48 0 0 0 1.93 12c1.5 4.06 5.4 6.75 10.07 6.75.99 0 1.94-.12 2.84-.35M6.23 6.23A10.4 10.4 0 0 1 12 4.5c4.67 0 8.57 2.69 10.07 6.75a10.45 10.45 0 0 1-4.29 5.03M6.23 6.23 3 3m3.23 3.23 3.4 3.4m8.15 6.65L21 19.5m-3.22-3.22-3.4-3.4m0 0a3 3 0 1 0-4.24-4.24m4.24 4.24L9.64 8.64" /></svg> } @else { <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.04 12.32a1.01 1.01 0 0 1 0-.64C3.42 7.51 7.35 4.5 12 4.5c4.64 0 8.57 3 9.96 7.18.07.21.07.43 0 .64C20.58 16.49 16.65 19.5 12 19.5c-4.64 0-8.57-3-9.96-7.18Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg> }
-                </button>
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15l-.75 4.5H5.25L4.5 3Zm.75 4.5v11.25h13.5V7.5M9 21v-6.75h6V21" />
+                </svg>
+                <input
+                  id="business-name"
+                  type="text"
+                  required
+                  minlength="2"
+                  autocomplete="organization"
+                  [ngModel]="businessName()"
+                  (ngModelChange)="businessName.set($event)"
+                  name="businessName"
+                  placeholder="Örn. Lotus Spa & Wellness"
+                  class="modern-input-field"
+                />
               </div>
             </div>
-          }
 
+            <div>
+              <label for="owner-name" class="mb-2 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span>Adınız Soyadınız</span>
+              </label>
+              <div class="group relative">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.12a7.5 7.5 0 0 1 15 0A17.93 17.93 0 0 1 12 21.75a17.93 17.93 0 0 1-7.5-1.63Z" />
+                </svg>
+                <input
+                  id="owner-name"
+                  type="text"
+                  required
+                  autocomplete="name"
+                  [ngModel]="ownerName()"
+                  (ngModelChange)="ownerName.set($event)"
+                  name="ownerName"
+                  placeholder="Ad Soyad"
+                  class="modern-input-field"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- E-posta Adresi -->
+          <div>
+            <label for="onboarding-email" class="mb-2 flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+              <span>E-posta Adresi</span>
+            </label>
+            <div class="group relative">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.24a2.25 2.25 0 0 1-1.07 1.91l-7.5 4.61a2.25 2.25 0 0 1-2.36 0L3.32 8.9a2.25 2.25 0 0 1-1.07-1.91v-.24" />
+              </svg>
+              <input
+                id="onboarding-email"
+                type="email"
+                required
+                autocomplete="email"
+                [ngModel]="email()"
+                (ngModelChange)="email.set($event)"
+                name="email"
+                placeholder="yonetici@isletme.com"
+                class="modern-input-field"
+              />
+            </div>
+          </div>
+
+          <!-- Şifre -->
+          <div>
+            <div class="mb-2 flex items-center justify-between gap-4">
+              <label for="onboarding-password" class="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Şifre
+              </label>
+              <span class="text-[11px] font-semibold text-slate-400">En az 8 karakter</span>
+            </div>
+            <div class="group relative">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 0 0-9 0v3.75m-.75 10.5h10.5a2.25 2.25 0 0 0 2.25-2.25v-6A2.25 2.25 0 0 0 17.25 10.5H6.75a2.25 2.25 0 0 0-2.25 2.25v6A2.25 2.25 0 0 0 6.75 21Z" />
+              </svg>
+              <input
+                id="onboarding-password"
+                [type]="showPassword() ? 'text' : 'password'"
+                required
+                minlength="8"
+                autocomplete="new-password"
+                [ngModel]="password()"
+                (ngModelChange)="password.set($event)"
+                name="password"
+                placeholder="••••••••••••"
+                class="modern-input-field pr-12 font-mono"
+              />
+              <button
+                type="button"
+                (click)="showPassword.set(!showPassword())"
+                [attr.aria-label]="showPassword() ? 'Şifreyi gizle' : 'Şifreyi göster'"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 transition-colors hover:bg-slate-200/60 dark:hover:bg-slate-700/60 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+              >
+                @if (showPassword()) {
+                  <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.22A10.48 10.48 0 0 0 1.93 12c1.5 4.06 5.4 6.75 10.07 6.75.99 0 1.94-.12 2.84-.35M6.23 6.23A10.4 10.4 0 0 1 12 4.5c4.67 0 8.57 2.69 10.07 6.75a10.45 10.45 0 0 1-4.29 5.03M6.23 6.23 3 3m3.23 3.23 3.4 3.4m8.15 6.65L21 19.5m-3.22-3.22-3.4-3.4m0 0a3 3 0 1 0-4.24-4.24m4.24 4.24L9.64 8.64" />
+                  </svg>
+                } @else {
+                  <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.04 12.32a1.01 1.01 0 0 1 0-.64C3.42 7.51 7.35 4.5 12 4.5c4.64 0 8.57 3 9.96 7.18.07.21.07.43 0 .64C20.58 16.49 16.65 19.5 12 19.5c-4.64 0-8.57-3-9.96-7.18Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                }
+              </button>
+            </div>
+          </div>
+
+          <!-- Hata Bildirimi -->
           @if (errorMessage()) {
-            <div role="alert" aria-live="polite" class="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold leading-5 text-rose-700 animate-in fade-in duration-200"><svg class="mt-0.5 h-4 w-4 shrink-0 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9.3 3.38c.87 1.5-.22 3.37-1.94 3.37H4.64c-1.73 0-2.81-1.87-1.95-3.37L10.06 3.38c.87-1.5 3.01-1.5 3.88 0l7.36 12.75ZM12 16.5h.01v.01H12v-.01Z" /></svg><span>{{ errorMessage() }}</span></div>
+            <div role="alert" aria-live="polite" class="flex items-start gap-3 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/50 p-4 text-xs font-semibold leading-relaxed text-rose-700 dark:text-rose-300 animate-in fade-in slide-in-from-top-1 duration-200">
+              <svg class="mt-0.5 h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9.3 3.38c.87 1.5-.22 3.37-1.94 3.37H4.64c-1.73 0-2.81-1.87-1.95-3.37L10.06 3.38c.87-1.5 3.01-1.5 3.88 0l7.36 12.75ZM12 16.5h.01v.01H12v-.01Z" />
+              </svg>
+              <span>{{ errorMessage() }}</span>
+            </div>
           }
 
-          <button type="submit" [disabled]="submitting() || onboardingForm.invalid" [attr.aria-busy]="submitMethod() === 'form'" class="flex w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
-            @if (submitMethod() === 'form') { <span class="onboarding-spinner border-white/30 border-t-white" aria-hidden="true"></span> İşletme oluşturuluyor... } @else { İşletmeyi oluştur <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg> }
+          <!-- Gönder Butonu (Shimmer Gradient) -->
+          <button
+            type="submit"
+            [disabled]="submitting() || onboardingForm.invalid"
+            [attr.aria-busy]="submitMethod() === 'form'"
+            class="modern-submit-btn flex w-full items-center justify-center gap-2.5 px-6 py-4 text-sm font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            @if (submitMethod() === 'form') {
+              <span class="onboarding-spinner" aria-hidden="true"></span>
+              <span>İşletme oluşturuluyor...</span>
+            } @else {
+              <span>İşletmeyi Oluştur</span>
+              <svg class="btn-arrow-icon shrink-0" style="width: 1.25rem; height: 1.25rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            }
           </button>
         </form>
 
-        <div class="mt-7 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-center text-sm text-slate-600 shadow-2xs">Zaten işletme hesabınız var mı? <a routerLink="/auth/login" class="ml-1 font-bold text-indigo-600 transition-colors hover:text-indigo-700 hover:underline">Giriş yapın</a></div>
+        <!-- Giriş Yap Kartı -->
+        <div class="mt-8 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 p-4 text-center text-xs sm:text-sm text-slate-600 dark:text-slate-400 shadow-xs backdrop-blur-sm">
+          <span>Zaten bir işletme hesabınız var mı?</span>
+          <a routerLink="/auth/login" class="ml-1.5 font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors hover:underline">
+            Giriş yapın →
+          </a>
+        </div>
       }
+
+      <p class="mt-6 text-center text-[11px] font-medium text-slate-400 dark:text-slate-500">
+        Devam ederek Odivon Hizmet Şartları ve Gizlilik Politikasını kabul etmiş olursunuz.
+      </p>
+
     </div>
   </section>
+
 </main>

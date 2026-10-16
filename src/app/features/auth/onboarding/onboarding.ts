@@ -3,8 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/auth/auth.service';
-import { describeGoogleAuthError } from '../../../core/auth/google-auth-error';
-import { describeMembershipError } from '../../../core/auth/membership-error';
 import { ApiService } from '../../../core/http/api.service';
 import { ApiError } from '../../../core/http/api-error';
 import { Logo } from '../../../core/ui/logo/logo';
@@ -15,7 +13,7 @@ export interface RegistrationSuccessInfo {
   tenantName: string;
 }
 
-/** Handles new business registration with email verification and Google onboarding. */
+/** Handles new business registration with email verification. */
 @Component({
   selector: 'app-onboarding',
   standalone: true,
@@ -35,12 +33,11 @@ export class Onboarding {
   readonly submitting = signal(false);
   readonly resending = signal(false);
   readonly resendSuccess = signal(false);
-  readonly submitMethod = signal<'google' | 'form' | null>(null);
+  readonly submitMethod = signal<'form' | null>(null);
   readonly showPassword = signal(false);
   readonly errorMessage = signal('');
   readonly registeredSuccess = signal<RegistrationSuccessInfo | null>(null);
 
-  /** Already signed in (e.g. with Google) but without a tenant yet — skip email verification. */
   readonly signedInEmail = computed(() => this.auth.user()?.email ?? null);
 
   constructor() {
@@ -48,28 +45,6 @@ export class Onboarding {
     if (user) {
       this.ownerName.set(user.displayName ?? '');
       this.email.set(user.email ?? '');
-    }
-  }
-
-  async signUpWithGoogle(): Promise<void> {
-    if (this.submitting()) return;
-
-    this.errorMessage.set('');
-    this.submitting.set(true);
-    this.submitMethod.set('google');
-    try {
-      const hasTenant = await this.auth.loginWithGoogle();
-      if (hasTenant) {
-        await this.router.navigateByUrl('/panel');
-        return;
-      }
-      this.ownerName.set(this.auth.user()?.displayName ?? '');
-      this.email.set(this.auth.user()?.email ?? '');
-    } catch (err) {
-      this.errorMessage.set(describeMembershipError(err, describeGoogleAuthError));
-    } finally {
-      this.submitting.set(false);
-      this.submitMethod.set(null);
     }
   }
 

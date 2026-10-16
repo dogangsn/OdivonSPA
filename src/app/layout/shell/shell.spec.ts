@@ -107,22 +107,22 @@ describe('Shell Component', () => {
     expect(shell).toBeTruthy();
   });
 
-  it('should have all menu groups expanded by default', () => {
-    expect(shell.allGroupsExpanded()).toBe(true);
-    expect(shell.isGroupExpanded('OPERASYON')).toBe(true);
-    expect(shell.isGroupExpanded('KATALOG')).toBe(true);
+  it('should have only GENEL expanded by default, and other groups collapsed', () => {
+    expect(shell.isGroupExpanded('GENEL')).toBe(true);
+    expect(shell.isGroupExpanded('OPERASYON')).toBe(false);
+    expect(shell.isGroupExpanded('KATALOG')).toBe(false);
+    expect(shell.isGroupExpanded('FİNANS')).toBe(false);
+    expect(shell.allGroupsExpanded()).toBe(false);
   });
 
   it('should collapse and expand individual menu groups on toggleGroup()', () => {
-    // Toggle OPERASYON to collapse it
-    shell.toggleGroup('OPERASYON');
-    expect(shell.isGroupExpanded('OPERASYON')).toBe(false);
-    expect(shell.allGroupsExpanded()).toBe(false);
-
-    // Toggle OPERASYON again to expand it
+    // Toggle OPERASYON to expand it
     shell.toggleGroup('OPERASYON');
     expect(shell.isGroupExpanded('OPERASYON')).toBe(true);
-    expect(shell.allGroupsExpanded()).toBe(true);
+
+    // Toggle OPERASYON again to collapse it
+    shell.toggleGroup('OPERASYON');
+    expect(shell.isGroupExpanded('OPERASYON')).toBe(false);
   });
 
   it('should collapse all groups with collapseAllGroups() and expand with expandAllGroups()', () => {

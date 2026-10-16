@@ -21,7 +21,7 @@
           if (!theme) {
             theme = localStorage.getItem('odivon-spa-theme');
           }
-          var isDark = theme === 'dark' || ((!theme || theme === 'system') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var isDark = theme === 'dark';
           if (isDark) {
             document.documentElement.classList.add('dark');
             document.documentElement.classList.remove('light');

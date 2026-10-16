@@ -24,7 +24,7 @@ export function removeCookie(name: string): void {
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  readonly mode = signal<ThemeMode>('system');
+  readonly mode = signal<ThemeMode>('light');
   readonly isDark = signal<boolean>(false);
 
   private mediaQuery?: MediaQueryList;
@@ -89,7 +89,7 @@ export class ThemeService {
     } catch {
       // Fallback
     }
-    return 'system';
+    return 'light';
   }
 
   private applyTheme(dark: boolean): void {

@@ -3,7 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/auth/auth.service';
+import { ThemeService } from '../../../core/services/theme.service';
 import { describeMembershipError } from '../../../core/auth/membership-error';
+import { toApiError } from '../../../core/http/api-error';
 import { Logo } from '../../../core/ui/logo/logo';
 
 @Component({
@@ -17,11 +19,20 @@ export class Login {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  readonly themeService = inject(ThemeService);
 
+  readonly activeTab = signal<'login' | 'register'>(
+    this.route.snapshot.queryParamMap.get('tab') === 'register' ? 'register' : 'login',
+  );
+
+  // Form Fields
   readonly email = signal('');
   readonly password = signal('');
+  readonly businessName = signal('');
+  readonly ownerName = signal('');
+
   readonly submitting = signal(false);
-  readonly submitMethod = signal<'password' | null>(null);
+  readonly submitMethod = signal<'password' | 'register' | null>(null);
   readonly showPassword = signal(false);
   readonly errorMessage = signal('');
   readonly updated = signal(this.route.snapshot.queryParamMap.get('updated') === '1');
@@ -32,6 +43,16 @@ export class Login {
   readonly unverifiedEmail = signal<string | null>(null);
   readonly resending = signal(false);
   readonly resendSuccess = signal(false);
+  readonly registerSuccess = signal(false);
+
+  setTab(tab: 'login' | 'register'): void {
+    this.activeTab.set(tab);
+    this.errorMessage.set('');
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggle();
+  }
 
   async submit(): Promise<void> {
     this.errorMessage.set('');
@@ -51,6 +72,26 @@ export class Login {
           describeMembershipError(err, () => 'E-posta veya şifre hatalı. Lütfen tekrar deneyin.'),
         );
       }
+    } finally {
+      this.submitting.set(false);
+      this.submitMethod.set(null);
+    }
+  }
+
+  async submitRegister(): Promise<void> {
+    this.errorMessage.set('');
+    this.submitting.set(true);
+    this.submitMethod.set('register');
+    try {
+      await this.auth.register({
+        tenantName: this.businessName(),
+        displayName: this.ownerName(),
+        email: this.email(),
+        password: this.password(),
+      });
+      this.registerSuccess.set(true);
+    } catch (err) {
+      this.errorMessage.set(toApiError(err).message);
     } finally {
       this.submitting.set(false);
       this.submitMethod.set(null);
